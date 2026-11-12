@@ -4,7 +4,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
 [
   {
     "expr": "neutral_camera",
-    "hash": "cmp_67c4b81b7ee51778af30473e671eeb4b0031ecef2031c0edc4e28a3bab865d1f",
+    "hash": "cmp_3aab14fa7435d37500db4913607604fc7439a03924303956f1450d79a2190622",
     "id": "img_38b2c4f56e954dd700f97492",
     "pose": "front_neutral",
     "preset": "front_crop",
@@ -19,7 +19,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_away",
-    "hash": "cmp_1d91031e703e1c9cf6cdcaf83d91ad8d8e9457fb2bfc1d2451506ba1dacc2d1c",
+    "hash": "cmp_7f2dc676de188bd16b21255cf0b899dae2ef7264a200d813737bcc30dcc006b4",
     "id": "img_8b4c8075854ecee8bb1a96cf",
     "pose": "tq_away_left",
     "preset": "three_quarter",
@@ -34,7 +34,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_766edeed276feb037560bf158eac5c4dd4ad309145ad5921a91f5be0796e5e86",
+    "hash": "cmp_25b54120b0cb901562e07a7f0e371f3deed27c9bb4accf4e4fc90bdf5081b6e9",
     "id": "img_0106a25df8ef1d2c0f3b3f30",
     "pose": "back_neutral",
     "preset": "back",
@@ -47,7 +47,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "soft_neutral_camera",
-    "hash": "cmp_2e73cd5fae434a56987150d6fe7caf80b50cb20521e6b49440aea746b8769491",
+    "hash": "cmp_c27df4135e3ad00b6025ff80eec485a4061ad7d3c971203962f1b068072c0388",
     "id": "img_896fe5fd0087a21d258eee72",
     "pose": "front_weight_shift",
     "preset": "full_body",
@@ -61,7 +61,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_f2552b7bd1636707a496b7c93b523a1aedfadf1d3dde7cbeeea88b66bea4d933",
+    "hash": "cmp_297c02c42b6bd7346b18d84ca06aecb3625696ae4820d47a1fc088ddb46b04cc",
     "id": "img_826ff3934934b4ef2ffef43e",
     "pose": "detail_still",
     "preset": "detail",
@@ -72,7 +72,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_camera",
-    "hash": "cmp_61e352d9aa377068109a5b5386aa718486c042580feafd8ebe6ae959bd4f176a",
+    "hash": "cmp_26ae9d9c0f6e63f16cf93223eee941ab73453fe2ff42b9ec6c6fcdbcadd2cdd7",
     "id": "img_d8bc1d1d8fa3f2047e2b2131",
     "pose": "front_neutral",
     "preset": "front_crop",
@@ -84,7 +84,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_away",
-    "hash": "cmp_58aeb653d0a1d3b712a38f4489f238c723301ba091e1fda8e57a2f55ff03a965",
+    "hash": "cmp_1cb677a1c7530f5a6b52c3cd38d6c3a90998a4700ef174babf194880011ba7f6",
     "id": "img_e6a8c6724abc90e1c9f6a121",
     "pose": "tq_away_left",
     "preset": "three_quarter",
@@ -96,7 +96,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_700f949ed958652fce4b778acedf17441c7c6a9c4ce970ef4fa43b2a3ac54d66",
+    "hash": "cmp_8e5d8d09eb7864143869a821e2823fae87454e75b9119414849d4cd369dbf635",
     "id": "img_288f6f3948289ca53fe1a7ac",
     "pose": "back_neutral",
     "preset": "back",
@@ -109,7 +109,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "soft_neutral_camera",
-    "hash": "cmp_96f8e8d6332ac7011e94eac0e4b07ea4b6b41b5c864cbc6172396cb83f61349e",
+    "hash": "cmp_7bc4021ab1cff788953dba186240f84795c55a4c00324f192d3420e3de1dd9ba",
     "id": "img_0e7c51aeb079c6fbeb232c76",
     "pose": "front_weight_shift",
     "preset": "full_body",
@@ -123,7 +123,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_d1832d76f1738246dbc461542cb3dd8aee71710799570298ab09f07997b10ae1",
+    "hash": "cmp_bdb0b36b0bfd749d5c425f127bd3abd3a8e416eae6baa0e061e880ffc6215987",
     "id": "img_af7a26ae45a683a877547b11",
     "pose": "detail_still",
     "preset": "detail",
@@ -134,7 +134,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_camera",
-    "hash": "cmp_dc4e75f7cc5988974e1677f815ddef8662a2de11a01c2f248c1e8114cc83e6b5",
+    "hash": "cmp_87968d8cacd928d806c9151ef46667f1a434931422463252ab319038b92606f4",
     "id": "img_c8adf68633ea53fbb87601ea",
     "pose": "front_neutral",
     "preset": "front_crop",
@@ -149,7 +149,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_away",
-    "hash": "cmp_29c5575bab19ce8add3e60458175cccd14af179715c17060e844747c8fc993be",
+    "hash": "cmp_9c8e81890b4a0f6e59dd35362973781638b9d4566f2469a351e70c2fae9629ec",
     "id": "img_5a611cae61a4e9cd138a2c6c",
     "pose": "tq_away_left",
     "preset": "three_quarter",
@@ -164,7 +164,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_1b172598642e1d661f38664d1644b1de6397324ba713f905803ce7f678fa5926",
+    "hash": "cmp_442f024035ffcaa3178f0f01602e7962c055b6edac5eb601b51aac22e37c1648",
     "id": "img_abae3cc68572abc234ff18b0",
     "pose": "back_neutral",
     "preset": "back",
@@ -177,7 +177,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "soft_neutral_camera",
-    "hash": "cmp_fc125a8b41f76e3a61b9c75f07177523ca51b5aeb384b5005c29d68c88aecb35",
+    "hash": "cmp_7439af474953e56a962f9d0302a673883010926d8a0ef23bb9e8fcf764f35b9e",
     "id": "img_a701e44c5b29e401cf7030ce",
     "pose": "front_weight_shift",
     "preset": "full_body",
@@ -191,7 +191,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_58f14b9331ebd6e5ba960e923a0bb754db352418ecd8ea3efdec18ba350f7c0d",
+    "hash": "cmp_256ef4b5739e111e4784af809e6426baa5fc22aad38421244797b45165ec335b",
     "id": "img_adb689893d05356b8ccf9559",
     "pose": "detail_still",
     "preset": "detail",
@@ -206,6 +206,13 @@ exports[`compiler determinism > matches the golden output 1`] = `
 
 exports[`compiler determinism > matches the golden output 2`] = `
 "Professional e-commerce fashion photograph of an original fictional adult woman, 24 years old. She is not a real or identifiable person and must not resemble one. If any instruction below conflicts, follow the earlier section.
+
+Reference images, in the order attached:
+1. garment packshot, front (authority for garment and fit)
+2. identity portrait of the model (authority for face and hair)
+3. full-body reference of the same model, front (body proportions only, ignore clothing)
+4. facial detail sheet of the same model (skin and facial detail only)
+5. expression sheet of the same model (expression only)
 
 Garment: Satin halter top (top, black). Satin halter top with a deep V neckline, gathered bust, ruched waistband and open back. Reproduce the garment exactly as shown in the garment reference images: construction, seams, neckline, closures, length, colour, print, texture and transparency. Do not add, remove or redesign any element. Halter neckline and neck fastening exactly as in the packshot. The back is open as in the back packshot; front views must not reveal back construction that is not visible from the front. Satin sheen follows the folds of the fabric; soft highlights, no plastic look.
 

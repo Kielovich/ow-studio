@@ -1,6 +1,6 @@
 import { hashOf } from "./canonical.js";
 import { planPoses } from "./poses.js";
-import { selectReferences } from "./references.js";
+import { ROLE_LABELS, selectReferences } from "./references.js";
 import {
   OUTERWEAR_CATEGORIES,
   ProductionSpec,
@@ -94,7 +94,11 @@ export function compileImage(spec: ImageSpec, assignment: PoseAssignment, profil
   const { refs, conflicts } = selectReferences(spec, assignment, profile);
   const instructionBlocks = buildBlocks(spec, assignment);
   const exclusions = buildExclusions(spec);
-  const prompt = [...instructionBlocks.map((b) => b.text), `Avoid: ${exclusions.join("; ")}.`].join("\n\n");
+  const legend = refs.length
+    ? `Reference images, in the order attached:\n${refs.map((r, i) => `${i + 1}. ${ROLE_LABELS[r.role]}`).join("\n")}`
+    : "";
+  const [first, ...rest] = instructionBlocks.map((b) => b.text);
+  const prompt = [first, legend, ...rest, `Avoid: ${exclusions.join("; ")}.`].filter(Boolean).join("\n\n");
   const size = outputSize(spec.style);
   const params: CompiledRequest["params"] = { aspectRatio: spec.style.aspectRatio, ...size };
   if (profile.supportsSeed) params.seed = parseInt(hashOf(["seed", spec.imageSpecId]).slice(0, 8), 16);

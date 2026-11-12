@@ -139,6 +139,8 @@ export const ProviderProfile = z.object({
   /** Only true after a capability test against the real provider. */
   verified: z.boolean(),
   maxRefs: z.number().int().min(0).max(32),
+  /** Optional sub-limit for person references (identity, body, face, expression). */
+  maxIdentityRefs: z.number().int().min(0).max(32).optional(),
   supportsSeed: z.boolean(),
   supportsIdempotencyKey: z.boolean(),
   aspectRatios: z.array(AspectRatio).min(1),

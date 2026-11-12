@@ -38,7 +38,7 @@ export type GeneratedAsset = { bytes: Uint8Array; mime: string; width: number; h
 
 export type ProviderStatus =
   | { state: "running" }
-  | { state: "succeeded"; assets: GeneratedAsset[]; costUsd: number }
+  | { state: "succeeded"; assets: GeneratedAsset[]; costUsd: number; usage?: unknown }
   | { state: "failed"; error: ProviderError; costUsd: number };
 
 /** The only boundary that talks to an image provider. Credentials live inside the adapter, server-side. */

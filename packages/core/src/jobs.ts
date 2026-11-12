@@ -80,13 +80,19 @@ export function idempotencyKey(job: Pick<JobRecord, "imageSpecId" | "compileHash
 
 export type ValidationReport = { ok: boolean; reasons: string[] };
 
-/** Cheap structural checks. Visual heuristics (background, identity, colour) plug in here later. */
+/**
+ * Cheap structural checks. Providers render at their own native sizes (e.g. 2048 for a 2K tier),
+ * so we require the right aspect ratio and at least the requested size; export resizes down.
+ * Visual heuristics (background, identity, colour) plug in here later.
+ */
 export function validateResult(status: Extract<ProviderStatus, { state: "succeeded" }>, request: CompiledRequest): ValidationReport {
   const reasons: string[] = [];
   if (status.assets.length === 0) reasons.push("provider returned no image");
+  const want = request.params;
   for (const a of status.assets) {
-    if (a.width !== request.params.width || a.height !== request.params.height) {
-      reasons.push(`size ${a.width}x${a.height} does not match requested ${request.params.width}x${request.params.height}`);
+    const ratioOff = Math.abs(a.width / a.height - want.width / want.height) / (want.width / want.height);
+    if (ratioOff > 0.01 || a.width < want.width || a.height < want.height) {
+      reasons.push(`size ${a.width}x${a.height} does not match requested ${want.width}x${want.height} (aspect ${want.aspectRatio}, at least that size)`);
     }
   }
   return { ok: reasons.length === 0, reasons };
@@ -164,7 +170,13 @@ export async function runJob(jobId: string, d: RunDeps): Promise<JobRecord> {
     let status: ProviderStatus;
     let polls = 0;
     for (;;) {
-      status = await d.adapter.poll(job.providerJobId!);
+      try {
+        status = await d.adapter.poll(job.providerJobId!);
+      } catch (e) {
+        if (!(e instanceof ProviderError)) throw e;
+        status = { state: "failed", error: e, costUsd: 0 };
+        break;
+      }
       if (status.state !== "running") break;
       if (++polls >= d.policy.maxPolls) {
         status = { state: "failed", error: new ProviderError("timeout_after_accept"), costUsd: 0 };

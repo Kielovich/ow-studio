@@ -30,6 +30,25 @@ export const PRESET_ROLES: Record<PresetId, RefRole[]> = {
   detail: ["garment_detail", "garment_front"],
 };
 
+/** Roles that depict the person (count against a provider's character/person limit). */
+const PERSON_ROLES: readonly RefRole[] = ["identity_primary", "identity_angle", "character_sheet", "facial_detail", "body_front", "body_back", "expression_sheet"];
+
+/** Human-readable role descriptions used in the prompt's reference legend. */
+export const ROLE_LABELS: Record<RefRole, string> = {
+  garment_front: "garment packshot, front (authority for garment and fit)",
+  garment_back: "garment packshot, back (authority for garment and fit)",
+  garment_side: "garment packshot, side (authority for garment and fit)",
+  garment_detail: "garment detail packshot (authority for fabric and finish)",
+  identity_primary: "identity portrait of the model (authority for face and hair)",
+  identity_angle: "additional angle of the same model (identity only)",
+  character_sheet: "character sheet of the same model (identity and hair only)",
+  facial_detail: "facial detail sheet of the same model (skin and facial detail only)",
+  body_front: "full-body reference of the same model, front (body proportions only, ignore clothing)",
+  body_back: "full-body reference of the same model, back (body proportions only, ignore clothing)",
+  expression_sheet: "expression sheet of the same model (expression only)",
+  pose: "pose reference (pose only; ignore its person, face and clothing)",
+};
+
 /** Roles that only make sense when a face is in frame. */
 const FACE_ROLES: readonly RefRole[] = ["identity_primary", "identity_angle", "facial_detail", "expression_sheet"];
 
@@ -91,8 +110,18 @@ export function selectReferences(spec: ImageSpec, assignment: PoseAssignment, pr
   if (profile.maxRefs < 1 && wanted.length > 0) {
     conflicts.push({ ...base, code: "PROVIDER_NO_REFERENCES", severity: "error", message: `Provider ${profile.id} accepts no reference images; garment fidelity cannot be guaranteed` });
   }
-  const refs = wanted.slice(0, profile.maxRefs);
-  const dropped = wanted.slice(profile.maxRefs);
+  // Apply the person-reference sub-limit first, then the overall limit. Both drop from the low-priority end.
+  const kept: RefSlot[] = [];
+  const dropped: RefSlot[] = [];
+  let personRefs = 0;
+  for (const ref of wanted) {
+    const isPerson = PERSON_ROLES.includes(ref.role);
+    if (isPerson && profile.maxIdentityRefs !== undefined && personRefs >= profile.maxIdentityRefs) { dropped.push(ref); continue; }
+    if (kept.length >= profile.maxRefs) { dropped.push(ref); continue; }
+    if (isPerson) personRefs++;
+    kept.push(ref);
+  }
+  const refs = kept;
   if (dropped.length > 0 && profile.maxRefs > 0) {
     conflicts.push({ ...base, code: "REFS_TRIMMED", severity: "warning", message: `Provider limit ${profile.maxRefs}: dropped ${dropped.map((d) => d.role).join(", ")}` });
   }
