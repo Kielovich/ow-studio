@@ -1,0 +1,227 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`compiler determinism > matches the golden output 1`] = `
+[
+  {
+    "expr": "neutral_camera",
+    "hash": "cmp_67c4b81b7ee51778af30473e671eeb4b0031ecef2031c0edc4e28a3bab865d1f",
+    "id": "img_38b2c4f56e954dd700f97492",
+    "pose": "front_neutral",
+    "preset": "front_crop",
+    "refs": [
+      "garment_front",
+      "identity_primary",
+      "body_front",
+      "facial_detail",
+      "expression_sheet",
+    ],
+    "sku": "TEST-DR-001",
+  },
+  {
+    "expr": "neutral_away",
+    "hash": "cmp_1d91031e703e1c9cf6cdcaf83d91ad8d8e9457fb2bfc1d2451506ba1dacc2d1c",
+    "id": "img_8b4c8075854ecee8bb1a96cf",
+    "pose": "tq_away_left",
+    "preset": "three_quarter",
+    "refs": [
+      "garment_front",
+      "identity_primary",
+      "identity_angle",
+      "body_front",
+      "facial_detail",
+    ],
+    "sku": "TEST-DR-001",
+  },
+  {
+    "expr": "none",
+    "hash": "cmp_766edeed276feb037560bf158eac5c4dd4ad309145ad5921a91f5be0796e5e86",
+    "id": "img_0106a25df8ef1d2c0f3b3f30",
+    "pose": "back_neutral",
+    "preset": "back",
+    "refs": [
+      "garment_back",
+      "body_back",
+      "character_sheet",
+    ],
+    "sku": "TEST-DR-001",
+  },
+  {
+    "expr": "soft_neutral_camera",
+    "hash": "cmp_2e73cd5fae434a56987150d6fe7caf80b50cb20521e6b49440aea746b8769491",
+    "id": "img_896fe5fd0087a21d258eee72",
+    "pose": "front_weight_shift",
+    "preset": "full_body",
+    "refs": [
+      "garment_front",
+      "body_front",
+      "identity_primary",
+      "facial_detail",
+    ],
+    "sku": "TEST-DR-001",
+  },
+  {
+    "expr": "none",
+    "hash": "cmp_f2552b7bd1636707a496b7c93b523a1aedfadf1d3dde7cbeeea88b66bea4d933",
+    "id": "img_826ff3934934b4ef2ffef43e",
+    "pose": "detail_still",
+    "preset": "detail",
+    "refs": [
+      "garment_front",
+    ],
+    "sku": "TEST-DR-001",
+  },
+  {
+    "expr": "neutral_camera",
+    "hash": "cmp_61e352d9aa377068109a5b5386aa718486c042580feafd8ebe6ae959bd4f176a",
+    "id": "img_d8bc1d1d8fa3f2047e2b2131",
+    "pose": "front_neutral",
+    "preset": "front_crop",
+    "refs": [
+      "garment_front",
+      "body_front",
+    ],
+    "sku": "TEST-PT-003",
+  },
+  {
+    "expr": "neutral_away",
+    "hash": "cmp_58aeb653d0a1d3b712a38f4489f238c723301ba091e1fda8e57a2f55ff03a965",
+    "id": "img_e6a8c6724abc90e1c9f6a121",
+    "pose": "tq_away_left",
+    "preset": "three_quarter",
+    "refs": [
+      "garment_front",
+      "body_front",
+    ],
+    "sku": "TEST-PT-003",
+  },
+  {
+    "expr": "none",
+    "hash": "cmp_700f949ed958652fce4b778acedf17441c7c6a9c4ce970ef4fa43b2a3ac54d66",
+    "id": "img_288f6f3948289ca53fe1a7ac",
+    "pose": "back_neutral",
+    "preset": "back",
+    "refs": [
+      "garment_back",
+      "body_back",
+      "character_sheet",
+    ],
+    "sku": "TEST-PT-003",
+  },
+  {
+    "expr": "soft_neutral_camera",
+    "hash": "cmp_96f8e8d6332ac7011e94eac0e4b07ea4b6b41b5c864cbc6172396cb83f61349e",
+    "id": "img_0e7c51aeb079c6fbeb232c76",
+    "pose": "front_weight_shift",
+    "preset": "full_body",
+    "refs": [
+      "garment_front",
+      "body_front",
+      "identity_primary",
+      "facial_detail",
+    ],
+    "sku": "TEST-PT-003",
+  },
+  {
+    "expr": "none",
+    "hash": "cmp_d1832d76f1738246dbc461542cb3dd8aee71710799570298ab09f07997b10ae1",
+    "id": "img_af7a26ae45a683a877547b11",
+    "pose": "detail_still",
+    "preset": "detail",
+    "refs": [
+      "garment_front",
+    ],
+    "sku": "TEST-PT-003",
+  },
+  {
+    "expr": "neutral_camera",
+    "hash": "cmp_dc4e75f7cc5988974e1677f815ddef8662a2de11a01c2f248c1e8114cc83e6b5",
+    "id": "img_c8adf68633ea53fbb87601ea",
+    "pose": "front_neutral",
+    "preset": "front_crop",
+    "refs": [
+      "garment_front",
+      "identity_primary",
+      "body_front",
+      "facial_detail",
+      "expression_sheet",
+    ],
+    "sku": "TEST-TP-002",
+  },
+  {
+    "expr": "neutral_away",
+    "hash": "cmp_29c5575bab19ce8add3e60458175cccd14af179715c17060e844747c8fc993be",
+    "id": "img_5a611cae61a4e9cd138a2c6c",
+    "pose": "tq_away_left",
+    "preset": "three_quarter",
+    "refs": [
+      "garment_front",
+      "identity_primary",
+      "identity_angle",
+      "body_front",
+      "facial_detail",
+    ],
+    "sku": "TEST-TP-002",
+  },
+  {
+    "expr": "none",
+    "hash": "cmp_1b172598642e1d661f38664d1644b1de6397324ba713f905803ce7f678fa5926",
+    "id": "img_abae3cc68572abc234ff18b0",
+    "pose": "back_neutral",
+    "preset": "back",
+    "refs": [
+      "garment_back",
+      "body_back",
+      "character_sheet",
+    ],
+    "sku": "TEST-TP-002",
+  },
+  {
+    "expr": "soft_neutral_camera",
+    "hash": "cmp_fc125a8b41f76e3a61b9c75f07177523ca51b5aeb384b5005c29d68c88aecb35",
+    "id": "img_a701e44c5b29e401cf7030ce",
+    "pose": "front_weight_shift",
+    "preset": "full_body",
+    "refs": [
+      "garment_front",
+      "body_front",
+      "identity_primary",
+      "facial_detail",
+    ],
+    "sku": "TEST-TP-002",
+  },
+  {
+    "expr": "none",
+    "hash": "cmp_58f14b9331ebd6e5ba960e923a0bb754db352418ecd8ea3efdec18ba350f7c0d",
+    "id": "img_adb689893d05356b8ccf9559",
+    "pose": "detail_still",
+    "preset": "detail",
+    "refs": [
+      "garment_detail",
+      "garment_front",
+    ],
+    "sku": "TEST-TP-002",
+  },
+]
+`;
+
+exports[`compiler determinism > matches the golden output 2`] = `
+"Professional e-commerce fashion photograph of an original fictional adult woman, 24 years old. She is not a real or identifiable person and must not resemble one. If any instruction below conflicts, follow the earlier section.
+
+Garment: Satin halter top (top, black). Satin halter top with a deep V neckline, gathered bust, ruched waistband and open back. Reproduce the garment exactly as shown in the garment reference images: construction, seams, neckline, closures, length, colour, print, texture and transparency. Do not add, remove or redesign any element. Halter neckline and neck fastening exactly as in the packshot. The back is open as in the back packshot; front views must not reveal back construction that is not visible from the front. Satin sheen follows the folds of the fabric; soft highlights, no plastic look.
+
+Identity: the same woman as in the identity reference images. Straight brows, narrow jaw, defined cheekbones;dark-brown eyes; olive skin; long straight dark-brown hair. Keep face shape, features, skin tone and hair colour identical to the references. Hair styled: sleek, tucked behind the ears.
+
+Body: 178 cm tall, EU size 36, proportions exactly as in the full-body reference. The garment fits as it would on EU size 36: natural tension and folds where it meets the body.
+
+Straight-on front view, camera at chest height, short telephoto look (about 85 mm full-frame equivalent), no perspective distortion. Crop from just above the head to mid-thigh. The entire front of the garment is visible and unobstructed.
+
+Background: seamless flat neutral grey, RGB 241,241,241, no gradient, no vignette, no props. Lighting: soft, high frontal key light with low contrast and soft natural shadows. Colour: neutral, true to the garment; blacks keep detail. Retouching: clean but natural, real skin texture, pores and small asymmetries kept; no smoothing or plastic look.
+
+Pose: Standing square to the camera, weight evenly on both feet, feet hip-width apart, arms hanging relaxed at the sides with open, softly curved fingers, shoulders relaxed and level, head straight.
+
+Expression: Neutral, relaxed expression, lips closed, calm direct gaze into the camera.
+
+Styling (secondary, must not draw attention from the garment): bottoms: straight light-blue jeans.
+
+Avoid: text, logos, watermarks or brand marks not present on the garment; any change to garment colour, length, neckline, closures or transparency; extra garments or layers covering the product; smoothed, waxy or plastic-looking skin; extra, missing or fused fingers; distorted hands or limbs; props, furniture or background texture."
+`;
