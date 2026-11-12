@@ -8,6 +8,9 @@
  */
 import { mkdir, writeFile } from "node:fs/promises";
 import { GEMINI_ENDPOINT, GEMINI_API_REVISION, GEMINI_NB21_PROFILE, GEMINI_PRO_PROFILE, extractImages, imageDimensions } from "../src/index.js";
+import { loadLocalSecrets } from "../src/secrets.js";
+
+loadLocalSecrets();
 
 const args = process.argv.slice(2);
 const confirm = args.includes("--confirm");
