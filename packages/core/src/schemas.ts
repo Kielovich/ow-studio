@@ -80,6 +80,8 @@ export type ModelVersion = z.infer<typeof ModelVersion>;
 export const Styling = z.object({
   hairState: z.string().min(1),
   bottoms: z.string().optional(),
+  /** Worn under outerwear products (e.g. a plain top under an open jacket). */
+  innerTop: z.string().optional(),
   footwear: z.string().optional(),
   legwear: z.string().optional(),
   /** Only rendered in the styled full-body shot. */

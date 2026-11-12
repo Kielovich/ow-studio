@@ -1,7 +1,7 @@
 import { garmentConstraintLines } from "./garmentConstraints.js";
 import { getExpression, getPose } from "./poses.js";
 import { PRESETS } from "./presets.js";
-import { BOTTOM_CATEGORIES, type ImageSpec, type InstructionBlock, type PoseAssignment } from "./schemas.js";
+import { BOTTOM_CATEGORIES, OUTERWEAR_CATEGORIES, type ImageSpec, type InstructionBlock, type PoseAssignment } from "./schemas.js";
 
 /** Bump when any wording below changes. Part of every compileHash. */
 export const TEMPLATE_VERSION = "tpl-2026.11.1";
@@ -78,6 +78,7 @@ export function buildBlocks(spec: ImageSpec, a: PoseAssignment): InstructionBloc
   if (expr && face && def.expressionApplies) add("expression", `Expression: ${expr.text}`);
 
   const styling: string[] = [];
+  if (OUTERWEAR_CATEGORIES.includes(p.category) && st.innerTop) styling.push(`worn over: ${st.innerTop}`);
   if (!BOTTOM_CATEGORIES.includes(p.category) && p.category !== "dress" && st.bottoms) styling.push(`bottoms: ${st.bottoms}`);
   if (def.feetVisible(p.category) && st.footwear) styling.push(`footwear: ${st.footwear}`);
   if (def.feetVisible(p.category) && st.legwear) styling.push(`legwear: ${st.legwear}`);
