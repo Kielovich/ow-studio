@@ -2,7 +2,7 @@
  * ONE paid Gemini call to verify auth, request shape and response parsing against the real API.
  * It generates a first identity-portrait candidate for model M01 "Sable" (no references, so no garment rights needed).
  *
- *   npm run smoke -w @ow-studio/core -- --confirm [--model gemini-3-pro-image]
+ *   npm run smoke -w @ow-studio/core -- --confirm [--model gemini-nano-banana-2.1]
  *
  * Without --confirm it prints the request and the estimated cost and exits without calling the API.
  */
@@ -15,7 +15,8 @@ loadLocalSecrets();
 const args = process.argv.slice(2);
 const confirm = args.includes("--confirm");
 const modelArg = args[args.indexOf("--model") + 1];
-const profile = modelArg === GEMINI_PRO_PROFILE.id ? GEMINI_PRO_PROFILE : GEMINI_NB21_PROFILE;
+// Nano Banana Pro is the default model for this project.
+const profile = modelArg === GEMINI_NB21_PROFILE.id ? GEMINI_NB21_PROFILE : GEMINI_PRO_PROFILE;
 
 const prompt = [
   "Professional fashion casting portrait of an original fictional adult woman, 24 years old. She is not a real or identifiable person and must not resemble one.",
@@ -48,7 +49,7 @@ await mkdir("out", { recursive: true });
 let json: any = null;
 try { json = JSON.parse(text); } catch { /* not JSON */ }
 // Keep the raw response (without image data) so the real shape and usage fields can be checked.
-await writeFile("out/smoke-response.json", JSON.stringify(json ?? text, (k, v) => (k === "data" && typeof v === "string" && v.length > 200 ? `<${v.length} base64 chars>` : v), 2));
+await writeFile("out/smoke-response.json", JSON.stringify(json ?? text, (k, v) => ((k === "data" || k === "signature") && typeof v === "string" && v.length > 200 ? `<${v.length} base64 chars>` : v), 2));
 if (!res.ok) { console.log(text.slice(0, 800)); process.exit(1); }
 const imgs = extractImages(json);
 console.log(`images: ${imgs.length}`);
