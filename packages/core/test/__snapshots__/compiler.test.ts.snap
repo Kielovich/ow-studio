@@ -4,7 +4,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
 [
   {
     "expr": "calm_camera",
-    "hash": "cmp_e9c0cd7f60fe9817a8dee97ac05937b4fa3900e8ae113c583333e00456ab9cc7",
+    "hash": "cmp_547d757dc00e18769f0d2f080793c5c8f82e3d9c1fad11773b30b0dff5c286a7",
     "id": "img_38b2c4f56e954dd700f97492",
     "pose": "front_soft_knee",
     "preset": "front_crop",
@@ -19,7 +19,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_away",
-    "hash": "cmp_605a196b7aab61b4847c140b380c70b2692ded3f56fbd834d1fa7ca8d9c67e6b",
+    "hash": "cmp_f6482c0431878904faa47a7cf1c112834392a5e45e031abd9ff46702f33c85bd",
     "id": "img_8b4c8075854ecee8bb1a96cf",
     "pose": "tq_away_left",
     "preset": "three_quarter",
@@ -34,7 +34,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_1731cfb9fa18f5834158ff99f2bed30e978baae678e4c82a7ff2bb7120256644",
+    "hash": "cmp_8a9c3cd70d9973d5f84fc556435e84ab7f07dfd43acde295ea034cfb32772b81",
     "id": "img_0106a25df8ef1d2c0f3b3f30",
     "pose": "back_neutral",
     "preset": "back",
@@ -47,7 +47,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_camera",
-    "hash": "cmp_336caaf20ebedaa28b86140fadbde80067cfcfe47f68893dac619f6324c1f922",
+    "hash": "cmp_ab6db667af7c5a83fd3cfdfe6340278c056933e6105cedd580de83806a359c55",
     "id": "img_896fe5fd0087a21d258eee72",
     "pose": "front_neutral",
     "preset": "full_body",
@@ -62,7 +62,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_2c12982aca4250af8ca812f1b3a87ce61675dc319395477f19a70f4a2c92f86c",
+    "hash": "cmp_eaac919206bc1f2e9541386662d2cc80d9a45640c45de2727d090ce46a8a1b65",
     "id": "img_826ff3934934b4ef2ffef43e",
     "pose": "detail_still",
     "preset": "detail",
@@ -74,7 +74,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "calm_camera",
-    "hash": "cmp_8d50a9c97389cea1fa587b634e26218806f21df60fe0fea0073ae6ab9efef9ed",
+    "hash": "cmp_3052014c14693f1206a5b41ddddf567d0989aac8c447409bd86258f948a8631f",
     "id": "img_d8bc1d1d8fa3f2047e2b2131",
     "pose": "front_soft_knee",
     "preset": "front_crop",
@@ -86,7 +86,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_away",
-    "hash": "cmp_dd64fd5a0df196bb19f6391a8cee7b86d99f82f8b81f18a06f1a12a82f2f11e6",
+    "hash": "cmp_6b90875c6e5183e6a71be1bac2144cf73742d26a52798cece49519f6cb2f64ed",
     "id": "img_e6a8c6724abc90e1c9f6a121",
     "pose": "tq_away_left",
     "preset": "three_quarter",
@@ -98,7 +98,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_645cac15e010f72076b7baa4156e07dce12ccdf947a72c5f26d1cec2b845027b",
+    "hash": "cmp_165ff30097d81ca1a8d60275ea8e73092cbeee343009c9fe1d88c929dc34b5e2",
     "id": "img_288f6f3948289ca53fe1a7ac",
     "pose": "back_neutral",
     "preset": "back",
@@ -111,7 +111,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_camera",
-    "hash": "cmp_0d05e88a2c5e54fd1d262691b59335426ca6692b146ac411c8c056abbba58964",
+    "hash": "cmp_a9aefbaef8a0d5e001e1458ad9fd2b94aab7648542e73221a5730263f06cfd8f",
     "id": "img_0e7c51aeb079c6fbeb232c76",
     "pose": "front_neutral",
     "preset": "full_body",
@@ -124,7 +124,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_424ca4d7e43a529f192fee0e6a1fcac595d10e2da8a746aafee947a0bad9f838",
+    "hash": "cmp_de691bfa9892d723968e3dc451c35555b7391126b442c17587572785b23c90c5",
     "id": "img_af7a26ae45a683a877547b11",
     "pose": "detail_still",
     "preset": "detail",
@@ -136,7 +136,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "calm_camera",
-    "hash": "cmp_2861adb2b1bf5a8c01fbaeccda64d114410ecdd1dc90175bc3181fc0fbdba618",
+    "hash": "cmp_c59a00f588c2cc6981d01e5c2350c1e9da7a0e7920aacbe128bf3b69fdfacbc0",
     "id": "img_c8adf68633ea53fbb87601ea",
     "pose": "front_soft_knee",
     "preset": "front_crop",
@@ -151,7 +151,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_away",
-    "hash": "cmp_0cea67233fccf10ee97e1476119f35b8edd04ec5d69d8b7e04b9eecb7f4b8523",
+    "hash": "cmp_24e335d914c695c589223be113130a11f7e216f39427b13c5147a799161e3227",
     "id": "img_5a611cae61a4e9cd138a2c6c",
     "pose": "tq_away_left",
     "preset": "three_quarter",
@@ -166,7 +166,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_d72881b3fcd671117ae5445227f762f14a6bb1d6b12acd38f5f3d08f8e882874",
+    "hash": "cmp_68a55b17eb2f0cbb9a67173f843c11dff2e91f6760aeff824d4df85b4a0a0ec2",
     "id": "img_abae3cc68572abc234ff18b0",
     "pose": "back_neutral",
     "preset": "back",
@@ -179,7 +179,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_camera",
-    "hash": "cmp_2a3d8b593077097fc1bd16db4b60fa49ed8a2ef0268f69a4ffff90d02a20afd0",
+    "hash": "cmp_d36251eb2d242b91c5e48d5f3f54ed7e5b68225ed018419d368ab4debefe4ab5",
     "id": "img_a701e44c5b29e401cf7030ce",
     "pose": "front_neutral",
     "preset": "full_body",
@@ -194,7 +194,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_482946024f8362fb07b5c322ccae3ae2df3aaddbb588518ab19a8f8c5b697ae6",
+    "hash": "cmp_418ac21e02b86e24c3a1d0f92a11d86e716d0d029e3fbf8e3ebb31cc06307ce2",
     "id": "img_adb689893d05356b8ccf9559",
     "pose": "detail_still",
     "preset": "detail",
@@ -228,7 +228,7 @@ Straight-on front view, camera at chest height, short telephoto look (about 85 m
 
 Background: seamless flat neutral grey, RGB 241,241,241, no gradient, no vignette, no props. Lighting: soft, high frontal key light with low contrast and soft natural shadows. Colour: neutral, true to the garment; blacks keep detail. Skin and retouching: true photographic skin as from a full-frame camera, natural micro-contrast and very subtle grain; pores visible on the nose, cheeks and forehead, fine peach fuzz, small natural asymmetries; natural sheen only on the high points of the face instead of an even glow; clean but untouched-looking retouching.
 
-Pose: Standing facing the camera, weight almost even with one knee softly relaxed, feet close together a few centimetres apart, arms hanging straight down close to the body with loose fingers, shoulders down and level, chin neutral.
+Pose: Standing facing the camera, weight almost even with one knee softly relaxed, feet close together a few centimetres apart, arms hanging straight down close to the body with loose fingers, shoulders down and level, chin neutral. The legs continue naturally below the frame; the feet are not in the picture.
 
 Expression: Calm, composed expression, lips closed, relaxed brow, steady gaze into the camera.
 

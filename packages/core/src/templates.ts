@@ -5,7 +5,7 @@ import { PRESETS } from "./presets";
 import { BOTTOM_CATEGORIES, OUTERWEAR_CATEGORIES, type ImageSpec, type InstructionBlock, type PoseAssignment } from "./schemas";
 
 /** Bump when any wording below changes. Part of every compileHash. */
-export const TEMPLATE_VERSION = "tpl-2026.11.9";
+export const TEMPLATE_VERSION = "tpl-2026.11.10";
 
 /** Instruction priorities. Lower number wins when instructions conflict. */
 export const PRIORITY = {
@@ -99,7 +99,7 @@ export function buildBlocks(spec: ImageSpec, a: PoseAssignment): InstructionBloc
       : ``));
 
   const pose = getPose(a.poseId);
-  if (pose) add("pose", `Pose: ${pose.text}`);
+  if (pose) add("pose", `Pose: ${pose.text}${def.feetVisible(p.category) ? "" : " The legs continue naturally below the frame; the feet are not in the picture."}`);
 
   const expr = getExpression(a.expressionId);
   if (expr && face && def.expressionApplies) add("expression", `Expression: ${expr.text}`);

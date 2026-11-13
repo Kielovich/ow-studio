@@ -121,6 +121,18 @@ describe("locks in the payload", () => {
     expect(s.three_quarter_full!.refs.map((x) => x.role)).toContain("identity_angle");
   });
 
+  it("framing lock: upper-body garments keep the feet out of frame except in the styled shot", () => {
+    const jacket = { ...PRODUCT_HALTER_TOP, sku: "JKT-1", category: "jacket" as const, flags: ["fur"] as ("fur")[] };
+    const s = byPreset(compileProduction(brandSet({ products: [jacket] }), profile).images);
+    for (const p of ["full_body", "three_quarter_full", "back_full"]) {
+      expect(block(s[p]!, "framing")).toMatch(/Head to mid-thigh/);
+      expect(block(s[p]!, "pose")).toMatch(/the feet are not in the picture/);
+      expect(block(s[p]!, "styling") ?? "").not.toMatch(/footwear/);
+    }
+    expect(block(s.styled_full!, "framing")).toMatch(/Full body head to toe/);
+    expect(block(s.styled_full!, "styling")).toMatch(/footwear/);
+  });
+
   it("colour lock: the measured colour is stated in every shot", () => {
     for (const i of Object.values(r)) expect(block(i, "garment")).toMatch(/dominant colour measured from the packshot is #1b1a1c/);
   });
