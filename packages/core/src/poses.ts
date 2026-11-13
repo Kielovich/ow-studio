@@ -32,7 +32,7 @@ export const POSES: readonly Pose[] = [
   { id: "front_neutral", presets: ["front_crop", "full_body"], torsoYaw: 0, headYaw: 0, weight: "even", arms: { left: "relaxed", right: "relaxed" }, naturalness: 1, calm: true,
     text: "Standing square to the camera, weight evenly on both feet, feet close together a few centimetres apart, arms hanging straight down close to the body with relaxed, softly curved fingers, shoulders relaxed and level, head straight." },
   { id: "front_soft_knee", presets: ["front_crop", "full_body"], torsoYaw: 0, headYaw: 0, weight: "even", arms: { left: "relaxed", right: "relaxed" }, naturalness: 0.98, calm: true,
-    text: "Standing facing the camera, weight almost even with one knee softly relaxed, feet hip-width apart, arms hanging naturally with loose fingers, shoulders down and level, chin neutral." },
+    text: "Standing facing the camera, weight almost even with one knee softly relaxed, feet close together a few centimetres apart, arms hanging straight down close to the body with loose fingers, shoulders down and level, chin neutral." },
   { id: "front_weight_shift", presets: ["front_crop", "full_body", "styled_full"], torsoYaw: 0, headYaw: 0, weight: "left", arms: { left: "relaxed", right: "relaxed" }, naturalness: 0.95, calm: false,
     text: "Standing facing the camera with weight shifted onto one leg, the other knee slightly bent, hips subtly angled, arms relaxed at the sides, head straight." },
   { id: "front_hand_hem", presets: ["front_crop", "full_body"], torsoYaw: 0, headYaw: 0, weight: "right", arms: { left: "relaxed", right: "hem" }, naturalness: 0.85, calm: false,

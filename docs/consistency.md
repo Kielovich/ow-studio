@@ -49,3 +49,10 @@ Audit of the first real production made in the app (`prod_20261113_54a472`, mesh
 - **Garment:** the hem is on the correct side in all shots of both runs (checked on full-resolution crops), and the panel layout is closer to the packshot.
 - **Not built:** an automatic on-model hem-side check. A prototype misread outputs because the black bag merged with the garment mask, so it was dropped instead of shipping an unreliable validator.
 - **Dev environment:** runtime data moved from `.data/` to `~/.ow-studio/data`. Database writes inside the repo made Turbopack reload the page continuously while the worker ran. Production history was moved intact.
+
+## Test production 2 (2026-11-13): fur jacket on Liv and Kaia
+
+- Garment fidelity and identity held across all shots. Three-quarter, back and styled match the brand gallery's poses and expressions.
+- **Defect (mine):** the front shots were compiled by a stale dev-server module (old framing, no character sheet), while the worker recompiled the dependents with the new code, so one production mixed two compiler versions.
+  - Fix: `freezeAnchor` refuses to freeze when the anchor's compiler or template version differs from the current one; the shot fails with "Re-create the production". Tested.
+  - Process rule: restart the dev server after core changes, and inspect the created payload before paid runs.

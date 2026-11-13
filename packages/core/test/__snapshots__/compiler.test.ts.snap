@@ -4,7 +4,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
 [
   {
     "expr": "calm_camera",
-    "hash": "cmp_9f3e7409966810dd693e7014b0eb77cb700387eb009deb2dedc5a6618d9402c0",
+    "hash": "cmp_e9c0cd7f60fe9817a8dee97ac05937b4fa3900e8ae113c583333e00456ab9cc7",
     "id": "img_38b2c4f56e954dd700f97492",
     "pose": "front_soft_knee",
     "preset": "front_crop",
@@ -74,7 +74,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "calm_camera",
-    "hash": "cmp_672e204850eb306cf0e7220b6e1233765085aa5dd3698e756f40a6489261a7fc",
+    "hash": "cmp_8d50a9c97389cea1fa587b634e26218806f21df60fe0fea0073ae6ab9efef9ed",
     "id": "img_d8bc1d1d8fa3f2047e2b2131",
     "pose": "front_soft_knee",
     "preset": "front_crop",
@@ -136,7 +136,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "calm_camera",
-    "hash": "cmp_78247ad8fadcbd8891228db9ad7ba5257c009287b7cce2093da8624e8f67577a",
+    "hash": "cmp_2861adb2b1bf5a8c01fbaeccda64d114410ecdd1dc90175bc3181fc0fbdba618",
     "id": "img_c8adf68633ea53fbb87601ea",
     "pose": "front_soft_knee",
     "preset": "front_crop",
@@ -228,7 +228,7 @@ Straight-on front view, camera at chest height, short telephoto look (about 85 m
 
 Background: seamless flat neutral grey, RGB 241,241,241, no gradient, no vignette, no props. Lighting: soft, high frontal key light with low contrast and soft natural shadows. Colour: neutral, true to the garment; blacks keep detail. Skin and retouching: true photographic skin as from a full-frame camera, natural micro-contrast and very subtle grain; pores visible on the nose, cheeks and forehead, fine peach fuzz, small natural asymmetries; natural sheen only on the high points of the face instead of an even glow; clean but untouched-looking retouching.
 
-Pose: Standing facing the camera, weight almost even with one knee softly relaxed, feet hip-width apart, arms hanging naturally with loose fingers, shoulders down and level, chin neutral.
+Pose: Standing facing the camera, weight almost even with one knee softly relaxed, feet close together a few centimetres apart, arms hanging straight down close to the body with loose fingers, shoulders down and level, chin neutral.
 
 Expression: Calm, composed expression, lips closed, relaxed brow, steady gaze into the camera.
 

@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import {
-  BOTTOM_CATEGORIES, compileProduction, GEMINI_PRO_PROFILE, hashOf, LocalAssetStore, measureBottomsSilhouette, measureGarmentColour, measureHemAsymmetry, ModelVersion, newJob,
+  BOTTOM_CATEGORIES, compileProduction, DEFAULT_CONTEXT, GEMINI_PRO_PROFILE, hashOf, LocalAssetStore, measureBottomsSilhouette, measureGarmentColour, measureHemAsymmetry, ModelVersion, newJob,
   type Category, type CompiledRequest, type Conflict, type GarmentFlag, type JobRecord, type PresetId, type ProductionSpecInput,
   type ProviderProfile, type Styling,
 } from "@ow-studio/core";
@@ -243,6 +243,17 @@ export function freezeAnchor(imageId: string): boolean {
   if (!anchor || anchor.state !== "succeeded" || !anchor.final_asset) return false;
   const p: any = db.prepare("SELECT spec, provider FROM productions WHERE id = ?").get(img.production_id);
   const profile = PROFILES[p.provider] ?? DEFAULT_PROFILE;
+  // Never mix compiler versions inside one production: the anchor was compiled when the production was created.
+  const anchorReq = JSON.parse((db.prepare("SELECT request FROM images WHERE id = ?").get(img.depends_on) as any).request) as CompiledRequest;
+  if (anchorReq.compilerVersion !== DEFAULT_CONTEXT.compilerVersion || anchorReq.templateVersion !== DEFAULT_CONTEXT.templateVersion) {
+    const failed: JobRecord = {
+      ...job, state: "failed",
+      lastError: { kind: "invalid_request", message: `Compiler changed since this production was created (${anchorReq.templateVersion} → ${DEFAULT_CONTEXT.templateVersion}). Re-create the production so all shots use one version.` },
+      events: [...job.events, { seq: job.events.length + 1, state: "failed", note: "compiler version mismatch with session anchor" }],
+    };
+    db.prepare("UPDATE images SET job = ?, state = 'failed', updated_at = datetime('now') WHERE id = ?").run(JSON.stringify(failed), imageId);
+    return false;
+  }
   const compiled = compileProduction(JSON.parse(p.spec), profile, undefined, { anchors: { [img.sku]: anchor.final_asset } });
   const next = compiled.images.find((i) => i.imageSpecId === imageId);
   if (!next) throw new Error(`Recompile lost image ${imageId}`);

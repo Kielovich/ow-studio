@@ -109,6 +109,21 @@ describe("session anchor in the production pipeline", () => {
     expect(repo.freezeAnchor(dep.id)).toBe(false);
   });
 
+  it("refuses to freeze an anchor compiled by a different compiler version (no mixed productions)", async () => {
+    const created = await repo.createProduction(draft);
+    if (!("id" in created)) throw new Error("create failed");
+    const d = db.getDb();
+    const rows = d.prepare("SELECT id, preset, request FROM images WHERE production_id = ?").all(created.id) as any[];
+    const anchor = rows.find((r) => r.preset === "full_body");
+    const dep = rows.find((r) => r.preset === "styled_full");
+    const old = { ...JSON.parse(anchor.request), templateVersion: "tpl-old" };
+    d.prepare("UPDATE images SET request = ?, state = 'succeeded', final_asset = ? WHERE id = ?").run(JSON.stringify(old), await repo.assets.putBytes(await png(305, 305, 40)), anchor.id);
+    expect(repo.freezeAnchor(dep.id)).toBe(false);
+    const row: any = d.prepare("SELECT state, job FROM images WHERE id = ?").get(dep.id);
+    expect(row.state).toBe("failed");
+    expect(JSON.parse(row.job).lastError.message).toMatch(/Re-create the production/);
+  });
+
   it("can be switched off per production", async () => {
     const created = await repo.createProduction({ ...draft, sessionAnchor: false });
     if (!("id" in created)) throw new Error("create failed");
