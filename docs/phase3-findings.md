@@ -71,3 +71,14 @@ Remaining: leg width. Options: a measured hem-to-thigh ratio in garment metadata
 - `silhouette.ts` measures the front packshot at ingest: hem/thigh 0.83, hem span/hip 0.83. These go into the garment block as numbers.
 - Result: legs visibly wider and straighter in front_crop and back; full body improved but still slightly slimmer than the packshot.
 - Identity: with `identity_primary` before `body_front` for full_body, the face matches Sable again (v2 had drifted to a different face).
+
+## Fashion makeup (2026-11-13)
+
+1. A makeup brief in the prompt only: barely visible. The model copies the makeup-free identity reference closely.
+2. Model version 2 with a styled identity portrait (same identity, editorial makeup baked into the reference): clear fashion look in front crops.
+3. Full body still looked bare-faced because the body reference showed the bare face. Masking the head out of body references fixed it: clear makeup, same identity.
+
+Rules for model management (phase 4):
+- The identity portrait carries the look (makeup and grooming). A new look means a new model version.
+- Body references are stored headless: they carry body proportions only.
+- `Styling.makeup` stays as reinforcement in the prompt.

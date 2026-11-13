@@ -5,7 +5,7 @@ import { PRESETS } from "./presets.js";
 import { BOTTOM_CATEGORIES, OUTERWEAR_CATEGORIES, type ImageSpec, type InstructionBlock, type PoseAssignment } from "./schemas.js";
 
 /** Bump when any wording below changes. Part of every compileHash. */
-export const TEMPLATE_VERSION = "tpl-2026.11.3";
+export const TEMPLATE_VERSION = "tpl-2026.11.4";
 
 /** Instruction priorities. Lower number wins when instructions conflict. */
 export const PRIORITY = {
@@ -47,7 +47,8 @@ export function buildBlocks(spec: ImageSpec, a: PoseAssignment): InstructionBloc
   if (face) {
     add("identity",
       `Identity: the same woman as in the identity reference images. ${capitalize(m.look.features)};${m.look.eyes}; ${m.look.skinTone} skin; ${m.look.hair}. ` +
-      `Keep face shape, features, skin tone and hair colour identical to the references. Hair styled: ${st.hairState}.`);
+      `Keep bone structure, facial features, skin tone and hair colour identical to the references; makeup and hair styling follow this brief, not the references. Hair styled: ${st.hairState}.` +
+      (st.makeup ? ` Makeup: ${st.makeup}` : ""));
   } else if (def.view === "back") {
     add("identity",
       `Back view: hair colour and length as in the character sheet (${m.look.hair}), styled: ${st.hairState}. ` +

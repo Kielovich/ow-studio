@@ -4,7 +4,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
 [
   {
     "expr": "neutral_camera",
-    "hash": "cmp_3c21defa98ad5a857f155ec426bceac0565495cc220ec172fcf0348b5e6051bc",
+    "hash": "cmp_4404331ca8c8504d7f499d09ae5d608d6e0991aa51847b17470b82d752e759ac",
     "id": "img_38b2c4f56e954dd700f97492",
     "pose": "front_neutral",
     "preset": "front_crop",
@@ -19,7 +19,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_away",
-    "hash": "cmp_3873affe97b37e5a18b38b1de7e2b19c597c48618b0d580ddc33bd0b4b687684",
+    "hash": "cmp_10df67250b91a3d4e099473cc79d5e80a5a71fbceeecc19d9b277603bdc0067c",
     "id": "img_8b4c8075854ecee8bb1a96cf",
     "pose": "tq_away_left",
     "preset": "three_quarter",
@@ -34,7 +34,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_8c07f54e3ddfb87532868746310386b67e97b0d5894055aa49602ebdefb95760",
+    "hash": "cmp_a4133fda9a30864e93234b9c94a6200b879c87fea249e962612079f1268a3f4a",
     "id": "img_0106a25df8ef1d2c0f3b3f30",
     "pose": "back_neutral",
     "preset": "back",
@@ -47,7 +47,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "soft_neutral_camera",
-    "hash": "cmp_b21ab3ee3af78bc769d7a3af4aed433863a8a0fd303718fb6da05ab36358d66e",
+    "hash": "cmp_432ee6142dbce1bfc3261dedf3f5c30b55846174253058ecd19e7febb31e9cef",
     "id": "img_896fe5fd0087a21d258eee72",
     "pose": "front_weight_shift",
     "preset": "full_body",
@@ -61,7 +61,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_19bb753d075a6b5862fcdcce9b7a1688fc326f692118a03670f0a95855b428bb",
+    "hash": "cmp_2490e0b901a5b49bf7f1613cb11b3e028c1e620822f34f2777ab680c81e76a87",
     "id": "img_826ff3934934b4ef2ffef43e",
     "pose": "detail_still",
     "preset": "detail",
@@ -72,7 +72,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_camera",
-    "hash": "cmp_9d67fe3e21d0d96d3c763fd16803e3397adc8fca5f4465606a3f2b3a5c074c41",
+    "hash": "cmp_e883fd4be5dca5fcefa0b44d17cb3b7eade387ae00c8c11c8afd39754c0d4e37",
     "id": "img_d8bc1d1d8fa3f2047e2b2131",
     "pose": "front_neutral",
     "preset": "front_crop",
@@ -84,7 +84,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_away",
-    "hash": "cmp_345207d53a6719e1d803dc509510f8fac33db3edde3a54c5ddad13009a222368",
+    "hash": "cmp_9f60be511690adac3cf5a88047a13ef81bdbd6051f5cd9c8f68e217b10f61213",
     "id": "img_e6a8c6724abc90e1c9f6a121",
     "pose": "tq_away_left",
     "preset": "three_quarter",
@@ -96,7 +96,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_15d66844e785c15de5881f1e669e23a109b896968f28b21b6ae1c763df055649",
+    "hash": "cmp_3b1eda380fbea614fdf953a933a645fb20ca52c1d5084da1c2db769cb0cb43ba",
     "id": "img_288f6f3948289ca53fe1a7ac",
     "pose": "back_neutral",
     "preset": "back",
@@ -109,7 +109,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "soft_neutral_camera",
-    "hash": "cmp_2a9015d51b6c69d79de3e9ea0b2c4a502bc2514e47d740b49d88675bffe28015",
+    "hash": "cmp_47b09393597f7ef1f41bf3528698bd6ec5366967282881d12c777afdca4ca51a",
     "id": "img_0e7c51aeb079c6fbeb232c76",
     "pose": "front_weight_shift",
     "preset": "full_body",
@@ -123,7 +123,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_883899525f6ef743f06db9c65683c32cd471d0ab7c5b6922a550c7d806773419",
+    "hash": "cmp_b6221ceaaec51d647ceae075d9d3d913e5f43dfe2c96670c5634ed15c620e51d",
     "id": "img_af7a26ae45a683a877547b11",
     "pose": "detail_still",
     "preset": "detail",
@@ -134,7 +134,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_camera",
-    "hash": "cmp_e0aa24d2d0327291663ca0d7f67583f2c84aecdb7444385efac8e8768ce16413",
+    "hash": "cmp_45a04c984c4d1b5aa95d675e25a94f874cee6c5e8824192e0cb11c5f49d3e6da",
     "id": "img_c8adf68633ea53fbb87601ea",
     "pose": "front_neutral",
     "preset": "front_crop",
@@ -149,7 +149,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_away",
-    "hash": "cmp_34d008d5de367ed124655787e09c9ea2352d5b8d03d8f1398159e005cf0e51f0",
+    "hash": "cmp_e8fb516dd716b47a767e1c79ba4304f7001181cc2270ba34fa43f43c9e5be31e",
     "id": "img_5a611cae61a4e9cd138a2c6c",
     "pose": "tq_away_left",
     "preset": "three_quarter",
@@ -164,7 +164,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_1fb30c54ecd43a4d44c25cc35c98dac1c2a49808e88c1a6de7a44cd1ef1e3e2d",
+    "hash": "cmp_035d4b1e3e64b2e2a9d9622104ea464d4c8c429c5869abb088eaca338a00814f",
     "id": "img_abae3cc68572abc234ff18b0",
     "pose": "back_neutral",
     "preset": "back",
@@ -177,7 +177,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "soft_neutral_camera",
-    "hash": "cmp_0c0228ae6d5fc78dd3c1c455b96309aa9fd213d76feee82276316d7bebaa66e1",
+    "hash": "cmp_89fb01d17b8f283b43bc76d3667074e889b09ca6a516036a6f89bb6380fb4b17",
     "id": "img_a701e44c5b29e401cf7030ce",
     "pose": "front_weight_shift",
     "preset": "full_body",
@@ -191,7 +191,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_5311a1c4ec85c88ade3d2804d1b9043b2cfd78759d0b2f325f18dedc6d683167",
+    "hash": "cmp_f5c42bc11b332e59004c306ba336ca5124b05707374244964ad8bd238046d312",
     "id": "img_adb689893d05356b8ccf9559",
     "pose": "detail_still",
     "preset": "detail",
@@ -216,7 +216,7 @@ Reference images, in the order attached:
 
 Garment: Satin halter top (top, black). Satin halter top with a deep V neckline, gathered bust, ruched waistband and open back. Reproduce the garment exactly as shown in the garment reference images: construction, seams, neckline, closures, length, colour, print, texture and transparency. Do not add, remove or redesign any element. Silhouette and fit exactly as in the packshot: leg and sleeve width, length and volume. Do not slim, taper, shorten or enlarge the garment to flatter the body. Halter neckline and neck fastening exactly as in the packshot. The back is open as in the back packshot; front views must not reveal back construction that is not visible from the front. Satin sheen follows the folds of the fabric; soft highlights, no plastic look.
 
-Identity: the same woman as in the identity reference images. Straight brows, narrow jaw, defined cheekbones;dark-brown eyes; olive skin; long straight dark-brown hair. Keep face shape, features, skin tone and hair colour identical to the references. Hair styled: sleek, tucked behind the ears.
+Identity: the same woman as in the identity reference images. Straight brows, narrow jaw, defined cheekbones;dark-brown eyes; olive skin; long straight dark-brown hair. Keep bone structure, facial features, skin tone and hair colour identical to the references; makeup and hair styling follow this brief, not the references. Hair styled: sleek, tucked behind the ears.
 
 Body: 178 cm tall, EU size 36, proportions exactly as in the full-body reference. The garment fits as it would on EU size 36: natural tension and folds where it meets the body.
 

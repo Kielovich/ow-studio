@@ -7,6 +7,7 @@
  * Outputs stay local in out/phase3 (never committed). Already generated body references are reused, not re-paid.
  */
 import { existsSync } from "node:fs";
+import sharp from "sharp";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import {
@@ -20,6 +21,8 @@ loadLocalSecrets();
 const confirm = process.argv.includes("--confirm");
 const budgetArg = process.argv.indexOf("--budget");
 const BUDGET = budgetArg > 0 ? Number(process.argv[budgetArg + 1]) : 3;
+const presetArg = process.argv.indexOf("--preset");
+const PRESET = presetArg > 0 ? process.argv[presetArg + 1] : undefined;
 const onlyArg = process.argv.indexOf("--only");
 const ONLY = onlyArg > 0 ? process.argv[onlyArg + 1] : undefined;
 const REPO = join(process.cwd(), "..", "..");
@@ -50,6 +53,11 @@ async function rawGenerate(prompt: string, imageHashes: string[]): Promise<{ byt
   return { bytes: new Uint8Array(Buffer.from(img.data, "base64")), usage: json.usage };
 }
 
+/** Polished editorial e-commerce look, based on the OW observations: groomed, sculpted, neutral lip, not glam. */
+const OW_MAKEUP =
+  "polished editorial fashion makeup: even, luminous skin that still shows natural texture and pores; softly sculpted cheekbones and jawline; " +
+  "groomed, defined brows; subtle smudged brown liner and lengthening mascara; neutral nude-rose matte lip. Fashion-model polish, not glam, not bare-faced.";
+
 const BODY_PROMPT = (view: "front" | "back") => [
   "Full-body reference photograph of the same original fictional adult woman shown in the attached identity portrait (same face, hair and skin tone). She is not a real or identifiable person.",
   "178 cm tall, slim fashion-model build, EU size 36. Wearing a plain fitted black tank top and plain black leggings, barefoot.",
@@ -68,33 +76,58 @@ async function main() {
     furF: await put("furjacket_front"), furB: await put("furjacket_back"),
     meshF: await put("meshdress_front"), meshB: await put("meshdress_back"),
   };
-  const portrait = await store.put("out/smoke-gemini-3-pro-image-1.jpg");
+  const barePortrait = await store.put("out/smoke-gemini-3-pro-image-1.jpg");
+  // Model version 2: the same identity with the production's fashion makeup baked into the reference.
+  // Text alone barely moved the face because the model copies the reference look closely (phase 3 finding).
+  const styledFile = join(OUT, "portrait-styled-v2.jpg");
+  if (!existsSync(styledFile) && confirm) {
+    const r = await rawGenerate(
+      "Identity portrait of exactly the same original fictional adult woman as in the attached reference: identical bone structure, facial features, " +
+      "eye shape, skin tone and hair. She is not a real or identifiable person. Change only the makeup and grooming to: " + OW_MAKEUP +
+      " Hair sleek, centre parted, tucked behind the ears. Straight-on head and shoulders, plain fitted black tank top, neutral relaxed expression, " +
+      "lips closed, direct gaze. Plain light grey seamless background, soft high frontal light. Real skin texture.",
+      [barePortrait],
+    );
+    await writeFile(styledFile, r.bytes);
+    console.log("  styled portrait v2 generated");
+  }
+  const portrait = existsSync(styledFile) ? await store.put(styledFile) : barePortrait;
   const trousersSilhouette = await measureBottomsSilhouette((await store.resolve(pack.trousersF)).bytes);
   console.log(`trousers silhouette: ${JSON.stringify(trousersSilhouette)}`);
 
   // Body references (paid once, cached).
   const refsFile = join(OUT, "body-refs.json");
   let bodyRefs: { front: string; back: string } | null = existsSync(refsFile) ? JSON.parse(await readFile(refsFile, "utf8")) : null;
-  const plannedImages = ONLY ? 3 : 3 * 3;
+  const plannedImages = (ONLY ? 1 : 3) * (PRESET ? 1 : 3);
   const plannedCost = (bodyRefs ? 0 : 2 * profile.estimatedCostUsd) + plannedImages * profile.estimatedCostUsd;
   console.log(`model ${profile.id} | planned: ${bodyRefs ? 0 : 2} body refs + ${plannedImages} images | est. $${plannedCost.toFixed(2)} | budget $${BUDGET}`);
   if (plannedCost > BUDGET) throw new Error("planned cost exceeds budget");
 
   if (!bodyRefs && confirm) {
     for (const view of ["front", "back"] as const) {
-      const r = await rawGenerate(BODY_PROMPT(view), [portrait]);
+      const r = await rawGenerate(BODY_PROMPT(view), [barePortrait]);
       await writeFile(join(OUT, `ref-body-${view}.jpg`), r.bytes);
       bodyRefs = { ...(bodyRefs ?? { front: "", back: "" }), [view]: await store.putBytes(r.bytes) };
       console.log(`  body ${view} ref done (${JSON.stringify((r.usage as any)?.output_tokens_by_modality)})`);
     }
     await writeFile(refsFile, JSON.stringify(bodyRefs));
   }
-  const body = bodyRefs ?? { front: portrait, back: portrait };
+  // Body references carry the body only: the head is masked out so the bare-faced reference cannot pull the
+  // face or makeup away from the identity portrait (phase 3 finding).
+  const headless = async (hash: string) => {
+    const { bytes } = await store.resolve(hash);
+    const meta = await sharp(bytes).metadata();
+    const w = meta.width!, h = Math.round(meta.height! * 0.19);
+    const out = await sharp(bytes).composite([{ input: { create: { width: w, height: h, channels: 3, background: { r: 241, g: 241, b: 241 } } }, top: 0, left: 0 }]).jpeg({ quality: 92 }).toBuffer();
+    return store.putBytes(new Uint8Array(out));
+  };
+  const body = bodyRefs ? { front: await headless(bodyRefs.front), back: await headless(bodyRefs.back) } : { front: portrait, back: portrait };
 
   const spec: ProductionSpecInput = {
     productionId: "phase3_ow_test_01",
     model: {
       ...MODEL_SABLE,
+      version: existsSync(styledFile) ? 2 : 1,
       refs: { primaryPortrait: portrait, identityAngles: [], fullBodyFront: body.front, fullBodyBack: body.back, characterSheet: portrait, facialDetailSheet: portrait },
     },
     products: [
@@ -109,7 +142,7 @@ async function main() {
         flags: ["sheer", "long_sleeve", "asymmetric_hem"], packshots: { front: pack.meshF, back: pack.meshB } },
     ],
     slots: [{ preset: "front_crop" }, { preset: "back" }, { preset: "full_body" }],
-    styling: { hairState: "sleek, tucked behind the ears", top: "a plain fitted black long-sleeve crew-neck top that ends at the waist so the whole waistband, button and belt loops stay visible", innerTop: "a plain fitted black crew-neck top", bottoms: "straight black tailored trousers", footwear: "black pointed-toe ankle boots", accessories: [] },
+    styling: { hairState: "sleek, tucked behind the ears", makeup: OW_MAKEUP, top: "a plain fitted black long-sleeve crew-neck top that ends at the waist so the whole waistband, button and belt loops stay visible", innerTop: "a plain fitted black crew-neck top", bottoms: "straight black tailored trousers", footwear: "black pointed-toe ankle boots", accessories: [] },
     style: { background: [241, 241, 241], aspectRatio: "1:1", longEdgePx: 2000 },
     providerProfileId: profile.id,
   };
@@ -123,7 +156,7 @@ async function main() {
   const adapter = new GeminiProvider(profile, { resolveAsset: store.resolve });
   const jobs = new InMemoryJobStore();
   const manifest: unknown[] = [];
-  for (const req of compiled.images.filter((r) => !ONLY || r.sku === ONLY)) {
+  for (const req of compiled.images.filter((r) => (!ONLY || r.sku === ONLY) && (!PRESET || r.preset === PRESET))) {
     await jobs.save(newJob(req.imageSpecId, req));
     const job = await runJob(req.imageSpecId, { store: jobs, adapter, request: req, policy: { ...DEFAULT_POLICY, budgetRemainingUsd: BUDGET - spent }, sleep: (ms) => new Promise((r) => setTimeout(r, ms)) });
     spent += job.costUsd;
