@@ -26,3 +26,7 @@
 - 15/15 succeeded on the first attempt, session anchor and current compiler (1.1.0, tpl-2026.11.10) verified in the payload before the run.
 - **Defect found and fixed (ours):** speckled backgrounds on the dress and jacket. The model rendered a smooth lilac-grey backdrop (about RGB 200,190,196); background normalisation tested neutrality against absolute chroma 12 and shadows per channel, so noisy backdrop pixels were kept as subject. Fix: chroma judged relative to the backdrop's own tint (refused above chroma 30), shadow depth from luminance, pure background set exactly to the target. Regression test added. Off-target pixels in the affected area: 3.1% and 13.2% before, 0.00% after. The 15 finals were re-normalised from the stored raw outputs (no new calls).
 - Fidelity: fur jacket very high; mesh dress panel layout and hem side correct; trousers leg shape, fly and pockets correct, but the coated finish still reads glossier than the packshot, and the trousers close-up is dominated by the styling top.
+
+## Trousers close-up retest (2026-11-13, `prod_20261113_18031d`, 1 image, $0.16, tpl-2026.11.13)
+- Framing fixed: waistband, button, fly and front pockets fill the frame; the styling top is no longer the subject.
+- Coated finish improved but not solved: the twill of the base denim and the topstitching are now readable, but the surface is still glossier and more neutral black than the matte, slightly warm packshot. Prompt wording alone appears to be at its limit; next lever is a fabric crop of the packshot sent as a texture reference.
