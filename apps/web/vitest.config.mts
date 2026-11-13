@@ -3,5 +3,6 @@ import { fileURLToPath } from "node:url";
 
 export default defineConfig({
   resolve: { alias: { "@": fileURLToPath(new URL("./", import.meta.url)) } },
-  test: { include: ["test/**/*.test.ts"] },
+  // Pipeline tests normalise real 2K images through sharp; allow them time.
+  test: { include: ["test/**/*.test.ts"], testTimeout: 60_000 },
 });

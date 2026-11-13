@@ -57,6 +57,38 @@ CREATE INDEX IF NOT EXISTS images_by_production ON images(production_id);
 function migrate(d: DatabaseSync) {
   const cols = new Set((d.prepare("PRAGMA table_info(images)").all() as { name: string }[]).map((c) => c.name));
   if (!cols.has("depends_on")) d.exec("ALTER TABLE images ADD COLUMN depends_on TEXT");
+  const pcols = new Set((d.prepare("PRAGMA table_info(productions)").all() as { name: string }[]).map((c) => c.name));
+  // Idempotency key sent by the client on create: a repeated key returns the existing production instead of a new paid one.
+  if (!pcols.has("create_key")) d.exec("ALTER TABLE productions ADD COLUMN create_key TEXT");
+  d.exec("CREATE UNIQUE INDEX IF NOT EXISTS productions_by_create_key ON productions(create_key) WHERE create_key IS NOT NULL");
+  const hadAttempts = !!d.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'attempts'").get();
+  d.exec(`
+    -- Every finished provider attempt of an image, with its own files. A retry never overwrites an earlier attempt.
+    CREATE TABLE IF NOT EXISTS attempts (
+      image_id TEXT NOT NULL REFERENCES images(id),
+      attempt INTEGER NOT NULL,
+      outcome TEXT NOT NULL,                      -- succeeded | needs_review | failed | unknown
+      raw_asset TEXT,
+      final_asset TEXT,
+      cost_usd REAL NOT NULL DEFAULT 0,
+      error TEXT,
+      review TEXT,                                -- NULL (not reviewed) | approved | rejected; at most one approved per image
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      PRIMARY KEY (image_id, attempt)
+    );
+    -- Import sessions: the new-production form, saved server-side so corrections survive a closed tab.
+    CREATE TABLE IF NOT EXISTS drafts (
+      id TEXT PRIMARY KEY,
+      data TEXT NOT NULL,
+      production_id TEXT,
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+  `);
+  // One-time backfill when the table is created: images finished before attempts were recorded keep their files as one attempt.
+  if (!hadAttempts) d.exec(`INSERT OR IGNORE INTO attempts (image_id, attempt, outcome, raw_asset, final_asset, cost_usd, created_at)
+    SELECT id, json_extract(job, '$.attempt'), CASE WHEN state = 'needs_review' THEN 'needs_review' ELSE 'succeeded' END,
+      raw_asset, final_asset, COALESCE(json_extract(job, '$.costUsd'), 0), updated_at
+    FROM images WHERE final_asset IS NOT NULL AND state IN ('succeeded', 'needs_review')`);
 }
 
 let db: DatabaseSync | null = null;

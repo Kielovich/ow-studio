@@ -1,9 +1,9 @@
 import { imageDimensions } from "@ow-studio/core";
-import { parseName } from "@/lib/filename";
 import { assets } from "@/lib/server/repo";
 
 const MAX_BYTES = 25 * 1024 * 1024;
 
+/** Stores images content-addressed. SKU and role are parsed on the client from the relative path (see lib/import.ts). */
 export async function POST(req: Request) {
   const form = await req.formData();
   const files = form.getAll("files").filter((f): f is File => f instanceof File);
@@ -23,7 +23,7 @@ export async function POST(req: Request) {
     }
     const dim = imageDimensions(bytes)!;
     const hash = await assets.putBytes(bytes);
-    results.push({ filename: f.name, hash, width: dim.width, height: dim.height, ...parseName(f.name) });
+    results.push({ filename: f.name, hash, width: dim.width, height: dim.height });
   }
   return Response.json({ files: results });
 }

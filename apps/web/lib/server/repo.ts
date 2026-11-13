@@ -2,8 +2,9 @@ import { randomBytes } from "node:crypto";
 import {
   BOTTOM_CATEGORIES, compileProduction, DEFAULT_CONTEXT, GEMINI_PRO_PROFILE, hashOf, LocalAssetStore, measureBottomsSilhouette, measureGarmentColour, measureHemAsymmetry, ModelVersion, newJob,
   type Category, type CompiledRequest, type Conflict, type GarmentFlag, type JobRecord, type PresetId, type ProductionSpecInput,
-  type ProviderProfile, type Styling,
+  type ProviderProfile, type Styling, approveRetry, OW_SET,
 } from "@ow-studio/core";
+import { attemptOutcome, productionMetrics, statusView, type Attempt, type StatusView } from "../outcome";
 import { ASSET_DIR, getDb } from "./db";
 
 export const assets = new LocalAssetStore(ASSET_DIR);
@@ -130,21 +131,47 @@ export async function previewDraft(draft: ProductionDraft): Promise<CompilePrevi
   };
 }
 
-export async function createProduction(draft: ProductionDraft): Promise<{ id: string } | { error: string; conflicts: Conflict[] }> {
+export type CreateOptions = {
+  /** Client-generated idempotency key. Repeating it (double click, network retry, reload) returns the same production. */
+  createKey?: string;
+  /** Import session this production was created from; it is marked as run. */
+  draftId?: string;
+};
+
+export type CreateResult = { id: string; existing?: boolean } | { error: string; conflicts: Conflict[] };
+
+function productionByKey(createKey: string): string | null {
+  const r: any = getDb().prepare("SELECT id FROM productions WHERE create_key = ?").get(createKey);
+  return r?.id ?? null;
+}
+
+export async function createProduction(draft: ProductionDraft, opts: CreateOptions = {}): Promise<CreateResult> {
+  const key = opts.createKey?.trim() || null;
+  if (key) {
+    const existing = productionByKey(key);
+    if (existing) return { id: existing, existing: true };
+  }
   const id = "prod_" + new Date().toISOString().slice(0, 10).replace(/-/g, "") + "_" + randomBytes(3).toString("hex");
   const { spec, profile } = await buildSpec(draft, id);
   const r = compileProduction(spec, profile);
   if (!r.canRun) return { error: "Production has blocking conflicts", conflicts: r.conflicts };
   const db = getDb();
-  db.exec("BEGIN");
+  db.exec("BEGIN IMMEDIATE");
   try {
-    db.prepare("INSERT INTO productions (id, name, spec, spec_hash, provider, est_cost) VALUES (?, ?, ?, ?, ?, ?)")
-      .run(id, draft.name || id, JSON.stringify(r.spec), r.specHash, profile.id, r.images.length * profile.estimatedCostUsd);
+    // Checked again inside the write transaction: a concurrent request with the same key may have won while we compiled.
+    const won = key ? productionByKey(key) : null;
+    if (won) {
+      db.exec("ROLLBACK");
+      return { id: won, existing: true };
+    }
+    db.prepare("INSERT INTO productions (id, name, spec, spec_hash, provider, est_cost, create_key) VALUES (?, ?, ?, ?, ?, ?, ?)")
+      .run(id, draft.name || id, JSON.stringify(r.spec), r.specHash, profile.id, r.images.length * profile.estimatedCostUsd, key);
     const ins = db.prepare("INSERT INTO images (id, production_id, sku, preset, slot_index, request, compile_hash, job, state, depends_on) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'queued', ?)");
     for (const img of r.images) {
       const slotIndex = r.spec.slots.findIndex((s) => s.preset === img.preset);
       ins.run(img.imageSpecId, id, img.sku, img.preset, slotIndex, JSON.stringify(img), img.compileHash, JSON.stringify(newJob(img.imageSpecId, img)), img.dependsOn ?? null);
     }
+    if (opts.draftId) db.prepare("UPDATE drafts SET production_id = ? WHERE id = ?").run(id, opts.draftId);
     db.exec("COMMIT");
   } catch (e) {
     db.exec("ROLLBACK");
@@ -158,13 +185,29 @@ export async function createProduction(draft: ProductionDraft): Promise<{ id: st
 export type ImageRow = {
   id: string; sku: string; preset: PresetId; slotIndex: number; state: JobRecord["state"]; job: JobRecord; dependsOn: string | null;
   rawAsset: string | null; finalAsset: string | null; prompt: string; refs: CompiledRequest["refs"]; updatedAt: string;
+  /** Every finished attempt, oldest first, each with its own files and review. */
+  attempts: Attempt[];
+  /** The attempt marked approved, if any. */
+  approvedAttempt: number | null;
+  status: StatusView;
 };
 
-const toImage = (r: any): ImageRow => {
+const toAttempt = (a: any): Attempt => ({
+  attempt: a.attempt, outcome: a.outcome, rawAsset: a.raw_asset, finalAsset: a.final_asset, costUsd: a.cost_usd, error: a.error, review: a.review ?? null, createdAt: a.created_at,
+});
+
+const toImage = (r: any, attempts: Attempt[], anchorState?: string): ImageRow => {
   const req = JSON.parse(r.request) as CompiledRequest;
+  const job = JSON.parse(r.job) as JobRecord;
+  const latest = attempts.at(-1);
+  // The review shown on the tile is the review of the attempt it shows: the latest one.
+  const review = latest && latest.attempt === job.attempt ? latest.review : null;
   return {
-    id: r.id, sku: r.sku, preset: r.preset, slotIndex: r.slot_index, state: r.state, job: JSON.parse(r.job), dependsOn: r.depends_on ?? null,
+    id: r.id, sku: r.sku, preset: r.preset, slotIndex: r.slot_index, state: r.state, job, dependsOn: r.depends_on ?? null,
     rawAsset: r.raw_asset, finalAsset: r.final_asset, prompt: req.prompt, refs: req.refs, updatedAt: r.updated_at,
+    attempts,
+    approvedAttempt: attempts.find((a) => a.review === "approved")?.attempt ?? null,
+    status: statusView(r.state, job, review, { waitingForAnchor: !!r.depends_on && anchorState !== undefined && anchorState !== "succeeded" }),
   };
 };
 
@@ -185,8 +228,17 @@ export function getProduction(id: string) {
   const db = getDb();
   const p: any = db.prepare("SELECT * FROM productions WHERE id = ? AND deleted_at IS NULL").get(id);
   if (!p) return null;
-  const images = (db.prepare("SELECT * FROM images WHERE production_id = ? ORDER BY sku, slot_index").all(id) as any[]).map(toImage);
-  return { id: p.id, name: p.name, provider: p.provider, estCost: p.est_cost, createdAt: p.created_at, spec: JSON.parse(p.spec), images };
+  const rows = db.prepare("SELECT * FROM images WHERE production_id = ? ORDER BY sku, slot_index").all(id) as any[];
+  const attempts = new Map<string, Attempt[]>();
+  for (const a of db.prepare("SELECT a.* FROM attempts a JOIN images i ON i.id = a.image_id WHERE i.production_id = ? ORDER BY a.attempt").all(id) as any[]) {
+    attempts.set(a.image_id, [...(attempts.get(a.image_id) ?? []), toAttempt(a)]);
+  }
+  const stateOf = new Map(rows.map((r) => [r.id, r.state as string]));
+  const images = rows.map((r) => toImage(r, attempts.get(r.id) ?? [], r.depends_on ? stateOf.get(r.depends_on) : undefined));
+  return {
+    id: p.id, name: p.name, provider: p.provider, estCost: p.est_cost, createdAt: p.created_at, spec: JSON.parse(p.spec), images,
+    metrics: productionMetrics(images),
+  };
 }
 
 export function spentThisMonthUsd(): number {
@@ -265,4 +317,132 @@ export function freezeAnchor(imageId: string): boolean {
   db.prepare("UPDATE images SET request = ?, compile_hash = ?, job = ?, updated_at = datetime('now') WHERE id = ?")
     .run(JSON.stringify(next), next.compileHash, JSON.stringify(frozenJob), imageId);
   return true;
+}
+
+// ---------- Attempts and review ----------
+
+/**
+ * Records a finished provider attempt with its own files. Called by the worker after every run, so a retry never
+ * replaces an earlier image: both stay available for comparison. Returns false when nothing was attempted (budget hold).
+ */
+export function recordAttempt(imageId: string, a: { job: JobRecord; costBeforeUsd: number; raw?: string; final?: string }): boolean {
+  const outcome = attemptOutcome(a.job.state, a.job);
+  if (!outcome) return false;
+  const error = a.job.validation && !a.job.validation.ok ? a.job.validation.reasons.join("; ") : a.job.lastError ? `${a.job.lastError.kind}: ${a.job.lastError.message}` : null;
+  getDb().prepare(`INSERT INTO attempts (image_id, attempt, outcome, raw_asset, final_asset, cost_usd, error) VALUES (?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT (image_id, attempt) DO UPDATE SET outcome = excluded.outcome, raw_asset = COALESCE(excluded.raw_asset, raw_asset),
+      final_asset = COALESCE(excluded.final_asset, final_asset), cost_usd = excluded.cost_usd, error = excluded.error`)
+    .run(imageId, a.job.attempt, outcome, a.raw ?? null, a.final ?? null, Math.max(0, a.job.costUsd - a.costBeforeUsd), error);
+  return true;
+}
+
+/**
+ * Approve or reject one attempt. Approving an attempt un-approves any other attempt of the same image, so the export
+ * always has exactly one version per image. Only attempts with an image can be approved.
+ */
+export function setReview(imageId: string, attempt: number, decision: "approved" | "rejected" | null): { ok: true } | { error: string } {
+  const db = getDb();
+  const a: any = db.prepare("SELECT final_asset FROM attempts WHERE image_id = ? AND attempt = ?").get(imageId, attempt);
+  if (!a) return { error: `Attempt ${attempt} of ${imageId} not found` };
+  if (decision === "approved" && !a.final_asset) return { error: "This attempt has no image to approve" };
+  db.exec("BEGIN");
+  try {
+    if (decision === "approved") db.prepare("UPDATE attempts SET review = NULL WHERE image_id = ? AND review = 'approved'").run(imageId);
+    db.prepare("UPDATE attempts SET review = ? WHERE image_id = ? AND attempt = ?").run(decision, imageId, attempt);
+    db.exec("COMMIT");
+  } catch (e) {
+    db.exec("ROLLBACK");
+    throw e;
+  }
+  return { ok: true };
+}
+
+/**
+ * A new paid attempt, always on explicit user action. Allowed after a failure, an unknown outcome or a size check, and
+ * after a finished image only once its latest attempt has been rejected (a deliberate decision, not a stray click).
+ */
+export async function retryImage(imageId: string): Promise<{ state: string } | { error: string }> {
+  const db = getDb();
+  const row: any = db.prepare("SELECT state, job FROM images WHERE id = ?").get(imageId);
+  if (!row) return { error: "Image not found" };
+  const store = new (await import("./jobstore")).SqliteJobStore();
+  if (row.state === "succeeded") {
+    const job = JSON.parse(row.job) as JobRecord;
+    const latest: any = db.prepare("SELECT review FROM attempts WHERE image_id = ? AND attempt = ?").get(imageId, job.attempt);
+    if (latest?.review !== "rejected") return { error: "Reject the current image before asking for a new one" };
+    const next: JobRecord = {
+      ...job, state: "queued", attempt: job.attempt + 1, providerJobId: undefined, validation: undefined, outputs: undefined,
+      events: [...job.events, { seq: job.events.length + 1, state: "queued", note: "new attempt after rejection" }],
+    };
+    await store.save(next);
+    return { state: next.state };
+  }
+  try {
+    return { state: (await approveRetry(store, imageId)).state };
+  } catch (e) {
+    return { error: (e as Error).message };
+  }
+}
+
+/** Export file name: SKU/SKU_NN_preset.jpg in gallery order. */
+export function exportName(sku: string, preset: PresetId, slotIndex: number) {
+  const order = OW_SET.indexOf(preset);
+  const n = String((order >= 0 ? order : slotIndex) + 1).padStart(2, "0");
+  return `${sku}/${sku}_${n}_${preset}.jpg`;
+}
+
+export type ZipEntry = { name: string; asset: string; sku: string; preset: PresetId; attempt: number; attempts: number; review: string };
+
+/**
+ * What goes in the ZIP. Default: only approved images, each the approved attempt. With all, every image that has a
+ * finished file, using the approved attempt where there is one and otherwise the latest; the manifest says which.
+ */
+export function zipEntries(productionId: string, opts: { all?: boolean } = {}): ZipEntry[] {
+  const p = getProduction(productionId);
+  if (!p) return [];
+  const out: ZipEntry[] = [];
+  for (const img of p.images) {
+    const approved = img.attempts.find((a) => a.review === "approved" && a.finalAsset);
+    const latest = [...img.attempts].reverse().find((a) => a.finalAsset);
+    const pick = approved ?? (opts.all ? latest : undefined);
+    if (!pick?.finalAsset) continue;
+    out.push({
+      name: exportName(img.sku, img.preset, img.slotIndex), asset: pick.finalAsset, sku: img.sku, preset: img.preset,
+      attempt: pick.attempt, attempts: img.attempts.length, review: pick.review ?? "not reviewed",
+    });
+  }
+  return out;
+}
+
+export function zipManifest(entries: ZipEntry[]): string {
+  const rows = [["file", "sku", "shot", "attempt", "attempts_total", "review"], ...entries.map((e) => [e.name, e.sku, e.preset, String(e.attempt), String(e.attempts), e.review])];
+  return rows.map((r) => r.map((c) => (/[",\n]/.test(c) ? `"${c.replace(/"/g, '""')}"` : c)).join(",")).join("\n") + "\n";
+}
+
+// ---------- Import sessions (drafts) ----------
+
+export type DraftRecord = { id: string; data: unknown; productionId: string | null; updatedAt: string };
+
+const DRAFT_ID = /^draft_[a-z0-9]{6,32}$/;
+export const isDraftId = (id: string) => DRAFT_ID.test(id);
+
+export function saveDraft(id: string, data: unknown): DraftRecord {
+  if (!isDraftId(id)) throw new Error("Invalid draft id");
+  const json = JSON.stringify(data);
+  if (json.length > 2_000_000) throw new Error("Draft is too large");
+  getDb().prepare(`INSERT INTO drafts (id, data) VALUES (?, ?)
+    ON CONFLICT (id) DO UPDATE SET data = excluded.data, updated_at = datetime('now')`).run(id, json);
+  return getDraft(id)!;
+}
+
+export function getDraft(id: string): DraftRecord | null {
+  const r: any = getDb().prepare("SELECT * FROM drafts WHERE id = ?").get(id);
+  return r ? { id: r.id, data: JSON.parse(r.data), productionId: r.production_id ?? null, updatedAt: r.updated_at } : null;
+}
+
+export function listDrafts(limit = 8) {
+  return (getDb().prepare("SELECT id, data, production_id, updated_at FROM drafts ORDER BY updated_at DESC LIMIT ?").all(limit) as any[]).map((r) => {
+    const d = JSON.parse(r.data);
+    return { id: r.id, name: d.name || null, files: Array.isArray(d.files) ? d.files.length : 0, productionId: r.production_id ?? null, updatedAt: r.updated_at };
+  });
 }
