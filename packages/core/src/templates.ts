@@ -5,7 +5,7 @@ import { PRESETS } from "./presets";
 import { BOTTOM_CATEGORIES, OUTERWEAR_CATEGORIES, type ImageSpec, type InstructionBlock, type PoseAssignment } from "./schemas";
 
 /** Bump when any wording below changes. Part of every compileHash. */
-export const TEMPLATE_VERSION = "tpl-2026.11.8";
+export const TEMPLATE_VERSION = "tpl-2026.11.9";
 
 /** Instruction priorities. Lower number wins when instructions conflict. */
 export const PRIORITY = {
@@ -54,6 +54,7 @@ export function buildBlocks(spec: ImageSpec, a: PoseAssignment): InstructionBloc
     `Garment: ${p.name} (${p.category}, ${p.color}).${p.description ? " " + p.description : ""}`,
     `Reproduce the garment exactly as shown in the garment reference images: construction, seams, neckline, closures, length, colour, print, texture and transparency. Do not add, remove or redesign any element.`,
     `Silhouette and fit exactly as in the packshot: leg and sleeve width, length and volume. Do not slim, taper, shorten or enlarge the garment to flatter the body.`,
+    ...(p.colorHex ? [`Colour lock: the garment's dominant colour measured from the packshot is ${p.colorHex}; reproduce exactly this colour and value under the studio light, no shift in hue or brightness.`] : []),
     ...(p.silhouette && preset !== "detail" ? [silhouetteText(p.silhouette)] : []),
     ...(p.asymmetry ? [asymmetryText(p.asymmetry.hemLowSide, def.view)] : []),
     ...(def.view === "back" && p.packshots.front ? ["The front packshot is attached only to show which side of the garment is which; this photograph shows the back."] : []),
@@ -63,7 +64,7 @@ export function buildBlocks(spec: ImageSpec, a: PoseAssignment): InstructionBloc
   if (face) {
     add("identity",
       `Identity: the same woman as in the identity reference images. ${capitalize(m.look.features)}; ${m.look.eyes}; ${m.look.skinTone} skin; ${m.look.hair}. ` +
-      `Keep bone structure, face shape, nose, lip shape, eye shape, skin tone and hair colour identical to the identity portrait in every shot of this session; ` +
+      `Keep bone structure, face shape, nose, lip shape, eye shape, skin tone, skin texture, freckles and hair colour identical to the identity portrait in every shot of this session; ` +
       `pose, head angle and expression may change only gaze, eyelids and mouth, never the facial structure. ` +
       (st.hairState ? `Hair styled for this production: ${st.hairState}.` : `Hair: her own hairstyle exactly as in the identity portrait.`) +
       (st.makeup ? ` Makeup for this production: ${st.makeup}` : ` Makeup: exactly as in the identity portrait.`));

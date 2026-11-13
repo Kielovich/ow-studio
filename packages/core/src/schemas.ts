@@ -36,6 +36,8 @@ export const Product = z.object({
   color: z.string().min(1),
   description: z.string().default(""),
   flags: setOf(GarmentFlag).default([]),
+  /** Dominant garment colour measured from the front packshot (see silhouette.ts), e.g. "#1b1a1c". */
+  colorHex: z.string().regex(/^#[0-9a-f]{6}$/).optional(),
   /** Measured from the packshots at ingest (see silhouette.ts): which side of the wearer the hem is longest on. */
   asymmetry: z.object({
     hemLowSide: z.enum(["wearer_right", "wearer_left"]),

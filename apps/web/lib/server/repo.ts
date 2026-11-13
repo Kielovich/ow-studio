@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import {
-  BOTTOM_CATEGORIES, compileProduction, GEMINI_PRO_PROFILE, hashOf, LocalAssetStore, measureBottomsSilhouette, measureHemAsymmetry, ModelVersion, newJob,
+  BOTTOM_CATEGORIES, compileProduction, GEMINI_PRO_PROFILE, hashOf, LocalAssetStore, measureBottomsSilhouette, measureGarmentColour, measureHemAsymmetry, ModelVersion, newJob,
   type Category, type CompiledRequest, type Conflict, type GarmentFlag, type JobRecord, type PresetId, type ProductionSpecInput,
   type ProviderProfile, type Styling,
 } from "@ow-studio/core";
@@ -85,7 +85,8 @@ async function buildSpec(draft: ProductionDraft, productionId: string): Promise<
       const back = p.packshots.back ? (await assets.resolve(p.packshots.back)).bytes : undefined;
       asymmetry = (await measureHemAsymmetry((await assets.resolve(p.packshots.front)).bytes, back)) ?? undefined;
     }
-    products.push({ ...p, packshots, ...(silhouette ? { silhouette } : {}), ...(asymmetry ? { asymmetry } : {}) });
+    const colorHex = p.packshots.front ? (await measureGarmentColour((await assets.resolve(p.packshots.front)).bytes)) ?? undefined : undefined;
+    products.push({ ...p, packshots, ...(silhouette ? { silhouette } : {}), ...(asymmetry ? { asymmetry } : {}), ...(colorHex ? { colorHex } : {}) });
   }
   return {
     profile,

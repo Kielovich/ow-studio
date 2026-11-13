@@ -83,7 +83,8 @@ describe("instruction priorities", () => {
   it("never asks for a face in back or detail views, and drops the face for trousers front crop", () => {
     const r = compileProduction(exampleSpec(), MOCK_PROFILE);
     for (const i of r.images) {
-      const noFace = i.preset === "back" || i.preset === "detail" || (i.sku === "TEST-PT-003" && (i.preset === "front_crop" || i.preset === "three_quarter"));
+      // Trousers follow the brand's lower framing (chest to feet) in every front-facing preset except the styled one.
+      const noFace = i.preset === "back" || i.preset === "detail" || (i.sku === "TEST-PT-003" && (i.preset === "front_crop" || i.preset === "three_quarter" || i.preset === "full_body"));
       expect(i.exclusions.includes("a face visible to the camera")).toBe(noFace);
       expect(i.instructionBlocks.some((b) => b.key === "expression")).toBe(!noFace);
     }

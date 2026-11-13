@@ -45,11 +45,15 @@ describe("pose planning", () => {
       if (["full_body", "three_quarter_full", "back_full"].includes(i.preset)) expect(pose.calm).toBe(true);
       if (i.preset === "styled_full") {
         expect(pose.calm).toBe(false);
-        expect(i.assignment.expressionId).toBe("soft_away");
+        // The brand's styled shot looks into the camera (gallery analysis).
+        expect(["neutral_camera", "calm_camera"]).toContain(i.assignment.expressionId);
         expect(i.assignment.poseId).toBe("styled_bag_low"); // the fixture styling has a shoulder bag
       }
       if (i.preset === "detail") expect(i.exclusions).toContain("a face visible to the camera");
-      if (i.preset !== "detail") expect(i.prompt).toMatch(/figure fills about 93% of the frame height/);
+      // Dresses are framed head to toe; tops head to mid-thigh; trousers chest to feet. The styled shot is always full.
+      if (i.preset === "styled_full" || (i.preset !== "detail" && i.sku === "TEST-DR-001")) expect(i.prompt).toMatch(/figure fills about 93% of the frame height/);
+      if (i.preset !== "styled_full" && i.preset !== "detail" && i.sku === "TEST-TP-002") expect(i.prompt).toMatch(/Head to mid-thigh/);
+      if (i.preset !== "styled_full" && i.preset !== "detail" && i.sku === "TEST-PT-003") expect(i.prompt).toMatch(/From just below the chest down to and including the feet/);
     }
   });
 

@@ -31,11 +31,12 @@ export const PRESET_ROLES: Record<PresetId, RefRole[]> = {
   three_quarter: ["garment_front", "garment_side", "identity_primary", "identity_angle", "body_front", "facial_detail"],
   back: ["garment_back", "character_sheet", "body_back"],
   // Identity before body: with body first, the face drifted in full-body shots (phase 3 finding).
-  full_body: ["garment_front", "identity_primary", "body_front", "facial_detail"],
-  three_quarter_full: ["garment_front", "garment_side", "identity_primary", "identity_angle", "body_front", "facial_detail"],
+  // Identity lock: the frontal portrait plus the multi-view character sheet (and the three-quarter angle where the head turns).
+  full_body: ["garment_front", "identity_primary", "character_sheet", "body_front", "facial_detail"],
+  three_quarter_full: ["garment_front", "garment_side", "identity_primary", "identity_angle", "character_sheet", "body_front", "facial_detail"],
   // Identity/hair before body, as for full body: the anchor is then inserted between them.
   back_full: ["garment_back", "garment_orientation", "character_sheet", "body_back"],
-  styled_full: ["garment_front", "identity_primary", "body_front", "facial_detail"],
+  styled_full: ["garment_front", "identity_primary", "character_sheet", "body_front", "facial_detail"],
   // The close-up shows neck, jaw and skin: the headless body reference anchors skin tone and proportions.
   detail: ["garment_detail", "garment_front", "body_front"],
 };

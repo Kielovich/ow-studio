@@ -30,7 +30,7 @@ export type Expression = {
 
 export const POSES: readonly Pose[] = [
   { id: "front_neutral", presets: ["front_crop", "full_body"], torsoYaw: 0, headYaw: 0, weight: "even", arms: { left: "relaxed", right: "relaxed" }, naturalness: 1, calm: true,
-    text: "Standing square to the camera, weight evenly on both feet, feet hip-width apart, arms hanging relaxed at the sides with open, softly curved fingers, shoulders relaxed and level, head straight." },
+    text: "Standing square to the camera, weight evenly on both feet, feet close together a few centimetres apart, arms hanging straight down close to the body with relaxed, softly curved fingers, shoulders relaxed and level, head straight." },
   { id: "front_soft_knee", presets: ["front_crop", "full_body"], torsoYaw: 0, headYaw: 0, weight: "even", arms: { left: "relaxed", right: "relaxed" }, naturalness: 0.98, calm: true,
     text: "Standing facing the camera, weight almost even with one knee softly relaxed, feet hip-width apart, arms hanging naturally with loose fingers, shoulders down and level, chin neutral." },
   { id: "front_weight_shift", presets: ["front_crop", "full_body", "styled_full"], torsoYaw: 0, headYaw: 0, weight: "left", arms: { left: "relaxed", right: "relaxed" }, naturalness: 0.95, calm: false,
@@ -39,15 +39,16 @@ export const POSES: readonly Pose[] = [
     text: "Facing the camera, one hand lightly touching the side of the garment at the hem without pulling or covering it, the other arm relaxed, weight slightly on one leg." },
   { id: "front_hand_pocket", presets: ["front_crop", "full_body"], torsoYaw: 0, headYaw: 0, weight: "even", arms: { left: "relaxed", right: "pocket" }, naturalness: 0.85, calm: false,
     text: "Facing the camera, one hand casually in the garment's pocket with the thumb outside, the other arm relaxed at the side." },
-  { id: "front_hand_hip", presets: ["styled_full"], torsoYaw: 0, headYaw: 0, weight: "left", arms: { left: "hip", right: "relaxed" }, naturalness: 0.8, calm: false,
+  { id: "front_hand_hip", presets: ["styled_full"], torsoYaw: 0, headYaw: 0, weight: "left", arms: { left: "hip", right: "relaxed" }, naturalness: 0.9, calm: false,
     text: "Facing the camera, one hand resting lightly on the hip with the elbow out, the other arm relaxed, weight on one leg." },
   { id: "front_arms_crossed", presets: ["styled_full"], torsoYaw: 0, headYaw: 0, weight: "even", arms: { left: "crossed", right: "crossed" }, naturalness: 0.7, calm: false,
     text: "Facing the camera, arms loosely crossed at the lower chest, shoulders relaxed." },
   { id: "front_bag_shoulder", presets: ["styled_full"], torsoYaw: 0, headYaw: 0, weight: "right", arms: { left: "bag", right: "relaxed" }, naturalness: 0.8, calm: false,
     text: "Facing the camera, a bag carried on one shoulder with the hand resting on the strap, the other arm relaxed." },
+  // The brand's three-quarter always turns the same way (towards the image left), so this is the default.
   { id: "tq_away_left", presets: ["three_quarter", "three_quarter_full"], torsoYaw: 35, headYaw: 45, weight: "even", arms: { left: "relaxed", right: "relaxed" }, naturalness: 1, calm: true,
-    text: "Body turned about 35 degrees from the camera, arms relaxed, head turned further in the same direction, gaze off-camera." },
-  { id: "tq_away_right", presets: ["three_quarter", "three_quarter_full"], torsoYaw: -35, headYaw: -45, weight: "even", arms: { left: "relaxed", right: "relaxed" }, naturalness: 0.98, calm: true,
+    text: "Body turned about 35 degrees towards the image left (her right), arms hanging relaxed close to the body, head turned a little further the same way, gaze off-camera and slightly down." },
+  { id: "tq_away_right", presets: ["three_quarter", "three_quarter_full"], torsoYaw: -35, headYaw: -45, weight: "even", arms: { left: "relaxed", right: "relaxed" }, naturalness: 0.88, calm: true,
     text: "Body turned about 35 degrees the other way from the camera, arms relaxed, head turned further in the same direction, gaze off-camera." },
   { id: "tq_hand_hip", presets: ["three_quarter", "three_quarter_full"], torsoYaw: 40, headYaw: 30, weight: "left", arms: { left: "relaxed", right: "hip" }, naturalness: 0.85, calm: false,
     text: "Body turned about 40 degrees from the camera, the far hand lightly on the hip, weight on the back leg, head slightly toward the camera, gaze off-camera." },
@@ -58,8 +59,8 @@ export const POSES: readonly Pose[] = [
   { id: "back_head_turn", presets: ["back", "back_full"], torsoYaw: 180, headYaw: 30, weight: "left", arms: { left: "relaxed", right: "relaxed" }, naturalness: 0.9, calm: false,
     text: "Back to the camera, weight on one leg, head turned slightly to the side so only the cheek line is visible, arms relaxed." },
   { id: "styled_bag_low", presets: ["styled_full"], torsoYaw: 15, headYaw: 20, weight: "left", arms: { left: "bag", right: "relaxed" }, naturalness: 0.9, calm: false,
-    text: "Weight on one leg with the other leg stepped slightly forward and across, hips subtly shifted, one hand holding a small bag low by its handle beside the thigh, the other arm relaxed, head tilted slightly, gaze off-camera." },
-  { id: "styled_step", presets: ["styled_full"], torsoYaw: 10, headYaw: 15, weight: "right", arms: { left: "relaxed", right: "relaxed" }, naturalness: 0.92, calm: false,
+    text: "Facing the camera with the weight on one leg and the other knee softly relaxed, feet close together, one hand holding a small bag low by its handle beside the thigh, the other arm relaxed close to the body, head straight or very slightly tilted." },
+  { id: "styled_step", presets: ["styled_full"], torsoYaw: 10, headYaw: 15, weight: "right", arms: { left: "relaxed", right: "relaxed" }, naturalness: 0.85, calm: false,
     text: "Relaxed fashion stance: weight on one leg, the other foot stepped forward with the knee softly bent, shoulders loose, arms hanging naturally, head tilted slightly, gaze just past the camera." },
   { id: "detail_still", presets: ["detail"], torsoYaw: 0, headYaw: 0, weight: "even", arms: { left: "relaxed", right: "relaxed" }, naturalness: 1, calm: true,
     text: "Body still and upright; the garment section is presented flat and undistorted." },
@@ -68,15 +69,16 @@ export const POSES: readonly Pose[] = [
 ];
 
 export const EXPRESSIONS: readonly Expression[] = [
+  // The brand's expressions: neutral and serious, lips closed, direct gaze (front and styled); never a smile.
   { id: "neutral_camera", presets: ["front_crop", "full_body", "styled_full"], gaze: "camera", naturalness: 1,
     text: "Neutral, relaxed expression, lips closed, calm direct gaze into the camera." },
-  { id: "calm_camera", presets: ["front_crop", "full_body"], gaze: "camera", naturalness: 0.98,
+  { id: "calm_camera", presets: ["front_crop", "full_body", "styled_full"], gaze: "camera", naturalness: 0.98,
     text: "Calm, composed expression, lips closed, relaxed brow, steady gaze into the camera." },
   { id: "soft_neutral_camera", presets: ["front_crop", "full_body", "styled_full"], gaze: "camera", naturalness: 0.9,
     text: "Soft neutral expression, lips very slightly parted, relaxed eyes looking into the camera." },
   { id: "neutral_away", presets: ["three_quarter", "three_quarter_full"], gaze: "away", naturalness: 1,
-    text: "Neutral, relaxed expression, gaze off-camera in the direction of the head turn." },
-  { id: "soft_away", presets: ["styled_full"], gaze: "away", naturalness: 0.95,
+    text: "Neutral, relaxed expression, lips closed, gaze off-camera in the direction of the head turn and slightly down." },
+  { id: "soft_away", presets: ["styled_full"], gaze: "away", naturalness: 0.85,
     text: "Relaxed, natural expression, lips gently closed or barely parted, gaze off-camera. The same face as in the identity portrait: no added glamour or pout." },
   { id: "none", presets: ["back", "back_full", "detail"], gaze: "none", naturalness: 1,
     text: "" },
@@ -221,11 +223,7 @@ export function planPoses(specs: readonly ImageSpec[], seed: string): PosePlan {
       let exprId = m.expr;
       if (exprId === undefined && s.manualExpression === undefined) {
         let candidates = EXPRESSIONS.filter((e) => expressionIncompatibility(e, s.preset) === null);
-        // The styled shot carries attitude: gaze off-camera when such an expression exists.
-        if (s.preset === "styled_full") {
-          const away = candidates.filter((e) => e.gaze === "away");
-          if (away.length) candidates = away;
-        }
+        // The brand's styled shot mostly looks into the camera (gallery analysis); the off-camera variant stays available manually.
         // Main shots stay at the most neutral expression; variation is only allowed in full_body.
         const variation = s.preset === "full_body" || s.preset === "styled_full" ? 0.15 : 0;
         const best = pickInBand(candidates, (e) => e.naturalness - (usedExpr.has(e.id) ? variation : 0), slotSeed);

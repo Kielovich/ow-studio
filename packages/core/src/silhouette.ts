@@ -124,3 +124,20 @@ export async function measureHemAsymmetry(front: Uint8Array, back?: Uint8Array):
   const backSide = b === "image_right" ? "wearer_right" : "wearer_left";
   return { hemLowSide, backAgrees: backSide === hemLowSide };
 }
+
+/**
+ * Dominant garment colour from a packshot on a flat light background: median of the garment pixels,
+ * as lowercase hex. Deterministic; null when no garment is found.
+ */
+export async function measureGarmentColour(image: Uint8Array, bg: [number, number, number] = [241, 241, 241], threshold = 18): Promise<string | null> {
+  const { data, info } = await sharp(image).removeAlpha().toColourspace("srgb").resize({ width: 400, withoutEnlargement: true }).raw().toBuffer({ resolveWithObject: true });
+  const ch: number[][] = [[], [], []];
+  for (let i = 0; i < info.width * info.height; i++) {
+    const r = data[3 * i]!, g = data[3 * i + 1]!, b = data[3 * i + 2]!;
+    if (Math.max(Math.abs(r - bg[0]), Math.abs(g - bg[1]), Math.abs(b - bg[2])) <= threshold) continue;
+    ch[0]!.push(r); ch[1]!.push(g); ch[2]!.push(b);
+  }
+  if (ch[0]!.length < 100) return null;
+  const med = (a: number[]) => { const s = [...a].sort((x, y) => x - y); return s[Math.floor(s.length / 2)]!; };
+  return "#" + ch.map((a) => med(a).toString(16).padStart(2, "0")).join("");
+}

@@ -107,6 +107,30 @@ describe("shared session instructions", () => {
   });
 });
 
+describe("locks in the payload", () => {
+  const r = byPreset(compileProduction(brandSet({ products: [{ ...ASYM_DRESS, colorHex: "#1b1a1c" }] }), profile, undefined, { anchors: { "ASYM-01": asset("a") } }).images);
+
+  it("identity lock: portrait plus character sheet in every face shot, plus the angle where the head turns", () => {
+    const withSheet = { ...MODEL_SABLE, refs: { ...MODEL_SABLE.refs, characterSheet: asset("sheet"), identityAngles: [asset("tq")] } };
+    const s = byPreset(compileProduction(brandSet({ model: withSheet }), profile).images);
+    for (const p of ["full_body", "three_quarter_full", "styled_full"]) {
+      const roles = s[p]!.refs.map((x) => x.role);
+      expect(roles.slice(0, 2)).toEqual(["garment_front", "identity_primary"]);
+      expect(roles).toContain("character_sheet");
+    }
+    expect(s.three_quarter_full!.refs.map((x) => x.role)).toContain("identity_angle");
+  });
+
+  it("colour lock: the measured colour is stated in every shot", () => {
+    for (const i of Object.values(r)) expect(block(i, "garment")).toMatch(/dominant colour measured from the packshot is #1b1a1c/);
+  });
+
+  it("skin lock: texture and tone tied to the portrait, photographic skin in the style block", () => {
+    expect(block(r.full_body!, "identity")).toMatch(/skin tone, skin texture, freckles and hair colour identical to the identity portrait/);
+    for (const i of Object.values(r)) expect(block(i, "style")).toMatch(/pores visible on the nose, cheeks and forehead/);
+  });
+});
+
 describe("model's own look", () => {
   it("uses the portrait's hair and makeup unless the production overrides them", () => {
     const own = byPreset(compileProduction(brandSet({ styling: { accessories: [] } }), profile).images);
@@ -167,7 +191,7 @@ describe("pose planning across productions", () => {
     }
   });
 
-  it("varies the main poses between productions, but only among calm poses", () => {
+  it("varies front and back poses between productions among calm poses; the three-quarter always turns the brand's way", () => {
     const fronts = new Set<string>(), threeQuarter = new Set<string>(), backs = new Set<string>();
     for (let n = 0; n < 60; n++) {
       const s = byPreset(planFor(`p${n}`, [PRODUCT_MESH_MAXI]));
@@ -175,10 +199,11 @@ describe("pose planning across productions", () => {
       threeQuarter.add(s.three_quarter_full!.assignment.poseId);
       backs.add(s.back_full!.assignment.poseId);
     }
-    for (const set of [fronts, threeQuarter, backs]) {
+    for (const set of [fronts, backs]) {
       expect(set.size).toBeGreaterThan(1);
       for (const id of set) expect(getPose(id)!.calm).toBe(true);
     }
+    expect([...threeQuarter]).toEqual(["tq_away_left"]);
   });
 
   it("keeps the accessory pose for the styled shot when a bag is styled", () => {
