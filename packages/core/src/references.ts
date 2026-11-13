@@ -26,7 +26,8 @@ export const PRESET_ROLES: Record<PresetId, RefRole[]> = {
   front_crop: ["garment_front", "identity_primary", "body_front", "facial_detail", "expression_sheet"],
   three_quarter: ["garment_front", "garment_side", "identity_primary", "identity_angle", "body_front", "facial_detail"],
   back: ["garment_back", "body_back", "character_sheet"],
-  full_body: ["garment_front", "body_front", "identity_primary", "facial_detail"],
+  // Identity before body: with body first, the face drifted in full-body shots (phase 3 finding).
+  full_body: ["garment_front", "identity_primary", "body_front", "facial_detail"],
   detail: ["garment_detail", "garment_front"],
 };
 

@@ -11,3 +11,4 @@ export * from "./providers/types.js";
 export * from "./providers/mock.js";
 export * from "./providers/gemini.js";
 export * from "./assets.js";
+export * from "./silhouette.js";

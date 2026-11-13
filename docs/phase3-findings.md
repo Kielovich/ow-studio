@@ -65,3 +65,9 @@ All 12 test images have corners at RGB 233-243 (target 241), down from 165-210. 
 New issue: v2 full body face drifts from Sable (rounder face). Identity references for full_body are body_front then identity_primary; consider putting identity_primary before body_front, or adding the facial detail sheet.
 
 Remaining: leg width. Options: a measured hem-to-thigh ratio in garment metadata, or a dedicated silhouette reference (packshot outline).
+
+## Trousers v3: measured silhouette, identity-first references (2026-11-13)
+
+- `silhouette.ts` measures the front packshot at ingest: hem/thigh 0.83, hem span/hip 0.83. These go into the garment block as numbers.
+- Result: legs visibly wider and straighter in front_crop and back; full body improved but still slightly slimmer than the packshot.
+- Identity: with `identity_primary` before `body_front` for full_body, the face matches Sable again (v2 had drifted to a different face).

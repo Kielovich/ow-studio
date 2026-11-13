@@ -36,6 +36,8 @@ export const Product = z.object({
   color: z.string().min(1),
   description: z.string().default(""),
   flags: setOf(GarmentFlag).default([]),
+  /** Measured from the front packshot at ingest (see silhouette.ts). */
+  silhouette: z.object({ kind: z.literal("bottoms"), hemToThigh: z.number().min(0.2).max(2), hemSpanToHip: z.number().min(0.2).max(2) }).optional(),
   packshots: z
     .object({
       front: AssetHash.optional(),

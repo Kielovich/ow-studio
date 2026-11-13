@@ -11,7 +11,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import {
   compileProduction, DEFAULT_POLICY, extractImages, GEMINI_API_REVISION, GEMINI_ENDPOINT, GEMINI_PRO_PROFILE, GeminiProvider,
-  InMemoryJobStore, LocalAssetStore, newJob, runJob, type ProductionSpecInput,
+  InMemoryJobStore, LocalAssetStore, measureBottomsSilhouette, newJob, runJob, type ProductionSpecInput,
 } from "../src/index.js";
 import { MODEL_SABLE } from "../src/fixtures.js";
 import { loadLocalSecrets } from "../src/secrets.js";
@@ -69,6 +69,8 @@ async function main() {
     meshF: await put("meshdress_front"), meshB: await put("meshdress_back"),
   };
   const portrait = await store.put("out/smoke-gemini-3-pro-image-1.jpg");
+  const trousersSilhouette = await measureBottomsSilhouette((await store.resolve(pack.trousersF)).bytes);
+  console.log(`trousers silhouette: ${JSON.stringify(trousersSilhouette)}`);
 
   // Body references (paid once, cached).
   const refsFile = join(OUT, "body-refs.json");
@@ -98,7 +100,7 @@ async function main() {
     products: [
       { sku: "T3-TROUSERS", name: "Straight-leg five-pocket trousers", category: "trousers", color: "very dark olive-black",
         description: "Mid-rise five-pocket trousers with a relaxed straight leg that keeps the same width from knee to hem and falls loosely over the shoe. Dark coated cotton-like fabric with a low, soft sheen (not leather-like). Light grey contrast topstitching clearly visible along the side seams, pockets, waistband and hem. Belt loops, single button and zip fly, two back patch pockets outlined in contrast stitching.",
-        flags: ["has_pockets", "front_closure", "coated"], packshots: { front: pack.trousersF, back: pack.trousersB } },
+        flags: ["has_pockets", "front_closure", "coated"], ...(trousersSilhouette ? { silhouette: trousersSilhouette } : {}), packshots: { front: pack.trousersF, back: pack.trousersB } },
       { sku: "T3-FURJACKET", name: "Cropped faux fur jacket", category: "jacket", color: "black",
         description: "Cropped boxy faux fur jacket with an oversized shawl collar, curved open front with a single hidden closure, horizontal panel seams across body and sleeves, long wide sleeves.",
         flags: ["fur", "long_sleeve", "front_closure"], packshots: { front: pack.furF, back: pack.furB } },

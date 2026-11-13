@@ -1,10 +1,11 @@
 import { garmentConstraintLines } from "./garmentConstraints.js";
+import { silhouetteText } from "./silhouette.js";
 import { getExpression, getPose } from "./poses.js";
 import { PRESETS } from "./presets.js";
 import { BOTTOM_CATEGORIES, OUTERWEAR_CATEGORIES, type ImageSpec, type InstructionBlock, type PoseAssignment } from "./schemas.js";
 
 /** Bump when any wording below changes. Part of every compileHash. */
-export const TEMPLATE_VERSION = "tpl-2026.11.2";
+export const TEMPLATE_VERSION = "tpl-2026.11.3";
 
 /** Instruction priorities. Lower number wins when instructions conflict. */
 export const PRIORITY = {
@@ -39,6 +40,7 @@ export function buildBlocks(spec: ImageSpec, a: PoseAssignment): InstructionBloc
     `Garment: ${p.name} (${p.category}, ${p.color}).${p.description ? " " + p.description : ""}`,
     `Reproduce the garment exactly as shown in the garment reference images: construction, seams, neckline, closures, length, colour, print, texture and transparency. Do not add, remove or redesign any element.`,
     `Silhouette and fit exactly as in the packshot: leg and sleeve width, length and volume. Do not slim, taper, shorten or enlarge the garment to flatter the body.`,
+    ...(p.silhouette && preset !== "detail" ? [silhouetteText(p.silhouette)] : []),
     ...garmentConstraintLines(p.flags, preset),
   ].join(" "));
 

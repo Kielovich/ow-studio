@@ -4,7 +4,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
 [
   {
     "expr": "neutral_camera",
-    "hash": "cmp_4dc60d8f13564397fe87c8f1ec4f33bf24bfa4195eab9298b74dbeab1ca6133c",
+    "hash": "cmp_3c21defa98ad5a857f155ec426bceac0565495cc220ec172fcf0348b5e6051bc",
     "id": "img_38b2c4f56e954dd700f97492",
     "pose": "front_neutral",
     "preset": "front_crop",
@@ -19,7 +19,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_away",
-    "hash": "cmp_b3ee9543b9f8395d0a17a49af23ac347ee7a26c1de3a6a2738753446eb8836fd",
+    "hash": "cmp_3873affe97b37e5a18b38b1de7e2b19c597c48618b0d580ddc33bd0b4b687684",
     "id": "img_8b4c8075854ecee8bb1a96cf",
     "pose": "tq_away_left",
     "preset": "three_quarter",
@@ -34,7 +34,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_497218ac3fab9f0f0d6b97363da1e23f9b9b2a1e8bc154f58de4ea4bf7688609",
+    "hash": "cmp_8c07f54e3ddfb87532868746310386b67e97b0d5894055aa49602ebdefb95760",
     "id": "img_0106a25df8ef1d2c0f3b3f30",
     "pose": "back_neutral",
     "preset": "back",
@@ -47,21 +47,21 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "soft_neutral_camera",
-    "hash": "cmp_f45b2164c2364bd8a8581df1300f86e13d9d0791c64ea158a52902b46ab00ba4",
+    "hash": "cmp_b21ab3ee3af78bc769d7a3af4aed433863a8a0fd303718fb6da05ab36358d66e",
     "id": "img_896fe5fd0087a21d258eee72",
     "pose": "front_weight_shift",
     "preset": "full_body",
     "refs": [
       "garment_front",
-      "body_front",
       "identity_primary",
+      "body_front",
       "facial_detail",
     ],
     "sku": "TEST-DR-001",
   },
   {
     "expr": "none",
-    "hash": "cmp_f3569350857ed691dcad9b9c071b89f5eb2fd648a2e6d7ba81be05c35ba43f46",
+    "hash": "cmp_19bb753d075a6b5862fcdcce9b7a1688fc326f692118a03670f0a95855b428bb",
     "id": "img_826ff3934934b4ef2ffef43e",
     "pose": "detail_still",
     "preset": "detail",
@@ -72,7 +72,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_camera",
-    "hash": "cmp_d45f882baeada7b05b34a22610fc7ce1636b48d782339885737cb570f0528e83",
+    "hash": "cmp_9d67fe3e21d0d96d3c763fd16803e3397adc8fca5f4465606a3f2b3a5c074c41",
     "id": "img_d8bc1d1d8fa3f2047e2b2131",
     "pose": "front_neutral",
     "preset": "front_crop",
@@ -84,7 +84,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_away",
-    "hash": "cmp_b42246a668444b44689a52453cf7bcb78748a55bc0adc8749c5a19424e778558",
+    "hash": "cmp_345207d53a6719e1d803dc509510f8fac33db3edde3a54c5ddad13009a222368",
     "id": "img_e6a8c6724abc90e1c9f6a121",
     "pose": "tq_away_left",
     "preset": "three_quarter",
@@ -96,7 +96,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_9cb48c943f4aba01f1f0fd86a77181574521bfe06b30e3901f324a1d107a0a55",
+    "hash": "cmp_15d66844e785c15de5881f1e669e23a109b896968f28b21b6ae1c763df055649",
     "id": "img_288f6f3948289ca53fe1a7ac",
     "pose": "back_neutral",
     "preset": "back",
@@ -109,21 +109,21 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "soft_neutral_camera",
-    "hash": "cmp_6bd50177a6a17bd10871d0e018be87feedd88e1a0396c69d379c83eebb9186e6",
+    "hash": "cmp_2a9015d51b6c69d79de3e9ea0b2c4a502bc2514e47d740b49d88675bffe28015",
     "id": "img_0e7c51aeb079c6fbeb232c76",
     "pose": "front_weight_shift",
     "preset": "full_body",
     "refs": [
       "garment_front",
-      "body_front",
       "identity_primary",
+      "body_front",
       "facial_detail",
     ],
     "sku": "TEST-PT-003",
   },
   {
     "expr": "none",
-    "hash": "cmp_b2da75ec44c54d63a6b29d14b4ca30e180d4fe6d29d69ab4d917d5d70cb9cc23",
+    "hash": "cmp_883899525f6ef743f06db9c65683c32cd471d0ab7c5b6922a550c7d806773419",
     "id": "img_af7a26ae45a683a877547b11",
     "pose": "detail_still",
     "preset": "detail",
@@ -134,7 +134,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_camera",
-    "hash": "cmp_3ff3f5719a190f9a535ad4553c69909c4ff47b94779f5c73c973b95d3fc3f503",
+    "hash": "cmp_e0aa24d2d0327291663ca0d7f67583f2c84aecdb7444385efac8e8768ce16413",
     "id": "img_c8adf68633ea53fbb87601ea",
     "pose": "front_neutral",
     "preset": "front_crop",
@@ -149,7 +149,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_away",
-    "hash": "cmp_0f5c5ace6d1ca5de9032fdb8de74e082b18fe1e778fea4fcf3efe1ff1f2938a6",
+    "hash": "cmp_34d008d5de367ed124655787e09c9ea2352d5b8d03d8f1398159e005cf0e51f0",
     "id": "img_5a611cae61a4e9cd138a2c6c",
     "pose": "tq_away_left",
     "preset": "three_quarter",
@@ -164,7 +164,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_5a193e420def3d993b108898c00641e324f921365b9dcd2165845a6a0ad3d86d",
+    "hash": "cmp_1fb30c54ecd43a4d44c25cc35c98dac1c2a49808e88c1a6de7a44cd1ef1e3e2d",
     "id": "img_abae3cc68572abc234ff18b0",
     "pose": "back_neutral",
     "preset": "back",
@@ -177,21 +177,21 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "soft_neutral_camera",
-    "hash": "cmp_6e47d2841b90b4031097446c048a52b53a0870f9100ac36e943126ece10e023a",
+    "hash": "cmp_0c0228ae6d5fc78dd3c1c455b96309aa9fd213d76feee82276316d7bebaa66e1",
     "id": "img_a701e44c5b29e401cf7030ce",
     "pose": "front_weight_shift",
     "preset": "full_body",
     "refs": [
       "garment_front",
-      "body_front",
       "identity_primary",
+      "body_front",
       "facial_detail",
     ],
     "sku": "TEST-TP-002",
   },
   {
     "expr": "none",
-    "hash": "cmp_f27de94445ce59129fe090f729211db408366de0f9bf49cb1c4ee7ae660bc005",
+    "hash": "cmp_5311a1c4ec85c88ade3d2804d1b9043b2cfd78759d0b2f325f18dedc6d683167",
     "id": "img_adb689893d05356b8ccf9559",
     "pose": "detail_still",
     "preset": "detail",
