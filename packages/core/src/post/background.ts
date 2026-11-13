@@ -11,8 +11,9 @@ import sharp from "sharp";
  *    flood-filled from the image border, plus large enclosed pockets (e.g. between arm and torso) that clearly match.
  * 3. In a thin band around the subject, estimate how much background each pixel contains from luminance
  *    (alpha between the local subject level and the background model), so hair and edges blend without a halo.
- * 4. out = obs + alpha * (target - model) * shade, where shade = obs/model inside the background, so shadows keep
- *    their relative depth, and the colour cast of the old background is removed.
+ * 4. Background pixels become target * shade, where shade is the luminance ratio to the model below 97% (real
+ *    shadows keep their relative depth; render noise and colour cast are removed). Edge-band pixels blend:
+ *    out = obs + alpha * (target - model).
  *
  * Same input and options always give the same output.
  */
@@ -21,8 +22,10 @@ export type BackgroundOptions = {
   target?: [number, number, number];
   /** Max per-channel distance from the background model to count as background. */
   tolerance?: number;
-  /** Max chroma (max-min channel) for background and shadow pixels. */
+  /** Max chroma (max-min channel) above the background's own chroma for background and shadow pixels. */
   chromaMax?: number;
+  /** Max chroma of the backdrop itself. A tinted backdrop (lilac, warm grey) is fine; a coloured one is refused. */
+  backdropChromaMax?: number;
   /** Darkest shadow, as a fraction of the background model luminance, still treated as background. */
   shadowMin?: number;
   /** Minimum size of an enclosed background pocket, as a fraction of the image area. */
@@ -46,6 +49,7 @@ const DEFAULTS: Required<BackgroundOptions> = {
   target: [241, 241, 241],
   tolerance: 14,
   chromaMax: 12,
+  backdropChromaMax: 30,
   shadowMin: 0.55,
   enclosedMinFraction: 0.0004,
   band: 3,
@@ -118,7 +122,13 @@ export function normalizeBackgroundRaw(rgb: Uint8Array, W: number, H: number, op
     grid.push({ x, y, i: y * W + x, border: x < border || y < border || x >= W - border || y >= H - border });
   }
   const sample = (g: { x: number; y: number; i: number }) => ({ x: g.x / W, y: g.y / H, v: [rgb[3 * g.i]!, rgb[3 * g.i + 1]!, rgb[3 * g.i + 2]!] as [number, number, number] });
-  const neutralBorder = grid.filter((g) => g.border && chroma[g.i]! < o.chromaMax);
+  // Chroma is judged relative to the backdrop's own tint: models often render a lilac or warm grey (chroma ~10),
+  // and an absolute neutrality test then rejects noisy backdrop pixels one by one, which leaves speckles.
+  const borderChroma = grid.filter((g) => g.border).map((g) => chroma[g.i]!).sort((a, b) => a - b);
+  const tint = borderChroma[Math.floor(borderChroma.length / 2)] ?? 0;
+  if (tint > o.backdropChromaMax) return fail("too few neutral border pixels");
+  const chromaLimit = tint + o.chromaMax;
+  const neutralBorder = grid.filter((g) => g.border && chroma[g.i]! < chromaLimit);
   if (neutralBorder.length < 30) return fail("too few neutral border pixels");
   const sortedLum = neutralBorder.map((g) => lum[g.i]!).sort((a, b) => a - b);
   const medLum = sortedLum[Math.floor(sortedLum.length / 2)]!;
@@ -127,7 +137,7 @@ export function normalizeBackgroundRaw(rgb: Uint8Array, W: number, H: number, op
   for (let it = 0; it < 3; it++) {
     const c = coefs;
     const keep = grid.filter((g) => {
-      if (chroma[g.i]! >= o.chromaMax) return false;
+      if (chroma[g.i]! >= chromaLimit) return false;
       const x = g.x / W, y = g.y / H;
       let d = 0;
       for (let ch = 0; ch < 3; ch++) d = Math.max(d, Math.abs(rgb[3 * g.i + ch]! - evalC(c[ch]!, x, y)));
@@ -166,7 +176,8 @@ export function normalizeBackgroundRaw(rgb: Uint8Array, W: number, H: number, op
     dist[i] = d;
     const mlum = 0.299 * model[3 * i]! + 0.587 * model[3 * i + 1]! + 0.114 * model[3 * i + 2]!;
     const ratio = lum[i]! / mlum;
-    if (chroma[i]! < o.chromaMax && (d < o.tolerance || (ratio >= o.shadowMin && ratio <= 1.05))) cand[i] = 1;
+    const mchroma = Math.max(model[3 * i]!, model[3 * i + 1]!, model[3 * i + 2]!) - Math.min(model[3 * i]!, model[3 * i + 1]!, model[3 * i + 2]!);
+    if (chroma[i]! < mchroma + o.chromaMax && (d < o.tolerance || (ratio >= o.shadowMin && ratio <= 1.05))) cand[i] = 1;
   }
   const flood = (seeds: number[], into: Uint8Array, mark: number, collect?: number[]) => {
     let head = 0, tail = 0;
@@ -315,14 +326,19 @@ export function normalizeBackgroundRaw(rgb: Uint8Array, W: number, H: number, op
         if (Math.abs(denom) >= 15) alpha = Math.min(1, Math.max(0, (lum[i]! - lf) / denom));
       }
     }
+    // Shadows keep their relative depth; anything brighter than the model is flattened to the target.
+    // Deviations within 3% are noise and become flat target; real shadows scale continuously below that.
+    // The ratio is taken on luminance, the same for all channels: per-channel ratios turned channel noise on a
+    // tinted backdrop into coloured speckles.
+    const mlumPx = 0.299 * model[3 * i]! + 0.587 * model[3 * i + 1]! + 0.114 * model[3 * i + 2]!;
+    const ratio = lum[i]! / mlumPx;
+    const shade = shadeBg && ratio < 0.97 ? ratio / 0.97 : 1;
     for (let ch = 0; ch < 3; ch++) {
       const obs = rgb[3 * i + ch]!;
       const m = model[3 * i + ch]!;
-      // Shadows keep their relative depth; anything brighter than the model is flattened to the target.
-      // Deviations within 3% are noise and become flat target; real shadows scale continuously below that.
-      const ratio = obs / m;
-      const shade = shadeBg && ratio < 0.97 ? ratio / 0.97 : 1;
-      const v = obs + alpha * (o.target[ch]! - m) * shade;
+      // Pure background becomes exactly the target (scaled by its shadow depth): no cast, no render noise.
+      // The soft-edge band blends the observed pixel towards that, so hair and edges keep their detail.
+      const v = shadeBg ? o.target[ch]! * shade : obs + alpha * (o.target[ch]! - m) * shade;
       out[3 * i + ch] = Math.max(0, Math.min(255, Math.round(v)));
     }
   }

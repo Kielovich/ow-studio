@@ -73,4 +73,25 @@ describe("background normalisation", () => {
     for (let i = 0; i < red.length; i += 3) red[i] = 200;
     expect(normalizeBackgroundRaw(red, 64, 64).report).toMatchObject({ ok: false });
   });
+
+  it("cleans a tinted background with sensor noise without leaving speckles (regression)", () => {
+    // Model output seen in production: smooth lilac-grey backdrop around RGB 200,190,196 with fine noise.
+    const W = 200, H = 200;
+    const tinted = new Uint8Array(W * H * 3);
+    let seed = 7;
+    const noise = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return (seed % 9) - 4; };
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const k = 3 * (y * W + x), shade = -10 * (x / W);
+      tinted.set([200 + shade + noise(), 190 + shade + noise(), 196 + shade + noise()], k);
+    }
+    for (let y = 30; y < H; y++) for (let x = 70; x < 120; x++) tinted.set([25, 24, 28], 3 * (y * W + x));
+    const r = normalizeBackgroundRaw(tinted, W, H);
+    expect(r.report.ok).toBe(true);
+    let speckles = 0;
+    for (let y = 0; y < H; y++) for (let x = 130; x < W; x++) {
+      const k = 3 * (y * W + x);
+      if (Math.max(...[0, 1, 2].map((c) => Math.abs(r.out[k + c]! - 241))) > 6) speckles++;
+    }
+    expect(speckles).toBe(0);
+  });
 });
