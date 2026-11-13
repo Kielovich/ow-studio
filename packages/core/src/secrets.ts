@@ -9,7 +9,7 @@ import { join } from "node:path";
 export function loadLocalSecrets(path = join(homedir(), ".ow-studio", "secrets.env")): void {
   let text: string;
   try {
-    text = readFileSync(path, "utf8");
+    text = readFileSync(/*turbopackIgnore: true*/ path, "utf8");
   } catch {
     return;
   }

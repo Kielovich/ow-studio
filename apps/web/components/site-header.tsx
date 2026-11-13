@@ -14,6 +14,10 @@ const NAV = [
 
 export function SiteHeader() {
   const path = usePathname();
+  const logout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
+    window.location.assign("/login"); // full load: drop every cached authenticated page
+  };
   const active = (href: string) => (href === "/" ? path === "/" : path === href || (href !== "/productions" && path.startsWith(href)) || (href === "/productions" && path.startsWith("/productions") && !path.startsWith("/productions/new")));
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-line">
@@ -35,6 +39,7 @@ export function SiteHeader() {
               {n.label}
             </Link>
           ))}
+          {path !== "/login" && <button onClick={logout} className="pb-0.5 border-b border-transparent text-black/60 hover:text-ink uppercase">Log out</button>}
         </nav>
       </div>
       <nav className="md:hidden flex gap-5 overflow-x-auto px-6 pb-3 ow-nav whitespace-nowrap">

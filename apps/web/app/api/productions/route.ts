@@ -1,3 +1,4 @@
+import { guard } from "@/lib/auth";
 import { createProduction, listProductions, type ProductionDraft } from "@/lib/server/repo";
 
 export async function GET() {
@@ -9,6 +10,8 @@ export async function GET() {
  * same production, so a double click or a retried request never creates a second paid production.
  */
 export async function POST(req: Request) {
+  const denied = await guard(req);
+  if (denied) return denied;
   try {
     const body = await req.json();
     const wrapped = body && typeof body === "object" && "draft" in body;

@@ -1,3 +1,4 @@
+import { guard } from "@/lib/auth";
 import { imageDimensions } from "@ow-studio/core";
 import { assets } from "@/lib/server/repo";
 
@@ -5,6 +6,8 @@ const MAX_BYTES = 25 * 1024 * 1024;
 
 /** Stores images content-addressed. SKU and role are parsed on the client from the relative path (see lib/import.ts). */
 export async function POST(req: Request) {
+  const denied = await guard(req);
+  if (denied) return denied;
   const form = await req.formData();
   const files = form.getAll("files").filter((f): f is File => f instanceof File);
   const results = [];

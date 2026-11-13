@@ -1,3 +1,4 @@
+import { guard } from "@/lib/auth";
 import { getDraft, isDraftId, saveDraft } from "@/lib/server/repo";
 
 /** Import sessions: the new-production form, saved on the server so corrections survive a closed tab. */
@@ -7,6 +8,8 @@ export async function GET(_: Request, ctx: RouteContext<"/api/drafts/[id]">) {
 }
 
 export async function PUT(req: Request, ctx: RouteContext<"/api/drafts/[id]">) {
+  const denied = await guard(req);
+  if (denied) return denied;
   const id = (await ctx.params).id;
   if (!isDraftId(id)) return Response.json({ error: "Invalid draft id" }, { status: 400 });
   try {
