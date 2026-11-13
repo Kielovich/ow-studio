@@ -209,3 +209,65 @@ export async function cropFabric(
     .resize({ width: Math.max(size, outSidePx), height: Math.max(size, outSidePx), kernel: "lanczos3" }).png().toBuffer();
   return { bytes: new Uint8Array(out), box: { left, top, size } };
 }
+
+// ---------- Colour drift (realism/QA, phase 3) ----------
+
+function srgbToLab(r: number, g: number, b: number): [number, number, number] {
+  const lin = (c: number) => { c /= 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+  const R = lin(r), G = lin(g), B = lin(b);
+  const x = (0.4124 * R + 0.3576 * G + 0.1805 * B) / 0.95047, y = 0.2126 * R + 0.7152 * G + 0.0722 * B, z = (0.0193 * R + 0.1192 * G + 0.9505 * B) / 1.08883;
+  const f = (t: number) => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116);
+  return [116 * f(y) - 16, 500 * (f(x) - f(y)), 200 * (f(y) - f(z))];
+}
+
+/** Colour distance that tolerates studio exposure differences: lightness counts half, hue and chroma fully. */
+export function colourDistance(a: string, b: string): number {
+  const p = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)) as [number, number, number];
+  const [L1, a1, b1] = srgbToLab(...p(a)), [L2, a2, b2] = srgbToLab(...p(b));
+  return Math.sqrt(((L1 - L2) / 2) ** 2 + (a1 - a2) ** 2 + (b1 - b2) ** 2);
+}
+
+export type ColourDrift = { measuredHex: string; distance: number; drift: boolean; sharePct: number };
+
+/**
+ * Does the generated image contain the garment's colour? Background and skin are removed, the rest is clustered
+ * (k-means, k = 4, deterministic seeds) and the cluster nearest the packshot colour is compared with it. Because the
+ * nearest cluster is used, styling in another colour cannot raise a false alarm; the flip side is that the check
+ * cannot see a drift when the styling has the garment's colour (e.g. black on black). Flags only clear drifts.
+ */
+export async function measureColourDrift(image: Uint8Array, targetHex: string, opts: { threshold?: number; bg?: [number, number, number] } = {}): Promise<ColourDrift | null> {
+  const threshold = opts.threshold ?? 12;
+  const bg = opts.bg ?? [241, 241, 241];
+  const { data, info } = await sharp(image).removeAlpha().toColourspace("srgb").resize({ width: 256, withoutEnlargement: true }).raw().toBuffer({ resolveWithObject: true });
+  const px: [number, number, number][] = [];
+  for (let i = 0; i < info.width * info.height; i++) {
+    const r = data[3 * i]!, g = data[3 * i + 1]!, b = data[3 * i + 2]!;
+    if (Math.max(Math.abs(r - bg[0]), Math.abs(g - bg[1]), Math.abs(b - bg[2])) <= 14) continue;
+    const cb = 128 - 0.168736 * r - 0.331264 * g + 0.5 * b, cr = 128 + 0.5 * r - 0.418688 * g - 0.081312 * b;
+    if (cr > 135 && cr < 180 && cb > 85 && cb < 135 && r > 60 && r > b) continue; // skin
+    px.push([r, g, b]);
+  }
+  if (px.length < 200) return null;
+  // Deterministic k-means: seeds at evenly spaced luminance quantiles.
+  const lum = (p: number[]) => 0.299 * p[0]! + 0.587 * p[1]! + 0.114 * p[2]!;
+  const sorted = [...px].sort((a, b) => lum(a) - lum(b));
+  let centres = [0.1, 0.4, 0.7, 0.95].map((q) => [...sorted[Math.floor(q * (sorted.length - 1))]!]);
+  let assign = new Int32Array(px.length);
+  for (let it = 0; it < 12; it++) {
+    for (let i = 0; i < px.length; i++) {
+      let best = 0, bd = Infinity;
+      centres.forEach((c, k) => { const d = (px[i]![0] - c[0]!) ** 2 + (px[i]![1] - c[1]!) ** 2 + (px[i]![2] - c[2]!) ** 2; if (d < bd) { bd = d; best = k; } });
+      assign[i] = best;
+    }
+    centres = centres.map((c, k) => {
+      const m = px.filter((_, i) => assign[i] === k);
+      return m.length ? [0, 1, 2].map((ch) => m.reduce((s, p) => s + p[ch]!, 0) / m.length) : c;
+    });
+  }
+  const hex = (c: number[]) => "#" + c.map((v) => Math.round(v).toString(16).padStart(2, "0")).join("");
+  const scored = centres.map((c, k) => ({ k, hex: hex(c), d: colourDistance(hex(c), targetHex), n: assign.filter((a) => a === k).length }))
+    .filter((c) => c.n >= px.length * 0.03); // ignore specks
+  if (!scored.length) return null;
+  const nearest = scored.sort((a, b) => a.d - b.d)[0]!;
+  return { measuredHex: nearest.hex, distance: Math.round(nearest.d * 10) / 10, drift: nearest.d > threshold, sharePct: Math.round((nearest.n / px.length) * 100) };
+}

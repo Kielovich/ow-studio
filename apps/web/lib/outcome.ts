@@ -17,6 +17,8 @@ export type Attempt = {
   error: string | null;
   review: Review;
   createdAt: string;
+  /** Automatic checks on this attempt's image. Only checks that can be trusted when they fire (see measureColourDrift). */
+  checks?: { colour?: { measuredHex: string; targetHex: string; distance: number; drift: boolean } } | null;
 };
 
 type JobLike = { attempt: number; costUsd: number; awaitingReason?: string; lastError?: { kind: string; message: string } };
@@ -39,7 +41,7 @@ export function attemptOutcome(state: string, job: JobLike): Attempt["outcome"] 
 
 export type StatusView = { key: string; label: string; color: ChipColor; hint?: string; canRetry: boolean };
 
-export function statusView(state: string, job: JobLike, review: Review, opts: { waitingForAnchor?: boolean } = {}): StatusView {
+export function statusView(state: string, job: JobLike, review: Review, opts: { waitingForAnchor?: boolean; checks?: Attempt["checks"] } = {}): StatusView {
   if (opts.waitingForAnchor && state === "queued") return { key: "waiting", label: "Waiting for front", color: "default", canRetry: false };
   if (isUnknownOutcome(state, job)) {
     return {
@@ -55,6 +57,11 @@ export function statusView(state: string, job: JobLike, review: Review, opts: { 
     case "succeeded":
       if (review === "approved") return { key: "approved", label: "Approved", color: "success", canRetry: false };
       if (review === "rejected") return { key: "rejected", label: "Rejected", color: "danger", canRetry: true };
+      if (opts.checks?.colour?.drift) {
+        const c = opts.checks.colour;
+        return { key: "check_colour", label: "Check colour", color: "warning", canRetry: false,
+          hint: `Garment colour in the image (${c.measuredHex}) is far from the packshot (${c.targetHex}). Compare before approving.` };
+      }
       return { key: "to_review", label: "To review", color: "accent", canRetry: false };
     case "needs_review":
       if (review === "approved") return { key: "approved", label: "Approved", color: "success", canRetry: false };

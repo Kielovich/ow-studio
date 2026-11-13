@@ -197,6 +197,7 @@ export type ImageRow = {
 
 const toAttempt = (a: any): Attempt => ({
   attempt: a.attempt, outcome: a.outcome, rawAsset: a.raw_asset, finalAsset: a.final_asset, costUsd: a.cost_usd, error: a.error, review: a.review ?? null, createdAt: a.created_at,
+  checks: a.checks ? JSON.parse(a.checks) : null,
 });
 
 const toImage = (r: any, attempts: Attempt[], anchorState?: string): ImageRow => {
@@ -210,7 +211,10 @@ const toImage = (r: any, attempts: Attempt[], anchorState?: string): ImageRow =>
     rawAsset: r.raw_asset, finalAsset: r.final_asset, prompt: req.prompt, refs: req.refs, updatedAt: r.updated_at,
     attempts,
     approvedAttempt: attempts.find((a) => a.review === "approved")?.attempt ?? null,
-    status: statusView(r.state, job, review, { waitingForAnchor: !!r.depends_on && anchorState !== undefined && anchorState !== "succeeded" }),
+    status: statusView(r.state, job, review, {
+      waitingForAnchor: !!r.depends_on && anchorState !== undefined && anchorState !== "succeeded",
+      checks: latest && latest.attempt === job.attempt ? latest.checks : null,
+    }),
   };
 };
 
@@ -341,14 +345,14 @@ export function freezeAnchor(imageId: string): boolean {
  * Records a finished provider attempt with its own files. Called by the worker after every run, so a retry never
  * replaces an earlier image: both stay available for comparison. Returns false when nothing was attempted (budget hold).
  */
-export function recordAttempt(imageId: string, a: { job: JobRecord; costBeforeUsd: number; raw?: string; final?: string }): boolean {
+export function recordAttempt(imageId: string, a: { job: JobRecord; costBeforeUsd: number; raw?: string; final?: string; checks?: Attempt["checks"] }): boolean {
   const outcome = attemptOutcome(a.job.state, a.job);
   if (!outcome) return false;
   const error = a.job.validation && !a.job.validation.ok ? a.job.validation.reasons.join("; ") : a.job.lastError ? `${a.job.lastError.kind}: ${a.job.lastError.message}` : null;
-  getDb().prepare(`INSERT INTO attempts (image_id, attempt, outcome, raw_asset, final_asset, cost_usd, error) VALUES (?, ?, ?, ?, ?, ?, ?)
+  getDb().prepare(`INSERT INTO attempts (image_id, attempt, outcome, raw_asset, final_asset, cost_usd, error, checks) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT (image_id, attempt) DO UPDATE SET outcome = excluded.outcome, raw_asset = COALESCE(excluded.raw_asset, raw_asset),
-      final_asset = COALESCE(excluded.final_asset, final_asset), cost_usd = excluded.cost_usd, error = excluded.error`)
-    .run(imageId, a.job.attempt, outcome, a.raw ?? null, a.final ?? null, Math.max(0, a.job.costUsd - a.costBeforeUsd), error);
+      final_asset = COALESCE(excluded.final_asset, final_asset), cost_usd = excluded.cost_usd, error = excluded.error, checks = COALESCE(excluded.checks, checks)`)
+    .run(imageId, a.job.attempt, outcome, a.raw ?? null, a.final ?? null, Math.max(0, a.job.costUsd - a.costBeforeUsd), error, a.checks ? JSON.stringify(a.checks) : null);
   return true;
 }
 

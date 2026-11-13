@@ -61,6 +61,9 @@ function migrate(d: DatabaseSync) {
   // Idempotency key sent by the client on create: a repeated key returns the existing production instead of a new paid one.
   if (!pcols.has("create_key")) d.exec("ALTER TABLE productions ADD COLUMN create_key TEXT");
   d.exec("CREATE UNIQUE INDEX IF NOT EXISTS productions_by_create_key ON productions(create_key) WHERE create_key IS NOT NULL");
+  const acols = new Set((d.prepare("PRAGMA table_info(attempts)").all() as { name: string }[]).map((c) => c.name));
+  // Automatic checks on an attempt's image (JSON), e.g. { colour: { measuredHex, distance, drift, sharePct, targetHex } }.
+  if (acols.size && !acols.has("checks")) d.exec("ALTER TABLE attempts ADD COLUMN checks TEXT");
   const hadAttempts = !!d.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'attempts'").get();
   d.exec(`
     -- Every finished provider attempt of an image, with its own files. A retry never overwrites an earlier attempt.
@@ -73,6 +76,7 @@ function migrate(d: DatabaseSync) {
       cost_usd REAL NOT NULL DEFAULT 0,
       error TEXT,
       review TEXT,                                -- NULL (not reviewed) | approved | rejected; at most one approved per image
+      checks TEXT,                                -- automatic checks JSON (colour drift)
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       PRIMARY KEY (image_id, attempt)
     );

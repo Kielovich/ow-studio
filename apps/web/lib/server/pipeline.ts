@@ -1,4 +1,4 @@
-import { DEFAULT_POLICY, normalizeBackground, runJob, type CompiledRequest, type JobRecord, type ProviderAdapter } from "@ow-studio/core";
+import { DEFAULT_POLICY, measureColourDrift, normalizeBackground, runJob, type CompiledRequest, type JobRecord, type ProviderAdapter } from "@ow-studio/core";
 import { getDb } from "./db";
 import { SqliteJobStore } from "./jobstore";
 import { assets, budgetRemaining, freezeAnchor, recordAttempt } from "./repo";
@@ -19,16 +19,24 @@ export async function processImage(row: any, deps: { adapter: ProviderAdapter; s
     sleep: deps.sleep,
   });
   let raw: string | undefined, final: string | undefined;
+  let checks: { colour?: { measuredHex: string; targetHex: string; distance: number; drift: boolean } } | undefined;
   if ((job.state === "succeeded" || job.state === "needs_review") && job.providerJobId) {
     const st = await deps.adapter.poll(job.providerJobId);
     if (st.state === "succeeded" && st.assets[0]) {
       raw = await assets.putBytes(st.assets[0].bytes);
       const norm = await normalizeBackground(st.assets[0].bytes);
       final = norm.report.ok ? await assets.putBytes(norm.bytes) : raw;
+      // Colour drift against the packshot's measured colour lock (flags only clear drifts; see measureColourDrift).
+      const p: any = db.prepare("SELECT spec FROM productions WHERE id = ?").get(row.production_id);
+      const target = p ? (JSON.parse(p.spec).products as any[]).find((x) => x.sku === row.sku)?.colorHex : undefined;
+      if (target) {
+        const d = await measureColourDrift(norm.report.ok ? norm.bytes : st.assets[0].bytes, target);
+        if (d) checks = { colour: { measuredHex: d.measuredHex, targetHex: target, distance: d.distance, drift: d.drift } };
+      }
     }
   }
   // Every attempt is kept with its own files; the image row only points at the latest one.
-  recordAttempt(row.id, { job, costBeforeUsd, ...(raw ? { raw } : {}), ...(final ? { final } : {}) });
+  recordAttempt(row.id, { job, costBeforeUsd, ...(raw ? { raw } : {}), ...(final ? { final } : {}), ...(checks ? { checks } : {}) });
   db.prepare("UPDATE images SET claimed_by = NULL, claimed_until = NULL, raw_asset = COALESCE(?, raw_asset), final_asset = COALESCE(?, final_asset) WHERE id = ?")
     .run(raw ?? null, final ?? null, row.id);
   return job;

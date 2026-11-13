@@ -206,6 +206,31 @@ describe("attempts and approval", () => {
   });
 });
 
+describe("colour drift check in the pipeline", () => {
+  it("marks an image whose garment colour is far from the packshot as 'Check colour'", async () => {
+    const red = async () => repo.assets.putBytes(new Uint8Array(await sharp({ create: { width: 300, height: 300, channels: 3, background: { r: 241, g: 241, b: 241 } } })
+      .composite([{ input: { create: { width: 100, height: 210, channels: 3, background: { r: 170, g: 30, b: 40 } } }, top: 45, left: 100 }]).png().toBuffer()));
+    const front = await red();
+    const id = await created({ ...draft, sessionAnchor: false, presets: ["full_body"], products: [{ ...draft.products[0]!, sku: "RED-1", color: "red", packshots: { front } }] });
+    const row = rowsOf(id)[0]!;
+    await pipeline.processImage(row, { adapter: simulated(["ok"]), sleep }); // simulated output: a dark grey garment
+    const img = repo.getProduction(id)!.images[0]!;
+    expect(img.attempts[0]!.checks?.colour).toMatchObject({ drift: true });
+    expect(img.status).toMatchObject({ key: "check_colour", label: "Check colour" });
+    // Reviewing still works as usual: approving clears the warning.
+    repo.setReview(img.id, 1, "approved");
+    expect(repo.getProduction(id)!.images[0]!.status.key).toBe("approved");
+  });
+
+  it("does not flag a correct colour", async () => {
+    const id = await created({ ...draft, sessionAnchor: false, presets: ["full_body"] });
+    await pipeline.processImage(rowsOf(id)[0]!, { adapter: simulated(["ok"]), sleep });
+    const img = repo.getProduction(id)!.images[0]!;
+    expect(img.attempts[0]!.checks?.colour?.drift).toBe(false);
+    expect(img.status.key).toBe("to_review");
+  });
+});
+
 describe("unknown outcome", () => {
   it("is its own state: may have cost, recorded as an attempt, new attempt on request", async () => {
     const id = await created({ ...draft, sessionAnchor: false });
