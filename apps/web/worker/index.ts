@@ -9,13 +9,16 @@ import { GeminiProvider, loadLocalSecrets } from "@ow-studio/core";
 import { backupDatabase, getDb } from "../lib/server/db";
 import { SqliteJobStore } from "../lib/server/jobstore";
 import { processImage } from "../lib/server/pipeline";
+import { simulatedProvider } from "../lib/server/simulated";
 import { assets, DEFAULT_PROFILE } from "../lib/server/repo";
 
 loadLocalSecrets();
 const WORKER_ID = `${hostname()}:${process.pid}`;
 const LEASE_MINUTES = 10;
 const profile = DEFAULT_PROFILE;
-const adapter = new GeminiProvider(profile, { resolveAsset: assets.resolve });
+// OW_PROVIDER=simulated: local simulation for end-to-end tests and demos (no network, no cost). Default: the real API.
+const simulated = process.env.OW_PROVIDER === "simulated";
+const adapter = simulated ? simulatedProvider() : new GeminiProvider(profile, { resolveAsset: assets.resolve });
 const store = new SqliteJobStore();
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
@@ -58,6 +61,7 @@ function backup() {
 backup();
 setInterval(backup, 60 * 60 * 1000).unref();
 
-if (!process.env.GEMINI_API_KEY) console.error("[worker] GEMINI_API_KEY is not set: every generation will fail until it is.");
-console.log(`worker ${WORKER_ID} up: provider ${profile.id}, concurrency ${profile.concurrency}`);
+if (simulated) console.log("[worker] SIMULATED provider: no real images, no cost.");
+else if (!process.env.GEMINI_API_KEY) console.error("[worker] GEMINI_API_KEY is not set: every generation will fail until it is.");
+console.log(`worker ${WORKER_ID} up: provider ${simulated ? "simulated" : profile.id}, concurrency ${profile.concurrency}`);
 for (let n = 0; n < profile.concurrency; n++) void loop(n);

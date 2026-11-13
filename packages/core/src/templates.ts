@@ -5,7 +5,7 @@ import { PRESETS } from "./presets";
 import { BOTTOM_CATEGORIES, OUTERWEAR_CATEGORIES, type ImageSpec, type InstructionBlock, type PoseAssignment } from "./schemas";
 
 /** Bump when any wording below changes. Part of every compileHash. */
-export const TEMPLATE_VERSION = "tpl-2026.11.14";
+export const TEMPLATE_VERSION = "tpl-2026.11.14b";
 
 /** Instruction priorities. Lower number wins when instructions conflict. */
 export const PRIORITY = {
@@ -91,7 +91,7 @@ export function buildBlocks(spec: ImageSpec, a: PoseAssignment): InstructionBloc
   add("style",
     `Background: seamless flat neutral grey, RGB ${r},${g},${b}, no gradient, no vignette, no props. ` +
     `Lighting: a large soft key light high and slightly to one side of the camera, bright and even enough for e-commerce, with gentle fall-off across the body ` +
-    `so the face, arms and legs keep soft natural modelling and the garment shows its folds; soft natural shadows` +
+    `so the face, arms and legs keep soft natural modelling; the light never adds folds, gathers or creases that the garment does not have; soft natural shadows` +
     (def.feetVisible(p.category) ? `, a soft contact shadow under the feet` : ``) + `. ` +
     `Colour: neutral, true to the garment; blacks keep detail. ` +
     `Skin and retouching: true photographic skin as from a full-frame camera, natural micro-contrast and very subtle grain; pores visible on the nose, cheeks and forehead, ` +

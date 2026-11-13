@@ -164,6 +164,9 @@ describe("realism language (docs/realism-audit.md)", () => {
     expect(block(s.full_body!, "style")).toMatch(/not the stylised model hand/);
     expect(block(s.full_body!, "style")).toMatch(/Body skin is real too/);
     expect(block(s.full_body!, "style")).toMatch(/gentle fall-off across the body/);
+    // Round 1 lesson: asking the light to "show the garment's folds" added gathers to a smooth dress.
+    expect(block(s.full_body!, "style")).not.toMatch(/shows its folds/);
+    expect(block(s.full_body!, "style")).toMatch(/never adds folds, gathers or creases/);
     for (const i of Object.values(s)) expect(i!.exclusions).toEqual(expect.arrayContaining(["helmet-like hair without a single loose strand", "the stylised model hand with the thumb touching the middle finger"]));
   });
   it("keeps the production's own hair override when one is set", () => {

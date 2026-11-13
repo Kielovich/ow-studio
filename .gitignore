@@ -12,3 +12,6 @@ apps/web/.sim/
 
 # Local exports of generated images (internal test material, never committed)
 /*.zip
+
+# Blind A/B comparison sheets (internal test material)
+/ab/
