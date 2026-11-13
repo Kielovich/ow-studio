@@ -23,3 +23,24 @@ Real calls against the Gemini Interactions API, 2026-11-12. Same text-only promp
 1. **Exact background is not reachable by prompt.** Both models ignore RGB values and render mid-grey. Decision: generate on "plain light grey seamless studio background", then normalise the background in a deterministic post-process (segmentation mask, fill RGB 241, keep the contact shadow). Validation checks the post-processed file.
 2. **Small styling details get dropped** (hair placement). These belong in the identity references and character sheet, not only the text.
 3. **Next test needs references:** garment fidelity on mesh, lace, sequin, fur, faux leather and trousers with the 6 approved test garments.
+
+## Garment test 1: Nano Banana Pro, 3 garments x 3 presets (2026-11-13)
+
+Inputs: brand packshots (front and back) used for an internal test only. Outputs are kept local and not committed. Model M01 with portrait plus generated full-body front and back references. 9/9 succeeded, about $1.44 estimated, 2048x2048.
+
+| Garment | Fidelity | Problems |
+|---|---|---|
+| Faux fur jacket | Very high: shawl collar, horizontal panels, curved open front, sleeve volume | None significant |
+| Mesh panel dress | High: panel layout front and back, sheer waist band, asymmetric hem | Full body: the hem point looks mirrored compared with the front packshot (to verify) |
+| Coated trousers | Medium-low | Leg too slim (packshot is relaxed straight), sheen too high (reads as leather), light contrast topstitching mostly lost |
+
+Across all:
+- Identity is consistent across 9 images.
+- Background RGB 169-185 against target 241: confirms that background normalisation must be a post-process.
+- The body-reference clothing leaks in. Trouser shots inherit the black tank top from the body reference because no top was specified.
+
+Actions:
+1. Post-process background to RGB 241 (deterministic mask).
+2. Garment silhouette constraint ("leg width and fit exactly as packshot; do not slim") and a `coated` flag separate from `leather`.
+3. A `top` styling field for bottoms products, so nothing is inherited from references.
+4. A mirroring check for asymmetric garments: compare the hem low point side against the packshot.

@@ -64,6 +64,17 @@ describe("Gemini adapter", () => {
     expect(c.body.response_format).toEqual({ type: "image", aspect_ratio: "1:1", image_size: "2K" });
   });
 
+  it("sends the key from GEMINI_API_KEY when no apiKey option is given", async () => {
+    const prev = process.env.GEMINI_API_KEY;
+    process.env.GEMINI_API_KEY = "test-key-from-env";
+    try {
+      const { calls } = await run([async () => ({ status: 200, body: okBody() })]);
+      expect(calls[0]!.headers["x-goog-api-key"]).toBe("test-key-from-env");
+    } finally {
+      if (prev === undefined) delete process.env.GEMINI_API_KEY; else process.env.GEMINI_API_KEY = prev;
+    }
+  });
+
   it("labels every attached reference in the prompt, in order", () => {
     const legend = request.prompt.split("Reference images, in the order attached:\n")[1]!.split("\n\n")[0]!.split("\n");
     expect(legend).toHaveLength(request.refs.length);

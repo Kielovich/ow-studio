@@ -163,7 +163,7 @@ export class GeminiProvider implements ProviderAdapter {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          "x-goog-api-key": this.opts.apiKey ?? "injected-by-proxy",
+          "x-goog-api-key": this.opts.apiKey ?? process.env.GEMINI_API_KEY ?? "injected-by-proxy",
           "api-revision": GEMINI_API_REVISION,
         },
         body,
