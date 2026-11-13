@@ -14,7 +14,7 @@ import { join } from "node:path";
 import sharp from "sharp";
 import { extractImages, GEMINI_API_REVISION, GEMINI_ENDPOINT, GEMINI_PRO_PROFILE, loadLocalSecrets, type ModelVersion } from "@ow-studio/core";
 import { DATA_DIR } from "../lib/server/db";
-import { assets, getModel, insertModelVersion, listModels, setModelStatus } from "../lib/server/repo";
+import { assets, insertModelVersion, listModels, setModelStatus } from "../lib/server/repo";
 
 loadLocalSecrets();
 const stage = process.argv[2];
@@ -26,43 +26,42 @@ type Entry = { portrait?: string; bodyFront?: string; bodyBack?: string; threeQu
 const state: Record<string, Entry> = existsSync(STATE_FILE) ? JSON.parse(readFileSync(STATE_FILE, "utf8")) : {};
 const save = () => writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
 
-/** Shared look, distilled in words from the mood references: attitude, body and finish, never a specific face or hairstyle. */
+/**
+ * Look brief, third pass (2026-11-13). User direction: real, young high-street fashion models (the kind booked for large
+ * fashion retailers' e-commerce and campaigns). Earlier passes were rejected as too old, too plain or too made-up.
+ * Mood references only informed attitude, body and finish in words; no image of them is ever sent.
+ */
 const LOOK =
-  "High-fashion model look: quiet confidence, composed and self-possessed, a strong but relaxed direct gaze. " +
-  "High, sculpted cheekbones and a clearly defined jawline. Glowing, healthy skin with real texture, pores and a few natural freckles; " +
-  "softly brushed-up brows; warm bronze sculpting, a touch of soft brown liner and a nude glossy lip. " +
-  "Body: tall, slim, long-limbed and toned, elegant long neck and defined collarbones.";
+  "She looks like a real, professional fashion model booked for high-street fashion e-commerce and campaigns: fresh, youthful and natural, " +
+  "effortlessly beautiful, a face with high cheekbones and good bone structure but soft, young skin. " +
+  "Healthy luminous skin with real texture and pores; natural groomed brows; minimal clean makeup (light skin tint, a little mascara, balm on the lips). " +
+  "Tall, slim, long-limbed model body with a long neck and defined collarbones. " +
+  "Calm, cool, approachable confidence: relaxed neutral mouth, not smiling, not pouting, not posing.";
 
 type NewModel = { modelId: string; displayName: string; ageYears: number; heightCm: number; euSize: number; look: ModelVersion["look"] };
 
+/** Every model in the library, rebuilt in the new direction. M01 gets a new version; productions keep the version they used. */
 const NEW_MODELS: NewModel[] = [
-  {
-    modelId: "M02", displayName: "Freja", ageYears: 23, heightCm: 179, euSize: 36,
-    look: { hair: "long warm golden-blonde hair (clearly golden, not red, not strawberry, not platinum), straight with a soft centre part, past the shoulders", skinTone: "fair with a warm undertone and light freckles", eyes: "pale blue-grey eyes", features: "high sculpted cheekbones, straight nose, full lips, defined jaw, light brushed-up brows" },
-  },
-  {
-    modelId: "M03", displayName: "Inès", ageYears: 23, heightCm: 177, euSize: 36,
-    look: { hair: "shoulder-length chocolate-brown hair with soft natural waves, centre part", skinTone: "light olive", eyes: "grey-green eyes", features: "young, striking angular face, high pronounced cheekbones, straight dark brows, sharply defined jaw, full lips" },
-  },
-  {
-    modelId: "M04", displayName: "Amara", ageYears: 24, heightCm: 180, euSize: 36,
-    look: { hair: "short natural tightly coiled black hair, cropped close to the head", skinTone: "deep ebony brown with a warm undertone", eyes: "dark brown eyes", features: "high cheekbones, full lips, smooth rounded forehead, defined jaw, long elegant neck" },
-  },
+  { modelId: "M01", displayName: "Sable", ageYears: 21, heightCm: 178, euSize: 36,
+    look: { hair: "long straight dark-brown hair with a centre part", skinTone: "olive", eyes: "dark-brown eyes", features: "high cheekbones, straight natural brows, soft full lips" } },
+  { modelId: "M02", displayName: "Freja", ageYears: 20, heightCm: 179, euSize: 36,
+    look: { hair: "long warm golden-blonde hair (golden, not red, not platinum), straight with a centre part", skinTone: "fair with light freckles", eyes: "blue-grey eyes", features: "high cheekbones, straight nose, natural full lips" } },
+  { modelId: "M03", displayName: "Inès", ageYears: 21, heightCm: 177, euSize: 36,
+    look: { hair: "shoulder-length chocolate-brown hair with soft natural waves, centre part", skinTone: "light olive", eyes: "grey-green eyes", features: "high cheekbones, natural straight brows, full lips" } },
+  { modelId: "M04", displayName: "Amara", ageYears: 20, heightCm: 180, euSize: 36,
+    look: { hair: "short natural tightly coiled black hair, cropped close", skinTone: "deep ebony brown", eyes: "dark-brown eyes", features: "high cheekbones, full lips, long elegant neck" } },
+  { modelId: "M05", displayName: "Mei", ageYears: 21, heightCm: 176, euSize: 34,
+    look: { hair: "long straight glossy black hair with a centre part", skinTone: "light warm", eyes: "dark-brown monolid eyes", features: "East Asian, high cheekbones, small straight nose, soft full lips" } },
+  { modelId: "M06", displayName: "Lucía", ageYears: 20, heightCm: 177, euSize: 36,
+    look: { hair: "long dark-brown natural curls", skinTone: "golden tan", eyes: "hazel eyes", features: "Latina, high cheekbones, strong natural brows, full lips" } },
 ];
 
-/** Second pass (2026-11-13): the first Freja and Inès portraits came out bare-faced and plain; the makeup is made explicit. */
-const EDITORIAL_FINISH =
-  "Clearly visible editorial makeup, as on a fashion campaign set: dewy glowing highlight on the cheekbones and bridge of the nose, " +
-  "warm bronzed contour under the cheekbones, defined lashes with a soft smoky brown liner, groomed brushed-up brows, nude glossy lips. " +
-  "The face reads young, striking and editorial, not plain and not a passport photo.";
-
 const portraitPrompt = (m: NewModel) => [
-  `Identity portrait of an original fictional adult woman, ${m.ageYears} years old. She is not a real or identifiable person and must not resemble any real person, model or celebrity.`,
+  `Model agency digital of an original fictional adult woman, ${m.ageYears} years old. She is not a real or identifiable person and must not resemble any real person, model or celebrity.`,
   `${m.look.features}; ${m.look.eyes}; ${m.look.skinTone} skin; ${m.look.hair}.`,
   LOOK,
-  EDITORIAL_FINISH,
-  "Straight-on front view, head and shoulders, camera at eye level, about 85 mm equivalent. Plain fitted black tank top. Neutral, relaxed expression, lips closed, calm direct gaze into the camera.",
-  "Plain light grey seamless studio background, soft high frontal key light, low contrast. Real skin texture; no smoothing, no plastic look.",
+  "Straight-on front view, head and shoulders, camera at eye level, about 85 mm equivalent. Plain fitted black tank top. Calm direct gaze into the camera.",
+  "Plain light grey seamless studio background, soft flattering frontal light. Real skin texture; no smoothing, no plastic look.",
 ].join("\n\n");
 
 const fromPortrait = (kind: "bodyFront" | "bodyBack" | "threeQuarter" | "profile", look: ModelVersion["look"], heightCm: number) => {
@@ -110,8 +109,6 @@ async function headless(hash: string) {
 }
 
 async function main() {
-  const sable = getModel("M01", 2);
-  if (!sable) throw new Error("Sable v2 missing");
   const jobs: { key: string; kind: keyof Entry; prompt: string; refs: string[]; aspect: "1:1" | "2:3" }[] = [];
 
   if (stage === "portraits") {
@@ -124,32 +121,30 @@ async function main() {
     }
     for (const m of NEW_MODELS) if (!state[m.modelId]?.portrait) jobs.push({ key: m.modelId, kind: "portrait", prompt: portraitPrompt(m), refs: [], aspect: "1:1" });
   } else if (stage === "refs") {
-    const all = [...NEW_MODELS.map((m) => ({ id: m.modelId, look: m.look, heightCm: m.heightCm, portrait: state[m.modelId]?.portrait })), { id: "M01", look: sable.look, heightCm: sable.heightCm, portrait: sable.refs.primaryPortrait }];
-    for (const m of all) {
-      if (!m.portrait) throw new Error(`${m.id} has no portrait yet`);
-      state[m.id] ??= { prompts: {} };
-      state[m.id]!.portrait ??= m.portrait;
-      const kinds: ("bodyFront" | "bodyBack" | "threeQuarter" | "profile")[] = m.id === "M01" ? ["threeQuarter", "profile"] : ["bodyFront", "bodyBack", "threeQuarter", "profile"];
-      for (const k of kinds) if (!state[m.id]![k]) jobs.push({ key: m.id, kind: k, prompt: fromPortrait(k, m.look, m.heightCm), refs: [m.portrait], aspect: k.startsWith("body") ? "2:3" : "1:1" });
+    for (const m of NEW_MODELS) {
+      const portrait = state[m.modelId]?.portrait;
+      if (!portrait) throw new Error(`${m.modelId} has no approved portrait yet`);
+      for (const k of ["bodyFront", "bodyBack", "threeQuarter", "profile"] as const) {
+        if (!state[m.modelId]![k]) jobs.push({ key: m.modelId, kind: k, prompt: fromPortrait(k, m.look, m.heightCm), refs: [portrait], aspect: k.startsWith("body") ? "2:3" : "1:1" });
+      }
     }
   } else if (stage === "register") {
-    const existing = new Set(listModels().map((m) => `${m.modelId}@${m.version}`));
+    const rows = listModels();
     for (const m of NEW_MODELS) {
       const s = state[m.modelId];
       if (!s?.portrait || !s.bodyFront || !s.bodyBack || !s.threeQuarter || !s.profile) { console.log(`${m.modelId}: incomplete, skipped`); continue; }
-      if (existing.has(`${m.modelId}@1`)) { console.log(`${m.modelId} v1 exists`); continue; }
-      insertModelVersion({ ...m, version: 1, refs: {
+      if ((s as any).registeredFrom === s.portrait) { console.log(`${m.modelId}: already registered`); continue; }
+      const mine = rows.filter((r) => r.modelId === m.modelId);
+      const version = Math.max(0, ...mine.map((r) => r.version)) + 1;
+      insertModelVersion({ ...m, version, refs: {
         primaryPortrait: s.portrait, identityAngles: [s.threeQuarter, s.profile],
         fullBodyFront: await headless(s.bodyFront), fullBodyBack: await headless(s.bodyBack),
         characterSheet: s.portrait, facialDetailSheet: s.portrait,
       } }, "active");
-      console.log(`${m.modelId} ${m.displayName} v1 registered`);
-    }
-    const s = state.M01;
-    if (s?.threeQuarter && s.profile && !existing.has("M01@3")) {
-      insertModelVersion({ ...sable, version: 3, refs: { ...sable.refs, identityAngles: [s.threeQuarter, s.profile] } }, "active");
-      setModelStatus("M01", 2, "archived");
-      console.log("M01 Sable v3 registered (v2 archived, still used by its productions)");
+      for (const r of mine) if (r.status === "active") setModelStatus(m.modelId, r.version, "archived");
+      (s as any).registeredFrom = s.portrait;
+      save();
+      console.log(`${m.modelId} ${m.displayName} v${version} registered${mine.length ? " (older versions archived; their productions keep them)" : ""}`);
     }
     return;
   } else {
