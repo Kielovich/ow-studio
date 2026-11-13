@@ -56,6 +56,36 @@ const NEW_MODELS: NewModel[] = [
     look: { hair: "long dark-brown natural curls", skinTone: "golden tan", eyes: "hazel eyes", features: "Latina, high cheekbones, strong natural brows, full lips" } },
 ];
 
+/**
+ * Styling pass, from the brand's own gallery (analysis of ~55 current product images, 2026-11-13):
+ * makeup is a polished clean glam (dewy highlight, warm bronze contour, groomed brows, soft brown liner, defined lashes,
+ * nude-pink or glossy lips) and hair is styled, mostly sleek. Each model gets her own signature hairstyle for variety.
+ * The look is baked into the identity portrait: text alone barely changes the face (phase 3 finding).
+ */
+const CLEAN_GLAM =
+  "polished clean-glam makeup as on a fashion e-commerce set: luminous dewy skin with a soft highlight on the cheekbones and bridge of the nose, " +
+  "warm bronze contour under the cheekbones, groomed defined brows, soft brown liner and defined lashes, a light flush of blush, " +
+  "nude-pink lips with a soft gloss. Skin texture and pores still visible; not heavy, not theatrical";
+
+const STYLING: Record<string, { hair: string; makeupAccent: string; hairColour?: string }> = {
+  M01: { hair: "sleek slicked-back low bun with a clean centre part, no loose strands", makeupAccent: "slightly deeper bronze contour" },
+  M02: { hair: "shoulder-length soft hair with a light curtain fringe, effortless and airy", hairColour: "light honey blonde (pale golden, clearly blonde, not red or copper)", makeupAccent: "light brushed-up brows and a pink flush on the cheeks" },
+  M03: { hair: "long, glossy, completely straight hair with a centre part, tucked behind the ears", hairColour: "chocolate brown", makeupAccent: "soft smoky brown liner" },
+  M04: { hair: "short natural coils, neatly shaped and polished with a crisp hairline", makeupAccent: "high-shine glossy lips and luminous highlight" },
+  M05: { hair: "high sleek ponytail, hair pulled back tightly with a centre part", makeupAccent: "fine soft brown liner and glossy lips" },
+  M06: { hair: "long defined curls with volume, a soft side part", makeupAccent: "warm golden bronze glow" },
+};
+
+const styledPrompt = (m: NewModel) => {
+  const st = STYLING[m.modelId]!;
+  return [
+    "Model agency digital of exactly the same original fictional adult woman as in the attached portrait: identical face, bone structure, eye shape, nose, lips, skin tone and freckles. She is not a real or identifiable person.",
+    `Change only her hair and makeup. Hair: ${st.hairColour ? st.hairColour + ", " : ""}${st.hair}. Makeup: ${CLEAN_GLAM}; ${st.makeupAccent}.`,
+    "No jewellery. Straight-on front view, head and shoulders, camera at eye level, about 85 mm equivalent. Plain fitted black tank top. Neutral, serious expression, lips closed, calm direct gaze into the camera.",
+    "Plain light grey seamless studio background, soft flattering frontal light. Real skin texture; no smoothing, no plastic look.",
+  ].join("\n\n");
+};
+
 const portraitPrompt = (m: NewModel) => [
   `Model agency digital of an original fictional adult woman, ${m.ageYears} years old. She is not a real or identifiable person and must not resemble any real person, model or celebrity.`,
   `${m.look.features}; ${m.look.eyes}; ${m.look.skinTone} skin; ${m.look.hair}.`,
@@ -120,6 +150,13 @@ async function main() {
       if (s?.portrait) { (s as any).rejectedPortraits = [...((s as any).rejectedPortraits ?? []), s.portrait]; delete s.portrait; }
     }
     for (const m of NEW_MODELS) if (!state[m.modelId]?.portrait) jobs.push({ key: m.modelId, kind: "portrait", prompt: portraitPrompt(m), refs: [], aspect: "1:1" });
+  } else if (stage === "styled") {
+    for (const m of NEW_MODELS) {
+      const s = state[m.modelId];
+      if (!s?.portrait) throw new Error(`${m.modelId} has no approved base portrait`);
+      if ((s as any).basePortrait) continue; // already styled
+      jobs.push({ key: m.modelId, kind: "styledPortrait" as any, prompt: styledPrompt(m), refs: [s.portrait], aspect: "1:1" });
+    }
   } else if (stage === "refs") {
     for (const m of NEW_MODELS) {
       const portrait = state[m.modelId]?.portrait;
@@ -136,7 +173,9 @@ async function main() {
       if ((s as any).registeredFrom === s.portrait) { console.log(`${m.modelId}: already registered`); continue; }
       const mine = rows.filter((r) => r.modelId === m.modelId);
       const version = Math.max(0, ...mine.map((r) => r.version)) + 1;
-      insertModelVersion({ ...m, version, refs: {
+      const st = STYLING[m.modelId];
+      const look = st ? { ...m.look, hair: `${st.hairColour ?? m.look.hair.split(",")[0]}, usually styled as: ${st.hair}` } : m.look;
+      insertModelVersion({ ...m, look, version, refs: {
         primaryPortrait: s.portrait, identityAngles: [s.threeQuarter, s.profile],
         fullBodyFront: await headless(s.bodyFront), fullBodyBack: await headless(s.bodyBack),
         characterSheet: s.portrait, facialDetailSheet: s.portrait,
@@ -148,7 +187,7 @@ async function main() {
     }
     return;
   } else {
-    throw new Error("stage must be portraits | refs | register");
+    throw new Error("stage must be portraits | styled | refs | register");
   }
 
   console.log(`${jobs.length} images planned, est. $${(jobs.length * GEMINI_PRO_PROFILE.estimatedCostUsd).toFixed(2)}`);
@@ -157,7 +196,12 @@ async function main() {
   for (const j of jobs) {
     const hash = await generate(j.prompt, j.refs, j.aspect);
     state[j.key] ??= { prompts: {} };
-    (state[j.key] as any)[j.kind] = hash;
+    if ((j.kind as string) === "styledPortrait") {
+      (state[j.key] as any).basePortrait = state[j.key]!.portrait;
+      state[j.key]!.portrait = hash;
+    } else {
+      (state[j.key] as any)[j.kind] = hash;
+    }
     state[j.key]!.prompts[j.kind] = j.prompt;
     save();
     console.log(`  ${j.key} ${j.kind} -> ${hash.slice(7, 19)}`);
