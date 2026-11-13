@@ -13,7 +13,7 @@ export const BOTTOM_CATEGORIES: readonly Category[] = ["trousers", "skirt", "sho
 export const OUTERWEAR_CATEGORIES: readonly Category[] = ["jacket", "coat"];
 
 export const GarmentFlag = z.enum([
-  "sheer", "lace", "sequin", "fur", "leather", "satin", "denim",
+  "sheer", "lace", "sequin", "fur", "leather", "coated", "satin", "denim",
   "open_back", "asymmetric_hem", "one_shoulder", "halter", "long_sleeve",
   "has_pockets", "front_closure", "slit", "cutout",
 ]);
@@ -80,6 +80,8 @@ export type ModelVersion = z.infer<typeof ModelVersion>;
 export const Styling = z.object({
   hairState: z.string().min(1),
   bottoms: z.string().optional(),
+  /** Top worn with bottoms products (trousers, skirts, shorts). */
+  top: z.string().optional(),
   /** Worn under outerwear products (e.g. a plain top under an open jacket). */
   innerTop: z.string().optional(),
   footwear: z.string().optional(),

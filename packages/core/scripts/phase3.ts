@@ -20,6 +20,8 @@ loadLocalSecrets();
 const confirm = process.argv.includes("--confirm");
 const budgetArg = process.argv.indexOf("--budget");
 const BUDGET = budgetArg > 0 ? Number(process.argv[budgetArg + 1]) : 3;
+const onlyArg = process.argv.indexOf("--only");
+const ONLY = onlyArg > 0 ? process.argv[onlyArg + 1] : undefined;
 const REPO = join(process.cwd(), "..", "..");
 const INBOX = join(REPO, ".assets-inbox");
 const OUT = "out/phase3";
@@ -71,7 +73,7 @@ async function main() {
   // Body references (paid once, cached).
   const refsFile = join(OUT, "body-refs.json");
   let bodyRefs: { front: string; back: string } | null = existsSync(refsFile) ? JSON.parse(await readFile(refsFile, "utf8")) : null;
-  const plannedImages = 3 * 3;
+  const plannedImages = ONLY ? 3 : 3 * 3;
   const plannedCost = (bodyRefs ? 0 : 2 * profile.estimatedCostUsd) + plannedImages * profile.estimatedCostUsd;
   console.log(`model ${profile.id} | planned: ${bodyRefs ? 0 : 2} body refs + ${plannedImages} images | est. $${plannedCost.toFixed(2)} | budget $${BUDGET}`);
   if (plannedCost > BUDGET) throw new Error("planned cost exceeds budget");
@@ -95,8 +97,8 @@ async function main() {
     },
     products: [
       { sku: "T3-TROUSERS", name: "Straight-leg five-pocket trousers", category: "trousers", color: "very dark olive-black",
-        description: "Mid-rise straight-leg five-pocket trousers in a dark coated fabric with subtle sheen, light contrast topstitching, belt loops, single button and zip fly, two back patch pockets.",
-        flags: ["has_pockets", "front_closure", "leather"], packshots: { front: pack.trousersF, back: pack.trousersB } },
+        description: "Mid-rise five-pocket trousers with a relaxed straight leg that keeps the same width from knee to hem and falls loosely over the shoe. Dark coated cotton-like fabric with a low, soft sheen (not leather-like). Light grey contrast topstitching clearly visible along the side seams, pockets, waistband and hem. Belt loops, single button and zip fly, two back patch pockets outlined in contrast stitching.",
+        flags: ["has_pockets", "front_closure", "coated"], packshots: { front: pack.trousersF, back: pack.trousersB } },
       { sku: "T3-FURJACKET", name: "Cropped faux fur jacket", category: "jacket", color: "black",
         description: "Cropped boxy faux fur jacket with an oversized shawl collar, curved open front with a single hidden closure, horizontal panel seams across body and sleeves, long wide sleeves.",
         flags: ["fur", "long_sleeve", "front_closure"], packshots: { front: pack.furF, back: pack.furB } },
@@ -105,7 +107,7 @@ async function main() {
         flags: ["sheer", "long_sleeve", "asymmetric_hem"], packshots: { front: pack.meshF, back: pack.meshB } },
     ],
     slots: [{ preset: "front_crop" }, { preset: "back" }, { preset: "full_body" }],
-    styling: { hairState: "sleek, tucked behind the ears", innerTop: "a plain fitted black crew-neck top", bottoms: "straight black tailored trousers", footwear: "black pointed-toe ankle boots", accessories: [] },
+    styling: { hairState: "sleek, tucked behind the ears", top: "a plain fitted black long-sleeve crew-neck top that ends at the waist so the whole waistband, button and belt loops stay visible", innerTop: "a plain fitted black crew-neck top", bottoms: "straight black tailored trousers", footwear: "black pointed-toe ankle boots", accessories: [] },
     style: { background: [241, 241, 241], aspectRatio: "1:1", longEdgePx: 2000 },
     providerProfileId: profile.id,
   };
@@ -119,7 +121,7 @@ async function main() {
   const adapter = new GeminiProvider(profile, { resolveAsset: store.resolve });
   const jobs = new InMemoryJobStore();
   const manifest: unknown[] = [];
-  for (const req of compiled.images) {
+  for (const req of compiled.images.filter((r) => !ONLY || r.sku === ONLY)) {
     await jobs.save(newJob(req.imageSpecId, req));
     const job = await runJob(req.imageSpecId, { store: jobs, adapter, request: req, policy: { ...DEFAULT_POLICY, budgetRemainingUsd: BUDGET - spent }, sleep: (ms) => new Promise((r) => setTimeout(r, ms)) });
     spent += job.costUsd;

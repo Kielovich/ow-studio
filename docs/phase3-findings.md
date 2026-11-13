@@ -44,3 +44,24 @@ Actions:
 2. Garment silhouette constraint ("leg width and fit exactly as packshot; do not slim") and a `coated` flag separate from `leather`.
 3. A `top` styling field for bottoms products, so nothing is inherited from references.
 4. A mirroring check for asymmetric garments: compare the hem low point side against the packshot.
+
+## Background normalisation (2026-11-13)
+
+`src/post/background.ts` is deterministic and takes about 2-3.5 s per 2048 px image in Node:
+- quadratic model, then classification, then a grid model with diffusion fill, then classification again (fixes edges the quadratic misfits)
+- composite `obs + alpha*(target-model)*shade`
+
+All 12 test images have corners at RGB 233-243 (target 241), down from 165-210. The hair edge has no halo. Contact shadows smaller than about 1/24 of the frame are kept; large soft floor shading is flattened. `scripts/mask-debug.ts` writes the mask for review.
+
+## Trousers v2: silhouette rule, `coated` flag, `top` styling
+
+| | v1 | v2 |
+|---|---|---|
+| Contrast topstitching | mostly lost | clearly visible (waistband, fly, pockets, back pockets) |
+| Sheen | leather-like | low coated sheen, close to the packshot |
+| Top | tank leaked from the body reference | specified long-sleeve top, waistband fully visible |
+| Leg width | too slim | wider, but still slimmer than the relaxed packshot |
+
+New issue: v2 full body face drifts from Sable (rounder face). Identity references for full_body are body_front then identity_primary; consider putting identity_primary before body_front, or adding the facial detail sheet.
+
+Remaining: leg width. Options: a measured hem-to-thigh ratio in garment metadata, or a dedicated silhouette reference (packshot outline).

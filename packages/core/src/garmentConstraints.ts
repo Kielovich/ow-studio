@@ -7,6 +7,7 @@ export const GARMENT_CONSTRAINTS: Record<GarmentFlag, string> = {
   sequin: "Individual sequins stay distinct with small reflections consistent with soft frontal light; no melted, blurred or smeared surface.",
   fur: "Faux fur pile length, direction and volume as in the packshot; individual fibres visible at the edges.",
   leather: "Faux leather grain and sheen as in the packshot; highlights soft, not wet-looking.",
+  coated: "Coated finish with the low, soft sheen shown in the packshot; it must not read as glossy leather or vinyl. Contrast topstitching stays clearly visible.",
   satin: "Satin sheen follows the folds of the fabric; soft highlights, no plastic look.",
   denim: "Denim wash, fading, seams and hardware exactly as in the packshot.",
   open_back: "The back is open as in the back packshot; front views must not reveal back construction that is not visible from the front.",

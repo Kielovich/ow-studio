@@ -11,6 +11,7 @@
     "smoke": "tsx scripts/gemini-smoke.ts"
   },
   "dependencies": {
+    "sharp": "^0.33.5",
     "zod": "^3.23.8"
   },
   "devDependencies": {
