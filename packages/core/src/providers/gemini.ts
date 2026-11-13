@@ -15,6 +15,9 @@ import { ProviderError, type GeneratedAsset, type ProviderAdapter, type Provider
 export const GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/interactions";
 export const GEMINI_API_REVISION = "2026-05-20";
 
+/** Project rule (user, 2026-11-13): every generated image is 2K. Never 1K, never 4K. */
+export const OUTPUT_IMAGE_SIZE = "2K" as const;
+
 /** Nano Banana 2.1: up to 14 references, character consistency for up to 4 people images, 10 object images. */
 export const GEMINI_NB21_PROFILE: ProviderProfile = {
   id: "gemini-nano-banana-2.1",
@@ -25,7 +28,7 @@ export const GEMINI_NB21_PROFILE: ProviderProfile = {
   supportsSeed: false,
   supportsIdempotencyKey: false,
   aspectRatios: ["1:1", "4:5", "2:3"],
-  maxLongEdgePx: 4096,
+  maxLongEdgePx: 2048,
   concurrency: 2,
   // Documented 2K output price is $0.0504; the rest is a margin for input and thinking tokens until measured.
   estimatedCostUsd: 0.07,
@@ -41,7 +44,7 @@ export const GEMINI_PRO_PROFILE: ProviderProfile = {
   supportsSeed: false,
   supportsIdempotencyKey: false,
   aspectRatios: ["1:1", "4:5", "2:3"],
-  maxLongEdgePx: 4096,
+  maxLongEdgePx: 2048,
   concurrency: 2,
   // Documented 1K/2K output price is $0.134 plus $0.0011 per input image; margin for thinking tokens.
   estimatedCostUsd: 0.16,
@@ -88,7 +91,7 @@ export function buildGeminiBody(request: CompiledRequest, model: string, images:
       { type: "text", text: request.prompt },
       ...images.map((img) => ({ type: "image", mime_type: img.mime, data: Buffer.from(img.bytes).toString("base64") })),
     ],
-    response_format: { type: "image", aspect_ratio: request.params.aspectRatio, image_size: imageSizeTier(Math.max(request.params.width, request.params.height)) },
+    response_format: { type: "image", aspect_ratio: request.params.aspectRatio, image_size: OUTPUT_IMAGE_SIZE },
     ...(thinkingLevel ? { generation_config: { thinking_level: thinkingLevel } } : {}),
   };
 }

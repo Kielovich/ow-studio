@@ -140,6 +140,19 @@ describe("Gemini adapter", () => {
     expect(strict.conflicts.some((c) => c.code === "REFS_TRIMMED")).toBe(true);
   });
 
+  it("always requests 2K and refuses productions above 2048 px", async () => {
+    const big = compileProduction(exampleSpec({ providerProfileId: profile.id, style: { aspectRatio: "1:1", longEdgePx: 4000 } }), profile);
+    expect(big.conflicts.map((c) => c.code)).toContain("RESOLUTION_TOO_HIGH");
+    const small = compileProduction(exampleSpec({ providerProfileId: profile.id, style: { aspectRatio: "1:1", longEdgePx: 1000 } }), profile);
+    const req = small.images[0]!;
+    const { calls } = await (async () => {
+      const { fetch, calls } = fakeFetch([async () => ({ status: 200, body: okBody() })]);
+      await new GeminiProvider(profile, { resolveAsset, fetch }).submit(req, { idempotencyKey: "idem_x" });
+      return { calls };
+    })();
+    expect(calls[0]!.body.response_format.image_size).toBe("2K");
+  });
+
   it("parses PNG dimensions and picks size tiers", () => {
     expect(imageDimensions(fakePng(1856, 2304))).toEqual({ width: 1856, height: 2304, mime: "image/png" });
     expect([imageSizeTier(1000), imageSizeTier(2000), imageSizeTier(3000)]).toEqual(["1K", "2K", "4K"]);
