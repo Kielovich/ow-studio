@@ -146,11 +146,29 @@ describe("locks in the payload", () => {
 describe("model's own look", () => {
   it("uses the portrait's hair and makeup unless the production overrides them", () => {
     const own = byPreset(compileProduction(brandSet({ styling: { accessories: [] } }), profile).images);
-    expect(block(own.full_body!, "identity")).toMatch(/her own hairstyle exactly as in the identity portrait.*Makeup: exactly as in the identity portrait/);
+    expect(block(own.full_body!, "identity")).toMatch(/her own hairstyle as in the identity portrait.*Makeup: as in the identity portrait/);
+    expect(block(own.full_body!, "identity")).not.toMatch(/styled for this production|Makeup for this production/);
     expect(block(own.back_full!, "identity")).not.toMatch(/styled for this production/);
     const over = byPreset(compileProduction(brandSet({ styling: { hairState: "low bun", makeup: "red lip", accessories: [] } }), profile).images);
     expect(block(over.full_body!, "identity")).toMatch(/Hair styled for this production: low bun.*Makeup for this production: red lip/);
     expect(block(over.back_full!, "identity")).toMatch(/styled for this production: low bun/);
+  });
+});
+
+describe("realism language (docs/realism-audit.md)", () => {
+  const s = byPreset(compileProduction(brandSet(), profile).images);
+  it("asks for real hair, real hands, real body skin and non-glossy lips, and excludes the stock defects", () => {
+    expect(block(s.full_body!, "identity")).toMatch(/flyaways and baby hairs/);
+    expect(block(s.full_body!, "identity")).toMatch(/satin or matte finish/);
+    expect(block(s.back_full!, "identity")).toMatch(/flyaways and baby hairs/);
+    expect(block(s.full_body!, "style")).toMatch(/not the stylised model hand/);
+    expect(block(s.full_body!, "style")).toMatch(/Body skin is real too/);
+    expect(block(s.full_body!, "style")).toMatch(/gentle fall-off across the body/);
+    for (const i of Object.values(s)) expect(i!.exclusions).toEqual(expect.arrayContaining(["helmet-like hair without a single loose strand", "the stylised model hand with the thumb touching the middle finger"]));
+  });
+  it("keeps the production's own hair override when one is set", () => {
+    const o = byPreset(compileProduction(brandSet({ styling: { hairState: "low bun", accessories: [] } }), profile).images);
+    expect(block(o.full_body!, "identity")).toMatch(/Hair styled for this production: low bun\. Real hair/);
   });
 });
 

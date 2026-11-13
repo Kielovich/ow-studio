@@ -5,7 +5,7 @@ import { PRESETS } from "./presets";
 import { BOTTOM_CATEGORIES, OUTERWEAR_CATEGORIES, type ImageSpec, type InstructionBlock, type PoseAssignment } from "./schemas";
 
 /** Bump when any wording below changes. Part of every compileHash. */
-export const TEMPLATE_VERSION = "tpl-2026.11.13b";
+export const TEMPLATE_VERSION = "tpl-2026.11.14";
 
 /** Instruction priorities. Lower number wins when instructions conflict. */
 export const PRIORITY = {
@@ -66,12 +66,13 @@ export function buildBlocks(spec: ImageSpec, a: PoseAssignment): InstructionBloc
       `Identity: the same woman as in the identity reference images. ${capitalize(m.look.features)}; ${m.look.eyes}; ${m.look.skinTone} skin; ${m.look.hair}. ` +
       `Keep bone structure, face shape, nose, lip shape, eye shape, skin tone, skin texture, freckles and hair colour identical to the identity portrait in every shot of this session; ` +
       `pose, head angle and expression may change only gaze, eyelids and mouth, never the facial structure. ` +
-      (st.hairState ? `Hair styled for this production: ${st.hairState}.` : `Hair: her own hairstyle exactly as in the identity portrait.`) +
-      (st.makeup ? ` Makeup for this production: ${st.makeup}` : ` Makeup: exactly as in the identity portrait.`));
+      (st.hairState ? `Hair styled for this production: ${st.hairState}.` : `Hair: her own hairstyle as in the identity portrait.`) +
+      ` ${REAL_HAIR}` +
+      (st.makeup ? ` Makeup for this production: ${st.makeup}` : ` Makeup: as in the identity portrait, with the lips in a satin or matte finish showing natural lip lines, never glossy or wet-looking.`));
   } else if (def.view === "back") {
     add("identity",
       `Back view: hair as in the character sheet (${m.look.hair})${st.hairState ? `, styled for this production: ${st.hairState}` : ""}. ` +
-      `The face is not visible. Hair must not cover the back of the garment or any closure.`);
+      `${REAL_HAIR} The face is not visible. Hair must not cover the back of the garment or any closure.`);
   } else if (def.view === "detail") {
     add("identity", `Skin, where visible: ${m.look.skinTone}, with natural texture. No face in frame.`);
   } else {
@@ -89,11 +90,14 @@ export function buildBlocks(spec: ImageSpec, a: PoseAssignment): InstructionBloc
   const [r, g, b] = style.background;
   add("style",
     `Background: seamless flat neutral grey, RGB ${r},${g},${b}, no gradient, no vignette, no props. ` +
-    `Lighting: soft, high frontal key light with low contrast and soft natural shadows` +
-    (def.feetVisible(p.category) ? `, soft contact shadow under the feet` : ``) + `. ` +
+    `Lighting: a large soft key light high and slightly to one side of the camera, bright and even enough for e-commerce, with gentle fall-off across the body ` +
+    `so the face, arms and legs keep soft natural modelling and the garment shows its folds; soft natural shadows` +
+    (def.feetVisible(p.category) ? `, a soft contact shadow under the feet` : ``) + `. ` +
     `Colour: neutral, true to the garment; blacks keep detail. ` +
     `Skin and retouching: true photographic skin as from a full-frame camera, natural micro-contrast and very subtle grain; pores visible on the nose, cheeks and forehead, ` +
-    `fine peach fuzz, small natural asymmetries; natural sheen only on the high points of the face instead of an even glow; clean but untouched-looking retouching.` +
+    `fine peach fuzz, small natural asymmetries; natural sheen only on the high points of the face instead of an even glow; clean but untouched-looking retouching. ` +
+    `Body skin is real too: knees, elbows and knuckles with natural creases and slightly different tone, faint veins where skin is thin, subtle unevenness, no airbrushed or evenly tanned limbs. ` +
+    `${REAL_HANDS} ${REAL_BODY}` +
     (spec.anchorAsset
       ? ` This photograph belongs to the same studio session as the attached session reference: keep lighting, colour, hair, makeup and the way the garment sits on the body consistent with it.`
       : ``));
@@ -116,13 +120,21 @@ export function buildBlocks(spec: ImageSpec, a: PoseAssignment): InstructionBloc
   return blocks.sort((x, y) => x.priority - y.priority);
 }
 
+/** Realism language from the realism audit (docs/realism-audit.md): the defects AI models fall into by default. */
+export const REAL_HAIR = "Real hair, not a helmet: keep the style, but with a few fine flyaways and baby hairs along the hairline and crown, individual strands visible at the edges, and natural variation in shine.";
+export const REAL_HANDS = "Hands as a real person's at rest: fingers loosely together and gently bent, each hand slightly different, natural short nails; not the stylised model hand with the thumb touching the middle finger.";
+export const REAL_BODY = "The body carries real weight: shoulders and arms hang naturally, the posture is relaxed rather than mannequin-straight.";
+
 export function buildExclusions(spec: ImageSpec): string[] {
   const def = PRESETS[spec.preset];
   const ex = [
     "text, logos, watermarks or brand marks not present on the garment",
     "any change to garment colour, length, neckline, closures or transparency",
     "extra garments or layers covering the product",
-    "smoothed, waxy or plastic-looking skin",
+    "smoothed, waxy or plastic-looking skin, airbrushed legs or arms",
+    "helmet-like hair without a single loose strand",
+    "glossy or wet-looking lips",
+    "the stylised model hand with the thumb touching the middle finger",
     "extra, missing or fused fingers; distorted hands or limbs",
     "props, furniture or background texture",
   ];

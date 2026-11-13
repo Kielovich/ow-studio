@@ -4,7 +4,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
 [
   {
     "expr": "calm_camera",
-    "hash": "cmp_a3001400d98328ad11305c376bdc0e67e03fef009e20fdd9298e3633dc06ec01",
+    "hash": "cmp_afb2390e123eac2cb77a9149f5453333e89490ff83a43d4081ba1f708b620d99",
     "id": "img_38b2c4f56e954dd700f97492",
     "pose": "front_soft_knee",
     "preset": "front_crop",
@@ -19,7 +19,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_away",
-    "hash": "cmp_710ceb197c077fc20d4a8654a3672e7b5dbe2c0b288c7977a10d3abc3c35ad05",
+    "hash": "cmp_73a9e1cc5b5804a045b3de31d440b10a25ba12ddd3d75748668319e45c6dc2a2",
     "id": "img_8b4c8075854ecee8bb1a96cf",
     "pose": "tq_away_left",
     "preset": "three_quarter",
@@ -34,7 +34,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_9502349aff51dc3c4fd6145a20872de283c365379138533db63d85d180f3c361",
+    "hash": "cmp_3852f680ec5f5ef9e518804e35821e495b6cfdafcaf33856bcbab555d0c56fb4",
     "id": "img_0106a25df8ef1d2c0f3b3f30",
     "pose": "back_neutral",
     "preset": "back",
@@ -47,7 +47,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_camera",
-    "hash": "cmp_a35c4d036ca4c9103531f0779fd8af37e51b9f4cf410a5b952bc1e2f3805b628",
+    "hash": "cmp_fb1a3c6e3858e9f9c2cc2ded03d5ef1edcedef6d611e1ae5a042dc5f94f1c6eb",
     "id": "img_896fe5fd0087a21d258eee72",
     "pose": "front_neutral",
     "preset": "full_body",
@@ -62,7 +62,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_eec426c75174130ff37f8409f2533118c5f3f1d4710a2f0b71d1caff1d00b6f3",
+    "hash": "cmp_0a742e56a55ad5454f44419832cf604f57e4866b5065a69e712855c36de9c21d",
     "id": "img_826ff3934934b4ef2ffef43e",
     "pose": "detail_still",
     "preset": "detail",
@@ -74,7 +74,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "calm_camera",
-    "hash": "cmp_efea38390b2cc4b3b7b1da839e4c57acf132d33ae3c5c58350f52c3b2023a424",
+    "hash": "cmp_9d39f797e73ea396b907738db9da200758e82ef9cd3b39b2f3a0cf1bb4a84d77",
     "id": "img_d8bc1d1d8fa3f2047e2b2131",
     "pose": "front_soft_knee",
     "preset": "front_crop",
@@ -86,7 +86,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_away",
-    "hash": "cmp_fd46a1dcc022f95fa137c66c7c59049a724892e85ef31119c85ec40aba83415f",
+    "hash": "cmp_d4db9b4784fd9c7f2a00f6d39278f5b2f665cf0848bab64aecd718e2635f4a82",
     "id": "img_e6a8c6724abc90e1c9f6a121",
     "pose": "tq_away_left",
     "preset": "three_quarter",
@@ -98,7 +98,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_1e0a9a018f1512e5647addf8e3ff23786746147cda5c0710f6f5426db5c443bc",
+    "hash": "cmp_92bc274e2718ddafa5bb7326503344cba668ea301973ad0af217c751a96bad95",
     "id": "img_288f6f3948289ca53fe1a7ac",
     "pose": "back_neutral",
     "preset": "back",
@@ -111,7 +111,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_camera",
-    "hash": "cmp_dae498f810e31e7c49bb2cae4139e9ef99871fdcccf556db57d36659b8e7185f",
+    "hash": "cmp_2488ca516496ab227012487ce214bc67ec51835f3adb2817c77d0400cea33d53",
     "id": "img_0e7c51aeb079c6fbeb232c76",
     "pose": "front_neutral",
     "preset": "full_body",
@@ -124,7 +124,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_712c4b9f8623366e8ba97bfca94f30f7825fb9fa0471bd4bd313082f3c618529",
+    "hash": "cmp_20b5b01981c80c85fdfe21c93211f0f76975a74b0b23e65186d778ff2f506452",
     "id": "img_af7a26ae45a683a877547b11",
     "pose": "detail_still",
     "preset": "detail",
@@ -136,7 +136,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "calm_camera",
-    "hash": "cmp_0e9e6cd1b8b31f204fd73286847033085644482b648e77fffa313f63f7c8d8b7",
+    "hash": "cmp_434591bb6e9401875eff760b249487a14461afd0ab572f82e68325c788d00484",
     "id": "img_c8adf68633ea53fbb87601ea",
     "pose": "front_soft_knee",
     "preset": "front_crop",
@@ -151,7 +151,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_away",
-    "hash": "cmp_b2c5c09c126ba57c93c52c3c2797e80bf71084c36d66c82bce5f448116a3ec5e",
+    "hash": "cmp_26da9e0fc074f03292e6549469a7fa610253c40707f37d7244d78e08d733e702",
     "id": "img_5a611cae61a4e9cd138a2c6c",
     "pose": "tq_away_left",
     "preset": "three_quarter",
@@ -166,7 +166,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_9dc6ad63fbc917a1cb413bbd19aa39db99a9fdbe1908c143adf1cd47fc6541e1",
+    "hash": "cmp_de69d2af7db2e31647f6474b987d34b8c73b2dbd19383de5e2fb89523deb65d6",
     "id": "img_abae3cc68572abc234ff18b0",
     "pose": "back_neutral",
     "preset": "back",
@@ -179,7 +179,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_camera",
-    "hash": "cmp_41c6593bfc3e526f013305e1a283bfbc91b1f762372480d4c9064c2b9b58c3a9",
+    "hash": "cmp_a946139aa9bd278d1d2e6ecceaabbaeb00d8326c547dc82841e5159e32397585",
     "id": "img_a701e44c5b29e401cf7030ce",
     "pose": "front_neutral",
     "preset": "full_body",
@@ -194,7 +194,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_feb0f9f45460d9bc76c1abef47535ea8635f833ab1156864f9b6d4a68f9da893",
+    "hash": "cmp_214c9f2caa5032b48d36a838f17f7876651a1c9091501bf2d83b7f62c26847a1",
     "id": "img_adb689893d05356b8ccf9559",
     "pose": "detail_still",
     "preset": "detail",
@@ -220,19 +220,19 @@ Reference images, in the order attached:
 
 Garment: Satin halter top (top, black). Satin halter top with a deep V neckline, gathered bust, ruched waistband and open back. Reproduce the garment exactly as shown in the garment reference images: construction, seams, neckline, closures, length, colour, print, texture and transparency. Do not add, remove or redesign any element. Silhouette and fit exactly as in the packshot: leg and sleeve width, length and volume. Do not slim, taper, shorten or enlarge the garment to flatter the body. Halter neckline and neck fastening exactly as in the packshot. The back is open as in the back packshot; front views must not reveal back construction that is not visible from the front. Satin sheen follows the folds of the fabric; soft highlights, no plastic look.
 
-Identity: the same woman as in the identity reference images. Straight brows, narrow jaw, defined cheekbones; dark-brown eyes; olive skin; long straight dark-brown hair. Keep bone structure, face shape, nose, lip shape, eye shape, skin tone, skin texture, freckles and hair colour identical to the identity portrait in every shot of this session; pose, head angle and expression may change only gaze, eyelids and mouth, never the facial structure. Hair styled for this production: sleek, tucked behind the ears. Makeup: exactly as in the identity portrait.
+Identity: the same woman as in the identity reference images. Straight brows, narrow jaw, defined cheekbones; dark-brown eyes; olive skin; long straight dark-brown hair. Keep bone structure, face shape, nose, lip shape, eye shape, skin tone, skin texture, freckles and hair colour identical to the identity portrait in every shot of this session; pose, head angle and expression may change only gaze, eyelids and mouth, never the facial structure. Hair styled for this production: sleek, tucked behind the ears. Real hair, not a helmet: keep the style, but with a few fine flyaways and baby hairs along the hairline and crown, individual strands visible at the edges, and natural variation in shine. Makeup: as in the identity portrait, with the lips in a satin or matte finish showing natural lip lines, never glossy or wet-looking.
 
 Body: 178 cm tall, EU size 36, proportions exactly as in the full-body reference. The garment fits as it would on EU size 36: natural tension and folds where it meets the body.
 
 Straight-on front view, camera at chest height, short telephoto look (about 85 mm full-frame equivalent), no perspective distortion. Crop from just above the head to mid-thigh. The entire front of the garment is visible and unobstructed.
 
-Background: seamless flat neutral grey, RGB 241,241,241, no gradient, no vignette, no props. Lighting: soft, high frontal key light with low contrast and soft natural shadows. Colour: neutral, true to the garment; blacks keep detail. Skin and retouching: true photographic skin as from a full-frame camera, natural micro-contrast and very subtle grain; pores visible on the nose, cheeks and forehead, fine peach fuzz, small natural asymmetries; natural sheen only on the high points of the face instead of an even glow; clean but untouched-looking retouching.
+Background: seamless flat neutral grey, RGB 241,241,241, no gradient, no vignette, no props. Lighting: a large soft key light high and slightly to one side of the camera, bright and even enough for e-commerce, with gentle fall-off across the body so the face, arms and legs keep soft natural modelling and the garment shows its folds; soft natural shadows. Colour: neutral, true to the garment; blacks keep detail. Skin and retouching: true photographic skin as from a full-frame camera, natural micro-contrast and very subtle grain; pores visible on the nose, cheeks and forehead, fine peach fuzz, small natural asymmetries; natural sheen only on the high points of the face instead of an even glow; clean but untouched-looking retouching. Body skin is real too: knees, elbows and knuckles with natural creases and slightly different tone, faint veins where skin is thin, subtle unevenness, no airbrushed or evenly tanned limbs. Hands as a real person's at rest: fingers loosely together and gently bent, each hand slightly different, natural short nails; not the stylised model hand with the thumb touching the middle finger. The body carries real weight: shoulders and arms hang naturally, the posture is relaxed rather than mannequin-straight.
 
-Pose: Standing facing the camera, weight almost even with one knee softly relaxed, feet close together a few centimetres apart, arms hanging straight down close to the body with loose fingers, shoulders down and level, chin neutral. The legs continue naturally below the frame; the feet are not in the picture.
+Pose: Standing facing the camera, weight almost even with one knee softly relaxed, feet close together a few centimetres apart, arms hanging naturally close to the body, shoulders down and level, chin neutral. The legs continue naturally below the frame; the feet are not in the picture.
 
 Expression: Calm, composed expression, lips closed, relaxed brow, steady gaze into the camera.
 
 Styling (secondary, must not draw attention from the garment): bottoms: straight light-blue jeans.
 
-Avoid: text, logos, watermarks or brand marks not present on the garment; any change to garment colour, length, neckline, closures or transparency; extra garments or layers covering the product; smoothed, waxy or plastic-looking skin; extra, missing or fused fingers; distorted hands or limbs; props, furniture or background texture."
+Avoid: text, logos, watermarks or brand marks not present on the garment; any change to garment colour, length, neckline, closures or transparency; extra garments or layers covering the product; smoothed, waxy or plastic-looking skin, airbrushed legs or arms; helmet-like hair without a single loose strand; glossy or wet-looking lips; the stylised model hand with the thumb touching the middle finger; extra, missing or fused fingers; distorted hands or limbs; props, furniture or background texture."
 `;
