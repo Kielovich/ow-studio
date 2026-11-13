@@ -38,7 +38,7 @@ const LOOK =
   "Tall, slim, long-limbed model body with a long neck and defined collarbones. " +
   "Calm, cool, approachable confidence: relaxed neutral mouth, not smiling, not pouting, not posing.";
 
-type NewModel = { modelId: string; displayName: string; ageYears: number; heightCm: number; euSize: number; look: ModelVersion["look"] };
+type NewModel = { modelId: string; displayName: string; ageYears: number; heightCm: number; euSize: number; look: ModelVersion["look"]; owStyled?: boolean };
 
 /** Every model in the library, rebuilt in the new direction. M01 gets a new version; productions keep the version they used. */
 const NEW_MODELS: NewModel[] = [
@@ -54,6 +54,15 @@ const NEW_MODELS: NewModel[] = [
     look: { hair: "long straight glossy black hair with a centre part", skinTone: "light warm", eyes: "dark-brown monolid eyes", features: "East Asian, high cheekbones, small straight nose, soft full lips" } },
   { modelId: "M06", displayName: "Lucía", ageYears: 20, heightCm: 177, euSize: 36,
     look: { hair: "long dark-brown natural curls", skinTone: "golden tan", eyes: "hazel eyes", features: "Latina, high cheekbones, strong natural brows, full lips" } },
+  // Four new models created directly in the brand's style (makeup and hair from the gallery analysis), single pass.
+  { modelId: "M07", displayName: "Liv", ageYears: 20, heightCm: 178, euSize: 34, owStyled: true,
+    look: { hair: "very light blonde hair", skinTone: "fair, cool undertone", eyes: "light blue eyes", features: "high cheekbones, delicate straight nose, soft full lips, light brushed-up brows" } },
+  { modelId: "M08", displayName: "Nadia", ageYears: 21, heightCm: 177, euSize: 36, owStyled: true,
+    look: { hair: "jet-black hair", skinTone: "light olive", eyes: "dark-brown almond-shaped eyes", features: "high cheekbones, straight strong brows, full lips, defined jaw" } },
+  { modelId: "M09", displayName: "Noa", ageYears: 20, heightCm: 176, euSize: 34, owStyled: true,
+    look: { hair: "chestnut-brown hair", skinTone: "fair with a warm undertone", eyes: "hazel eyes", features: "high cheekbones, soft straight nose, full lips, natural brows" } },
+  { modelId: "M10", displayName: "Kaia", ageYears: 21, heightCm: 180, euSize: 36, owStyled: true,
+    look: { hair: "black hair", skinTone: "medium-deep brown, warm undertone", eyes: "dark-brown eyes", features: "high sculpted cheekbones, full lips, long elegant neck, smooth forehead" } },
 ];
 
 /**
@@ -68,6 +77,10 @@ const CLEAN_GLAM =
   "nude-pink lips with a soft gloss. Skin texture and pores still visible; not heavy, not theatrical";
 
 const STYLING: Record<string, { hair: string; makeupAccent: string; hairColour?: string }> = {
+  M07: { hair: "slicked-back low bun with a clean centre part, sleek, no loose strands", makeupAccent: "light brushed-up brows and a soft pink flush" },
+  M08: { hair: "long, glossy, completely straight hair worn down with a centre part, tucked behind the ears", makeupAccent: "soft smoky brown liner" },
+  M09: { hair: "blunt chin-length bob with a centre part, sleek and straight", makeupAccent: "warm bronze contour and nude gloss" },
+  M10: { hair: "sleek slicked-back high bun, smooth with a crisp hairline", makeupAccent: "luminous highlight and high-shine glossy lips" },
   M01: { hair: "sleek slicked-back low bun with a clean centre part, no loose strands", makeupAccent: "slightly deeper bronze contour" },
   M02: { hair: "shoulder-length soft hair with a light curtain fringe, effortless and airy", hairColour: "light honey blonde (pale golden, clearly blonde, not red or copper)", makeupAccent: "light brushed-up brows and a pink flush on the cheeks" },
   M03: { hair: "long, glossy, completely straight hair with a centre part, tucked behind the ears", hairColour: "chocolate brown", makeupAccent: "soft smoky brown liner" },
@@ -81,6 +94,24 @@ const styledPrompt = (m: NewModel) => {
   return [
     "Model agency digital of exactly the same original fictional adult woman as in the attached portrait: identical face, bone structure, eye shape, nose, lips, skin tone and freckles. She is not a real or identifiable person.",
     `Change only her hair and makeup. Hair: ${st.hairColour ? st.hairColour + ", " : ""}${st.hair}. Makeup: ${CLEAN_GLAM}; ${st.makeupAccent}.`,
+    "No jewellery. Straight-on front view, head and shoulders, camera at eye level, about 85 mm equivalent. Plain fitted black tank top. Neutral, serious expression, lips closed, calm direct gaze into the camera.",
+    "Plain light grey seamless studio background, soft flattering frontal light. Real skin texture; no smoothing, no plastic look.",
+  ].join("\n\n");
+};
+
+/** Single-pass portrait in the brand style: young high-street model, visible clean glam, a gallery hairstyle. */
+const STRONG_GLAM =
+  "clearly visible polished clean-glam makeup as on a fashion e-commerce set: luminous dewy skin with a distinct highlight on the cheekbones and bridge of the nose, " +
+  "a clearly visible warm bronze contour under the cheekbones, groomed defined brows, soft brown liner and defined lashes, a light flush of blush, nude-pink glossy lips. " +
+  "Skin texture and pores still visible; polished, not heavy, not theatrical";
+
+const owPortraitPrompt = (m: NewModel) => {
+  const st = STYLING[m.modelId]!;
+  return [
+    `Model agency digital of an original fictional adult woman, ${m.ageYears} years old. She is not a real or identifiable person and must not resemble any real person, model or celebrity.`,
+    `${m.look.features}; ${m.look.eyes}; ${m.look.skinTone} skin. Hair: ${m.look.hair}, styled as a ${st.hair}.`,
+    LOOK,
+    `Makeup: ${STRONG_GLAM}; ${st.makeupAccent}.`,
     "No jewellery. Straight-on front view, head and shoulders, camera at eye level, about 85 mm equivalent. Plain fitted black tank top. Neutral, serious expression, lips closed, calm direct gaze into the camera.",
     "Plain light grey seamless studio background, soft flattering frontal light. Real skin texture; no smoothing, no plastic look.",
   ].join("\n\n");
@@ -149,12 +180,12 @@ async function main() {
       const s = state[id];
       if (s?.portrait) { (s as any).rejectedPortraits = [...((s as any).rejectedPortraits ?? []), s.portrait]; delete s.portrait; }
     }
-    for (const m of NEW_MODELS) if (!state[m.modelId]?.portrait) jobs.push({ key: m.modelId, kind: "portrait", prompt: portraitPrompt(m), refs: [], aspect: "1:1" });
+    for (const m of NEW_MODELS) if (!state[m.modelId]?.portrait) jobs.push({ key: m.modelId, kind: "portrait", prompt: m.owStyled ? owPortraitPrompt(m) : portraitPrompt(m), refs: [], aspect: "1:1" });
   } else if (stage === "styled") {
     for (const m of NEW_MODELS) {
       const s = state[m.modelId];
       if (!s?.portrait) throw new Error(`${m.modelId} has no approved base portrait`);
-      if ((s as any).basePortrait) continue; // already styled
+      if ((s as any).basePortrait || m.owStyled) continue; // already styled (or styled in a single pass)
       jobs.push({ key: m.modelId, kind: "styledPortrait" as any, prompt: styledPrompt(m), refs: [s.portrait], aspect: "1:1" });
     }
   } else if (stage === "refs") {
