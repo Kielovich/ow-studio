@@ -221,6 +221,10 @@ export function listProductions() {
       SUM(i.state = 'succeeded') AS done,
       SUM(i.state IN ('failed', 'needs_review', 'awaiting_approval')) AS attention,
       SUM(i.state IN ('queued', 'submitting', 'provider_running', 'validating')) AS active,
+      SUM(EXISTS (SELECT 1 FROM attempts a WHERE a.image_id = i.id AND a.review = 'approved')) AS approved,
+      -- Waiting for a human: finished, nothing approved yet, and the current attempt not reviewed.
+      SUM(i.state IN ('succeeded', 'needs_review') AND NOT EXISTS (SELECT 1 FROM attempts a WHERE a.image_id = i.id
+        AND (a.review = 'approved' OR (a.attempt = json_extract(i.job, '$.attempt') AND a.review IS NOT NULL)))) AS to_review,
       (SELECT final_asset FROM images WHERE production_id = p.id AND final_asset IS NOT NULL ORDER BY slot_index LIMIT 1) AS cover
     FROM productions p LEFT JOIN images i ON i.production_id = p.id
     WHERE p.deleted_at IS NULL
@@ -276,10 +280,13 @@ export function overview() {
       SUM(state IN ('failed','needs_review','awaiting_approval')) AS attention,
       SUM(state = 'succeeded') AS done
     FROM images i JOIN productions p ON p.id = i.production_id WHERE p.deleted_at IS NULL`).get();
+  const recent = listProductions();
   return {
     active: counts.active ?? 0, attention: counts.attention ?? 0, done: counts.done ?? 0,
+    toReview: recent.reduce((n, p) => n + (p.to_review ?? 0), 0),
+    approved: recent.reduce((n, p) => n + (p.approved ?? 0), 0),
     spentUsd: spentThisMonthUsd(), budgetUsd: MONTHLY_BUDGET_USD,
-    recent: listProductions().slice(0, 6),
+    recent: recent.slice(0, 6),
     models: listModels().filter((m) => m.status === "active").length,
   };
 }

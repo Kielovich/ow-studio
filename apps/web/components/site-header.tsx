@@ -42,10 +42,11 @@ export function SiteHeader() {
           {path !== "/login" && <button onClick={logout} className="pb-0.5 border-b border-transparent text-black/60 hover:text-ink uppercase">Log out</button>}
         </nav>
       </div>
-      <nav className="md:hidden flex gap-5 overflow-x-auto px-6 pb-3 ow-nav whitespace-nowrap">
+      <nav className="md:hidden flex flex-wrap gap-x-5 gap-y-2 px-6 pb-3 ow-nav">
         {NAV.map((n) => (
           <Link key={n.href} href={n.href} className={active(n.href) ? "text-ink" : "text-black/50"}>{n.label}</Link>
         ))}
+        {path !== "/login" && <button onClick={logout} className="text-black/50 uppercase">Log out</button>}
       </nav>
     </header>
   );

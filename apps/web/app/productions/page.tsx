@@ -8,7 +8,7 @@ import { PageTitle } from "@/components/page-title";
 import { Tile } from "@/components/tile";
 import { assetUrl, usd } from "@/lib/types";
 
-type Row = { id: string; name: string; created_at: string; est_cost: number; total: number; done: number; attention: number; active: number; cover: string | null };
+type Row = { id: string; name: string; created_at: string; est_cost: number; total: number; done: number; attention: number; active: number; approved: number; to_review: number; cover: string | null };
 
 export default function ProductionsPage() {
   const [rows, setRows] = useState<Row[] | null>(null);
@@ -38,7 +38,7 @@ export default function ProductionsPage() {
                   {p.attention > 0 && <Chip size="sm" color="warning">{p.attention} to check</Chip>}
                 </div>
                 <div className="text-sm text-black/60">
-                  {new Date(p.created_at + "Z").toLocaleDateString()} · {p.done}/{p.total} images · est. {usd(p.est_cost)}
+                  {new Date(p.created_at + "Z").toLocaleDateString()} · {p.approved}/{p.total} approved{p.to_review ? ` · ${p.to_review} to review` : ""}{p.active ? ` · ${p.active} running` : ""}
                 </div>
               </Link>
             ) : (

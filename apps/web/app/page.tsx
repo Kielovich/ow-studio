@@ -9,8 +9,8 @@ import { Tile } from "@/components/tile";
 import { assetUrl, usd } from "@/lib/types";
 
 type Overview = {
-  active: number; attention: number; done: number; spentUsd: number; budgetUsd: number; models: number;
-  recent: { id: string; name: string; created_at: string; total: number; done: number; attention: number; active: number; cover: string | null }[];
+  active: number; attention: number; done: number; toReview: number; approved: number; spentUsd: number; budgetUsd: number; models: number;
+  recent: { id: string; name: string; created_at: string; total: number; done: number; attention: number; active: number; approved: number; to_review: number; cover: string | null }[];
 };
 
 export default function StudioPage() {
@@ -24,9 +24,9 @@ export default function StudioPage() {
 
   const stats = data
     ? [
-        { label: "In progress", value: String(data.active) },
-        { label: "Needs attention", value: String(data.attention) },
-        { label: "Finished images", value: String(data.done) },
+        { label: "To review", value: String(data.toReview), href: "/productions" },
+        { label: "Approved", value: String(data.approved) },
+        { label: "In progress", value: data.attention ? `${data.active} · ${data.attention} need attention` : String(data.active) },
         { label: "Spend this month", value: `${usd(data.spentUsd)} / ${usd(data.budgetUsd)}` },
       ]
     : [];
@@ -41,10 +41,17 @@ export default function StudioPage() {
         {(data ? stats : Array.from({ length: 4 }, () => null)).map((s, i) => (
           <div key={i} className={`py-8 px-1 md:px-6 ${i > 0 ? "md:border-l border-line" : ""}`}>
             {s ? (
-              <>
-                <div className="ow-eyebrow mb-2">{s.label}</div>
-                <div className="ow-display text-3xl">{s.value}</div>
-              </>
+              "href" in s && s.href && s.value !== "0" ? (
+                <Link href={s.href} className="block group">
+                  <div className="ow-eyebrow mb-2">{s.label}</div>
+                  <div className="ow-display text-3xl border-b border-ink inline-block group-hover:opacity-70">{s.value}</div>
+                </Link>
+              ) : (
+                <>
+                  <div className="ow-eyebrow mb-2">{s.label}</div>
+                  <div className="ow-display text-3xl">{s.value}</div>
+                </>
+              )
             ) : (
               <Skeleton className="h-14 w-32" />
             )}
@@ -71,7 +78,7 @@ export default function StudioPage() {
                   <Tile src={assetUrl(p.cover, 480)} alt={p.name} className="mb-3 group-hover:opacity-90 transition-opacity" />
                   <div className="ow-nav truncate">{p.name}</div>
                   <div className="text-sm text-black/60">
-                    {p.done}/{p.total} done{p.attention ? ` · ${p.attention} need attention` : ""}{p.active ? ` · ${p.active} running` : ""}
+                    {p.approved}/{p.total} approved{p.to_review ? ` · ${p.to_review} to review` : ""}{p.active ? ` · ${p.active} running` : ""}
                   </div>
                 </Link>
               ) : (
