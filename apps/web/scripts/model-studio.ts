@@ -154,9 +154,9 @@ const fromPortrait = (kind: "bodyFront" | "bodyBack" | "threeQuarter" | "profile
   const studio = "Plain light grey seamless studio background, soft even frontal light. True photographic skin as from a full-frame camera: visible pores, fine peach fuzz, natural micro-contrast, very subtle grain, sheen only on the high points.";
   switch (kind) {
     case "bodyFront":
-      return `Full-body reference photograph of ${same}\n\n${heightCm} cm tall, slim, long-limbed, toned fashion-model build, EU size 36. Plain fitted black tank top and plain black leggings, barefoot. Standing straight-on facing the camera, weight even, arms relaxed at the sides, neutral expression. Head to toe in frame with margin above and below; camera at waist height, no distortion.\n\n${studio}`;
+      return `Full-body reference photograph of ${same}\n\n${heightCm} cm tall, slim, long-limbed, toned fashion-model build, EU size 36. Plain fitted black tank top and plain black leggings, barefoot. Hair: ${look.hair}. Standing straight-on facing the camera, weight even, arms relaxed at the sides, neutral expression. Head to toe in frame with margin above and below; camera at waist height, no distortion.\n\n${studio}`;
     case "bodyBack":
-      return `Full-body reference photograph of ${same}\n\n${heightCm} cm tall, slim, long-limbed, toned fashion-model build, EU size 36. Plain fitted black tank top and plain black leggings, barefoot. Standing with the back to the camera, weight even, arms relaxed, head straight forward, face not visible. Head to toe in frame; camera at waist height, no distortion.\n\n${studio}`;
+      return `Full-body reference photograph of ${same}\n\n${heightCm} cm tall, slim, long-limbed, toned fashion-model build, EU size 36. Plain fitted black tank top and plain black leggings, barefoot. Hair: ${look.hair}. Standing with the back to the camera, weight even, arms relaxed, head straight forward, face not visible. Head to toe in frame; camera at waist height, no distortion.\n\n${studio}`;
     case "threeQuarter":
       return `Identity reference, three-quarter view, of ${same}\n\nHead and shoulders, head and body turned about 40 degrees to the side, eyes following the head direction, neutral expression, lips closed. Plain fitted black tank top. Hair: ${look.hair}.\n\n${studio}`;
     case "characterSheet":
@@ -237,8 +237,11 @@ async function main() {
     for (const m of NEW_MODELS.filter((x) => CHOSEN.includes(x.modelId))) {
       const portrait = state[m.modelId]?.portrait;
       if (!portrait) throw new Error(`${m.modelId} has no approved portrait yet`);
+      // References must show the styled hair from the portrait, not the base hair (bug found in review 2026-11-13).
+      const st = STYLING[m.modelId];
+      const look = st ? { ...m.look, hair: `${st.hairColour ?? m.look.hair}, styled as: ${st.hair} (exactly as in the portrait)` } : m.look;
       for (const k of ["bodyFront", "bodyBack", "threeQuarter", "profile", "characterSheet"] as const) {
-        if (!(state[m.modelId] as any)[k]) jobs.push({ key: m.modelId, kind: k as any, prompt: fromPortrait(k, m.look, m.heightCm), refs: [portrait], aspect: k.startsWith("body") ? "2:3" : k === "characterSheet" ? ("16:9" as any) : "1:1" });
+        if (!(state[m.modelId] as any)[k]) jobs.push({ key: m.modelId, kind: k as any, prompt: fromPortrait(k, look, m.heightCm), refs: [portrait], aspect: k.startsWith("body") ? "2:3" : k === "characterSheet" ? ("16:9" as any) : "1:1" });
       }
     }
   } else if (stage === "register") {
