@@ -244,6 +244,12 @@ export function getProduction(id: string) {
   };
 }
 
+/** One image with its attempts, for single-image routes. */
+export function getImage(imageId: string): ImageRow | null {
+  const r: any = getDb().prepare("SELECT production_id FROM images WHERE id = ?").get(imageId);
+  return r ? getProduction(r.production_id)?.images.find((i) => i.id === imageId) ?? null : null;
+}
+
 export function spentThisMonthUsd(): number {
   const rows = getDb().prepare("SELECT job FROM images WHERE updated_at >= date('now', 'start of month')").all() as any[];
   return rows.reduce((s, r) => s + (JSON.parse(r.job).costUsd ?? 0), 0);

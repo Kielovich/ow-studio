@@ -13,4 +13,5 @@ export * from "./providers/gemini";
 export * from "./assets";
 export * from "./silhouette";
 export * from "./post/background";
+export * from "./post/export";
 export * from "./secrets";

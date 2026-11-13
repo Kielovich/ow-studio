@@ -236,7 +236,7 @@ export function ProductionView() {
                           <Button size="sm" variant={showRaw ? "secondary" : "primary"} onPress={() => setShowRaw(false)}>Final</Button>
                           <Button size="sm" variant={showRaw ? "primary" : "secondary"} onPress={() => setShowRaw(true)} isDisabled={!shown?.rawAsset}>Raw output</Button>
                           <Button size="sm" variant={compare ? "primary" : "secondary"} onPress={() => setCompare((c) => !c)} isDisabled={open.attempts.filter((a) => a.finalAsset).length < 2}>Compare</Button>
-                          {shown?.finalAsset && <LinkButton href={assetUrl(shown.finalAsset)} download={`${open.sku}_${open.preset}_attempt${shown.attempt}.jpg`} size="sm" variant="ghost">Download</LinkButton>}
+                          {shown?.finalAsset && <LinkButton href={`/api/images/${open.id}/download?attempt=${shown.attempt}`} size="sm" variant="ghost">Download 2000 px</LinkButton>}
                         </div>
                         <div>
                           <div className="ow-eyebrow mb-2">References sent</div>
