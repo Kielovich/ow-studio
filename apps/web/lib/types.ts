@@ -37,7 +37,7 @@ export const STATE_LABEL: Record<string, { label: string; color: ChipColor }> = 
 export const ACTIVE_STATES = new Set(["queued", "submitting", "provider_running", "validating"]);
 
 export const DEFAULT_MAKEUP =
-  "polished editorial fashion makeup: even, luminous skin that still shows natural texture and pores; softly sculpted cheekbones and jawline; " +
+  "polished clean-glam makeup: satin skin that clearly shows natural texture and pores, sheen only on the high points; softly sculpted cheekbones and jawline; " +
   "groomed, defined brows; subtle smudged brown liner and lengthening mascara; neutral nude-rose matte lip. Fashion-model polish, not glam, not bare-faced.";
 
 export const assetUrl = (hash: string | null | undefined, w?: 240 | 480 | 800 | 1200) =>

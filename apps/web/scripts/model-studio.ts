@@ -89,6 +89,30 @@ const STYLING: Record<string, { hair: string; makeupAccent: string; hairColour?:
   M06: { hair: "long defined curls with volume, a soft side part", makeupAccent: "warm golden bronze glow" },
 };
 
+/** The seven faces chosen by the user (2026-11-13). Only these get texture, references and registration. */
+const CHOSEN = ["M01", "M05", "M06", "M07", "M08", "M09", "M10"];
+
+/**
+ * Photographic skin pass (best practice from practitioner guides, 2025-26): describe real skin positively and
+ * specifically, avoid an even glow, name the camera, keep identity explicitly, keep it subtle and age-appropriate.
+ */
+const TEXTURE_PROMPT = [
+  "Re-render this exact photograph of the same original fictional adult woman with true photographic skin. She is not a real or identifiable person.",
+  "Keep everything identical: face, bone structure, features, expression, hair, makeup colours, background, lighting and colour balance. " +
+  "Keep the exact same framing and crop: head and shoulders with the black tank top and shoulders visible, same distance; do not zoom in or crop tighter.",
+  "Skin: realistic pores clearly visible across the nose, cheeks and forehead; faint peach fuzz along the jaw and cheeks catching the light; " +
+  "subtle natural unevenness such as slight warmth around the nose and on the cheeks; a few tiny natural marks; natural sheen only on the high points of the face " +
+  "and a hint of oil on the T-zone instead of an even glow. The makeup sits on real skin with visible texture underneath.",
+  "Detail as from a full-frame camera with an 85 mm lens at f/5.6, ISO 100: natural micro-contrast, crisp individual eyelashes and brow hairs, flyaway hairs, very subtle film grain.",
+  "Subtle and true to a 20-year-old: youthful skin, no wrinkles, no ageing, no blemishes added for effect.",
+].join("\n\n");
+
+/** Per-model corrections after review of the first texture pass. */
+const TEXTURE_NOTES: Record<string, string> = {
+  M07: "Her fair skin keeps only a very light, even warmth: no visible redness on the nose or cheeks.",
+  M01: "Even skin tone across the cheeks and jaw with no pale or light patches; peach fuzz extremely fine and barely visible.",
+};
+
 const styledPrompt = (m: NewModel) => {
   const st = STYLING[m.modelId]!;
   return [
@@ -125,9 +149,9 @@ const portraitPrompt = (m: NewModel) => [
   "Plain light grey seamless studio background, soft flattering frontal light. Real skin texture; no smoothing, no plastic look.",
 ].join("\n\n");
 
-const fromPortrait = (kind: "bodyFront" | "bodyBack" | "threeQuarter" | "profile", look: ModelVersion["look"], heightCm: number) => {
+const fromPortrait = (kind: "bodyFront" | "bodyBack" | "threeQuarter" | "profile" | "characterSheet", look: ModelVersion["look"], heightCm: number) => {
   const same = "exactly the same original fictional adult woman as in the attached identity portrait: identical face, bone structure, skin tone, hair colour, hair length and makeup. She is not a real or identifiable person.";
-  const studio = "Plain light grey seamless studio background, soft even frontal light. Real skin texture, no smoothing.";
+  const studio = "Plain light grey seamless studio background, soft even frontal light. True photographic skin as from a full-frame camera: visible pores, fine peach fuzz, natural micro-contrast, very subtle grain, sheen only on the high points.";
   switch (kind) {
     case "bodyFront":
       return `Full-body reference photograph of ${same}\n\n${heightCm} cm tall, slim, long-limbed, toned fashion-model build, EU size 36. Plain fitted black tank top and plain black leggings, barefoot. Standing straight-on facing the camera, weight even, arms relaxed at the sides, neutral expression. Head to toe in frame with margin above and below; camera at waist height, no distortion.\n\n${studio}`;
@@ -135,13 +159,17 @@ const fromPortrait = (kind: "bodyFront" | "bodyBack" | "threeQuarter" | "profile
       return `Full-body reference photograph of ${same}\n\n${heightCm} cm tall, slim, long-limbed, toned fashion-model build, EU size 36. Plain fitted black tank top and plain black leggings, barefoot. Standing with the back to the camera, weight even, arms relaxed, head straight forward, face not visible. Head to toe in frame; camera at waist height, no distortion.\n\n${studio}`;
     case "threeQuarter":
       return `Identity reference, three-quarter view, of ${same}\n\nHead and shoulders, head and body turned about 40 degrees to the side, eyes following the head direction, neutral expression, lips closed. Plain fitted black tank top. Hair: ${look.hair}.\n\n${studio}`;
+    case "characterSheet":
+      return `Professional model character reference sheet of ${same}\n\nOne wide image on a plain light grey seamless background with five views of her side by side, evenly spaced and the same scale: ` +
+        `1) head and shoulders front, 2) head and shoulders three-quarter, 3) head and shoulders side profile, 4) back of the head and shoulders showing the hairstyle, 5) full body front in a plain fitted black tank top and black leggings, barefoot. ` +
+        `Identical face, hair, makeup and skin in every view; neutral expression, lips closed. No text, labels or numbers. ${studio}`;
     case "profile":
       return `Identity reference, side profile, of ${same}\n\nHead and shoulders in exact side profile (90 degrees), neutral expression, lips closed. Plain fitted black tank top. Hair: ${look.hair}.\n\n${studio}`;
   }
 };
 
 let spent = 0;
-async function generate(prompt: string, refs: string[], aspect: "1:1" | "2:3"): Promise<string> {
+async function generate(prompt: string, refs: string[], aspect: "1:1" | "2:3" | "16:9"): Promise<string> {
   const images = await Promise.all(refs.map(assets.resolve));
   const res = await fetch(GEMINI_ENDPOINT, {
     method: "POST",
@@ -170,7 +198,7 @@ async function headless(hash: string) {
 }
 
 async function main() {
-  const jobs: { key: string; kind: keyof Entry; prompt: string; refs: string[]; aspect: "1:1" | "2:3" }[] = [];
+  const jobs: { key: string; kind: keyof Entry; prompt: string; refs: string[]; aspect: "1:1" | "2:3" | "16:9" }[] = [];
 
   if (stage === "portraits") {
     // --redo M02,M03 regenerates those portraits; the rejected one is kept under rejectedPortraits.
@@ -181,6 +209,23 @@ async function main() {
       if (s?.portrait) { (s as any).rejectedPortraits = [...((s as any).rejectedPortraits ?? []), s.portrait]; delete s.portrait; }
     }
     for (const m of NEW_MODELS) if (!state[m.modelId]?.portrait) jobs.push({ key: m.modelId, kind: "portrait", prompt: m.owStyled ? owPortraitPrompt(m) : portraitPrompt(m), refs: [], aspect: "1:1" });
+  } else if (stage === "texture") {
+    // --redo M01,M08 starts those again from their pre-texture portrait (the rejected result is kept for traceability).
+    const redoArg = process.argv.indexOf("--redo");
+    for (const id of redoArg > 0 ? process.argv[redoArg + 1]!.split(",") : []) {
+      const s = state[id] as any;
+      if (s?.preTexturePortrait) {
+        s.rejectedTexture = [...(s.rejectedTexture ?? []), s.portrait];
+        s.portrait = s.preTexturePortrait;
+        delete s.preTexturePortrait;
+      }
+    }
+    for (const id of CHOSEN) {
+      const s = state[id];
+      if (!s?.portrait) throw new Error(`${id} has no portrait`);
+      if ((s as any).preTexturePortrait) continue;
+      jobs.push({ key: id, kind: "texturePortrait" as any, prompt: TEXTURE_PROMPT + (TEXTURE_NOTES[id] ? "\n\n" + TEXTURE_NOTES[id] : ""), refs: [s.portrait], aspect: "1:1" });
+    }
   } else if (stage === "styled") {
     for (const m of NEW_MODELS) {
       const s = state[m.modelId];
@@ -189,16 +234,16 @@ async function main() {
       jobs.push({ key: m.modelId, kind: "styledPortrait" as any, prompt: styledPrompt(m), refs: [s.portrait], aspect: "1:1" });
     }
   } else if (stage === "refs") {
-    for (const m of NEW_MODELS) {
+    for (const m of NEW_MODELS.filter((x) => CHOSEN.includes(x.modelId))) {
       const portrait = state[m.modelId]?.portrait;
       if (!portrait) throw new Error(`${m.modelId} has no approved portrait yet`);
-      for (const k of ["bodyFront", "bodyBack", "threeQuarter", "profile"] as const) {
-        if (!state[m.modelId]![k]) jobs.push({ key: m.modelId, kind: k, prompt: fromPortrait(k, m.look, m.heightCm), refs: [portrait], aspect: k.startsWith("body") ? "2:3" : "1:1" });
+      for (const k of ["bodyFront", "bodyBack", "threeQuarter", "profile", "characterSheet"] as const) {
+        if (!(state[m.modelId] as any)[k]) jobs.push({ key: m.modelId, kind: k as any, prompt: fromPortrait(k, m.look, m.heightCm), refs: [portrait], aspect: k.startsWith("body") ? "2:3" : k === "characterSheet" ? ("16:9" as any) : "1:1" });
       }
     }
   } else if (stage === "register") {
     const rows = listModels();
-    for (const m of NEW_MODELS) {
+    for (const m of NEW_MODELS.filter((x) => CHOSEN.includes(x.modelId))) {
       const s = state[m.modelId];
       if (!s?.portrait || !s.bodyFront || !s.bodyBack || !s.threeQuarter || !s.profile) { console.log(`${m.modelId}: incomplete, skipped`); continue; }
       if ((s as any).registeredFrom === s.portrait) { console.log(`${m.modelId}: already registered`); continue; }
@@ -209,7 +254,7 @@ async function main() {
       insertModelVersion({ ...m, look, version, refs: {
         primaryPortrait: s.portrait, identityAngles: [s.threeQuarter, s.profile],
         fullBodyFront: await headless(s.bodyFront), fullBodyBack: await headless(s.bodyBack),
-        characterSheet: s.portrait, facialDetailSheet: s.portrait,
+        characterSheet: (s as any).characterSheet ?? s.portrait, facialDetailSheet: s.portrait,
       } }, "active");
       for (const r of mine) if (r.status === "active") setModelStatus(m.modelId, r.version, "archived");
       (s as any).registeredFrom = s.portrait;
@@ -218,7 +263,7 @@ async function main() {
     }
     return;
   } else {
-    throw new Error("stage must be portraits | styled | refs | register");
+    throw new Error("stage must be portraits | styled | texture | refs | register");
   }
 
   console.log(`${jobs.length} images planned, est. $${(jobs.length * GEMINI_PRO_PROFILE.estimatedCostUsd).toFixed(2)}`);
@@ -227,7 +272,10 @@ async function main() {
   for (const j of jobs) {
     const hash = await generate(j.prompt, j.refs, j.aspect);
     state[j.key] ??= { prompts: {} };
-    if ((j.kind as string) === "styledPortrait") {
+    if ((j.kind as string) === "texturePortrait") {
+      (state[j.key] as any).preTexturePortrait = state[j.key]!.portrait;
+      state[j.key]!.portrait = hash;
+    } else if ((j.kind as string) === "styledPortrait") {
       (state[j.key] as any).basePortrait = state[j.key]!.portrait;
       state[j.key]!.portrait = hash;
     } else {

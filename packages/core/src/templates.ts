@@ -5,7 +5,7 @@ import { PRESETS } from "./presets";
 import { BOTTOM_CATEGORIES, OUTERWEAR_CATEGORIES, type ImageSpec, type InstructionBlock, type PoseAssignment } from "./schemas";
 
 /** Bump when any wording below changes. Part of every compileHash. */
-export const TEMPLATE_VERSION = "tpl-2026.11.6";
+export const TEMPLATE_VERSION = "tpl-2026.11.7";
 
 /** Instruction priorities. Lower number wins when instructions conflict. */
 export const PRIORITY = {
@@ -91,7 +91,8 @@ export function buildBlocks(spec: ImageSpec, a: PoseAssignment): InstructionBloc
     `Lighting: soft, high frontal key light with low contrast and soft natural shadows` +
     (def.feetVisible(p.category) ? `, soft contact shadow under the feet` : ``) + `. ` +
     `Colour: neutral, true to the garment; blacks keep detail. ` +
-    `Retouching: clean but natural, real skin texture, pores and small asymmetries kept; no smoothing or plastic look.` +
+    `Skin and retouching: true photographic skin as from a full-frame camera, natural micro-contrast and very subtle grain; pores visible on the nose, cheeks and forehead, ` +
+    `fine peach fuzz, small natural asymmetries; natural sheen only on the high points of the face instead of an even glow; clean but untouched-looking retouching.` +
     (spec.anchorAsset
       ? ` This photograph belongs to the same studio session as the attached session reference: keep lighting, colour, hair, makeup and the way the garment sits on the body consistent with it.`
       : ``));
