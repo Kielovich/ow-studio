@@ -229,6 +229,13 @@ async function main() {
     await m.close();
   });
 
+  await stage("Health check and backup", async () => {
+    const h = await fetch(`${BASE}/api/health`);
+    check(h.ok && (await h.json()).ok === true, "health check answers without a session");
+    const backups = readdirSync(join(data, "backups"));
+    check(backups.some((f) => /^studio-\d{4}-\d{2}-\d{2}\.db$/.test(f)), "the worker wrote today's database backup");
+  });
+
   await stage("Logout", async () => {
     await page.goto(`${BASE}/`);
     await page.getByRole("button", { name: "Log out" }).click();

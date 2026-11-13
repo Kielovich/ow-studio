@@ -43,8 +43,10 @@ async function loop(n: number) {
       const job = await processImage(row, { adapter, store, sleep });
       console.log(`[${new Date().toISOString()}] ${row.sku} ${row.preset} -> ${job.state} (attempt ${job.attempt})${job.lastError ? ` (${job.lastError.kind})` : ""}`);
     } catch (e) {
-      // A crash inside runJob leaves the job resumable; the lease expires and the job is picked up again.
-      console.error(`[worker ${n}] ${row.id} crashed:`, (e as Error).message);
+      // A crash leaves the job resumable. Release the lease now (not after LEASE_MINUTES), so it is picked up again
+      // shortly; runJob's resume rules then decide (a request that may have been sent becomes "unknown outcome").
+      console.error(`[worker ${n}] ${row.id} crashed:`, (e as Error).stack ?? (e as Error).message);
+      try { getDb().prepare("UPDATE images SET claimed_by = NULL, claimed_until = NULL WHERE id = ? AND claimed_by = ?").run(row.id, WORKER_ID); } catch {}
       await sleep(5000);
     }
   }

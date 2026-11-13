@@ -23,15 +23,26 @@ export async function processImage(row: any, deps: { adapter: ProviderAdapter; s
   if ((job.state === "succeeded" || job.state === "needs_review") && job.providerJobId) {
     const st = await deps.adapter.poll(job.providerJobId);
     if (st.state === "succeeded" && st.assets[0]) {
+      // The provider output is paid for: store it first, so a failure in post-processing can never lose it.
       raw = await assets.putBytes(st.assets[0].bytes);
-      const norm = await normalizeBackground(st.assets[0].bytes);
-      final = norm.report.ok ? await assets.putBytes(norm.bytes) : raw;
+      final = raw;
+      let finalBytes = st.assets[0].bytes;
+      try {
+        const norm = await normalizeBackground(st.assets[0].bytes);
+        if (norm.report.ok) { final = await assets.putBytes(norm.bytes); finalBytes = norm.bytes; }
+      } catch (e) {
+        console.error(`[pipeline] ${row.id}: background normalisation failed, keeping the raw output:`, (e as Error).message);
+      }
       // Colour drift against the packshot's measured colour lock (flags only clear drifts; see measureColourDrift).
-      const p: any = db.prepare("SELECT spec FROM productions WHERE id = ?").get(row.production_id);
-      const target = p ? (JSON.parse(p.spec).products as any[]).find((x) => x.sku === row.sku)?.colorHex : undefined;
-      if (target) {
-        const d = await measureColourDrift(norm.report.ok ? norm.bytes : st.assets[0].bytes, target);
-        if (d) checks = { colour: { measuredHex: d.measuredHex, targetHex: target, distance: d.distance, drift: d.drift } };
+      try {
+        const p: any = db.prepare("SELECT spec FROM productions WHERE id = ?").get(row.production_id);
+        const target = p ? (JSON.parse(p.spec).products as any[]).find((x) => x.sku === row.sku)?.colorHex : undefined;
+        if (target) {
+          const d = await measureColourDrift(finalBytes, target);
+          if (d) checks = { colour: { measuredHex: d.measuredHex, targetHex: target, distance: d.distance, drift: d.drift } };
+        }
+      } catch (e) {
+        console.error(`[pipeline] ${row.id}: colour check failed, image kept unchecked:`, (e as Error).message);
       }
     }
   }
