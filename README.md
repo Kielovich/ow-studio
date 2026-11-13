@@ -11,7 +11,7 @@ npm run dev                # web app on http://localhost:3000
 npm run worker             # generation worker, in a second terminal
 ```
 
-The worker reads `GEMINI_API_KEY` from the environment or from `~/.ow-studio/secrets.env` (never committed). Data (SQLite database and content-addressed assets) lives in `.data/`, which is git-ignored. The monthly budget is set with `OW_BUDGET_USD` (default 25).
+The worker reads `GEMINI_API_KEY` from the environment or from `~/.ow-studio/secrets.env` (never committed). Data (SQLite database and content-addressed assets) lives in `~/.ow-studio/data` (override with `OW_DATA_DIR`), outside the repo so the dev server does not reload on database writes. The monthly budget is set with `OW_BUDGET_USD` (default 25).
 
 ## Structure
 

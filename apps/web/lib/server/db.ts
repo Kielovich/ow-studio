@@ -1,13 +1,17 @@
 import { mkdirSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { homedir } from "node:os";
+import { join } from "node:path";
 import type { DatabaseSync as DatabaseSyncType } from "node:sqlite";
 
 // Loaded via getBuiltinModule so no bundler (Turbopack, Vite) tries to resolve "node:sqlite" itself.
 const { DatabaseSync } = process.getBuiltinModule("node:sqlite") as typeof import("node:sqlite");
 type DatabaseSync = DatabaseSyncType;
 
-/** Repo-level data directory (git-ignored). Override with OW_DATA_DIR. */
-export const DATA_DIR = process.env.OW_DATA_DIR ?? resolve(process.cwd(), "..", "..", ".data");
+/**
+ * Runtime data (SQLite + content-addressed assets). Kept outside the repository on purpose: the dev bundler watches
+ * the whole workspace, and database writes inside it caused endless page reloads. Override with OW_DATA_DIR.
+ */
+export const DATA_DIR = process.env.OW_DATA_DIR ?? join(homedir(), ".ow-studio", "data");
 export const ASSET_DIR = join(DATA_DIR, "assets");
 
 const SCHEMA = `

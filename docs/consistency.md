@@ -13,7 +13,7 @@ Audit of the first real production made in the app (`prod_20261113_54a472`, mesh
 | # | Defect | Root cause | Fix |
 |---|---|---|---|
 | 1 | Styled shot drifted to a different-looking face | Every shot generated independently from one identity image; styled pose/expression pulled furthest | Session anchor (below) and an identity rule that allows only gaze, eyelids and mouth to change. The styled expression no longer asks for "self-assured" with parted lips |
-| 2 | Styled shot showed the asymmetric hem mirrored | The prompt said "same side as in the packshot" without saying which side | Hem side measured from the front packshot (`measureHemAsymmetry`), cross-checked against the back, and stated per view. Back views get the front packshot as an orientation-only reference |
+| 2 | ~~Styled shot showed the asymmetric hem mirrored~~ **Correction:** not a defect. Full-resolution crops show the hem on the correct side in all 10 images of both runs; the earlier finding came from reading small thumbnails | The prompt *was* ambiguous ("same side as in the packshot" without saying which) | Kept as a safeguard: hem side measured from the front packshot (`measureHemAsymmetry`), cross-checked against the back, and stated per view. Back views get the front packshot as an orientation-only reference |
 | 3 | Close-up had no person reference (skin, neck, proportions unanchored) | Detail preset sent the packshot only | Headless body reference added |
 | 4 | Preview planned with seed `draft`, the run with the production id | Seed derived from the production id | `spec.seed` derived from the draft content; preview equals run (tested) |
 | 5 | Archived model versions accepted by the API | Only the UI filtered them | Server-side check in `buildSpec` |
@@ -40,3 +40,12 @@ Audit of the first real production made in the app (`prod_20261113_54a472`, mesh
 - `packages/core/test/consistency.test.ts` covers reference lists, order and assets with and without the anchor; hash changes; byte-identical shared identity, garment and style blocks; the measured hem side per view; reference limits and no duplicate images; pose variation and sharing.
 - `apps/web/test/anchor.test.ts` runs the pipeline against a temporary database: queue gating, freezing once into request and job, no re-freeze after submission, the anchor switched off, archived models rejected, and preview equal to run.
 - `apps/web/scripts/inspect-payload.ts` prints the exact references and prompt for a draft, optionally with an anchor, without API calls.
+
+## Validation run (2026-11-13, `prod_20261113_05114d`, 5 images, ~$0.80)
+
+- **Order:** the front was generated first; the other four started only after it succeeded.
+- **Freezing:** every dependent had exactly the front's final image frozen in. The history records "session anchor frozen: 2b462515bdec", and the job and row compileHash match.
+- **Identity:** the styled face now matches the front and three-quarter (face shape, brows, makeup, skin). In the first run the styled face had drifted to a fuller, more glamorous look.
+- **Garment:** the hem is on the correct side in all shots of both runs (checked on full-resolution crops), and the panel layout is closer to the packshot.
+- **Not built:** an automatic on-model hem-side check. A prototype misread outputs because the black bag merged with the garment mask, so it was dropped instead of shipping an unreliable validator.
+- **Dev environment:** runtime data moved from `.data/` to `~/.ow-studio/data`. Database writes inside the repo made Turbopack reload the page continuously while the worker ran. Production history was moved intact.
