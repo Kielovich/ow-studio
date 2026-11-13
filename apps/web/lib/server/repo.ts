@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import {
-  BOTTOM_CATEGORIES, compileProduction, GEMINI_PRO_PROFILE, LocalAssetStore, measureBottomsSilhouette, ModelVersion, newJob,
+  BOTTOM_CATEGORIES, compileProduction, GEMINI_PRO_PROFILE, hashOf, LocalAssetStore, measureBottomsSilhouette, measureHemAsymmetry, ModelVersion, newJob,
   type Category, type CompiledRequest, type Conflict, type GarmentFlag, type JobRecord, type PresetId, type ProductionSpecInput,
   type ProviderProfile, type Styling,
 } from "@ow-studio/core";
@@ -27,6 +27,11 @@ export function listModels(): ModelRow[] {
 export function getModel(modelId: string, version: number): ModelVersion | null {
   const r: any = getDb().prepare("SELECT data FROM models WHERE model_id = ? AND version = ?").get(modelId, version);
   return r ? ModelVersion.parse(JSON.parse(r.data)) : null;
+}
+
+function modelStatus(modelId: string, version: number): string | null {
+  const r: any = getDb().prepare("SELECT status FROM models WHERE model_id = ? AND version = ?").get(modelId, version);
+  return r?.status ?? null;
 }
 
 /** Model versions are immutable: inserting an existing (id, version) is refused. */
@@ -59,20 +64,28 @@ export type ProductionDraft = {
   presets: PresetId[];
   styling: Styling;
   providerProfileId?: string;
+  /** Generate each SKU's front shot first and use it as the session reference for the other shots. Default true. */
+  sessionAnchor?: boolean;
 };
 
 async function buildSpec(draft: ProductionDraft, productionId: string): Promise<{ spec: ProductionSpecInput; profile: ProviderProfile }> {
   const model = getModel(draft.modelId, draft.modelVersion);
   if (!model) throw new Error(`Model ${draft.modelId} v${draft.modelVersion} not found`);
+  // Server-side rule, not just a UI filter: only active model versions can start new productions.
+  if (modelStatus(draft.modelId, draft.modelVersion) !== "active") throw new Error(`Model ${draft.modelId} v${draft.modelVersion} is not active`);
   const profile = PROFILES[draft.providerProfileId ?? DEFAULT_PROFILE.id] ?? DEFAULT_PROFILE;
   const products = [];
   for (const p of draft.products) {
     const packshots = Object.fromEntries(Object.entries(p.packshots).filter(([, v]) => v));
-    let silhouette;
+    let silhouette, asymmetry;
     if (BOTTOM_CATEGORIES.includes(p.category) && p.packshots.front) {
       silhouette = (await measureBottomsSilhouette((await assets.resolve(p.packshots.front)).bytes)) ?? undefined;
     }
-    products.push({ ...p, packshots, ...(silhouette ? { silhouette } : {}) });
+    if (p.flags.includes("asymmetric_hem") && p.packshots.front) {
+      const back = p.packshots.back ? (await assets.resolve(p.packshots.back)).bytes : undefined;
+      asymmetry = (await measureHemAsymmetry((await assets.resolve(p.packshots.front)).bytes, back)) ?? undefined;
+    }
+    products.push({ ...p, packshots, ...(silhouette ? { silhouette } : {}), ...(asymmetry ? { asymmetry } : {}) });
   }
   return {
     profile,
@@ -84,14 +97,22 @@ async function buildSpec(draft: ProductionDraft, productionId: string): Promise<
       styling: draft.styling,
       style: { background: [241, 241, 241], aspectRatio: "1:1", longEdgePx: 2000 },
       providerProfileId: profile.id,
+      sessionAnchor: draft.sessionAnchor ?? true,
+      // Seed from the draft content (not the production id), so the preview plans exactly what the run will do.
+      seed: "s_" + hashOf({ products: products.map((p) => ({ sku: p.sku, packshots: p.packshots })), presets: draft.presets, model: [model.modelId, model.version] }).slice(0, 16),
     },
   };
+}
+
+/** For scripts that inspect payloads without creating a production. */
+export async function buildSpecForInspection(draft: ProductionDraft) {
+  return (await buildSpec(draft, "inspect")).spec;
 }
 
 export type CompilePreview = {
   canRun: boolean;
   conflicts: Conflict[];
-  images: { imageSpecId: string; sku: string; preset: PresetId; poseId: string; expressionId: string; refs: string[] }[];
+  images: { imageSpecId: string; sku: string; preset: PresetId; poseId: string; expressionId: string; refs: string[]; dependsOn?: string }[];
   estCostUsd: number;
   budgetRemainingUsd: number;
 };
@@ -102,7 +123,7 @@ export async function previewDraft(draft: ProductionDraft): Promise<CompilePrevi
   return {
     canRun: r.canRun,
     conflicts: r.conflicts,
-    images: r.images.map((i) => ({ imageSpecId: i.imageSpecId, sku: i.sku, preset: i.preset, poseId: i.assignment.poseId, expressionId: i.assignment.expressionId, refs: i.refs.map((x) => x.role) })),
+    images: r.images.map((i) => ({ imageSpecId: i.imageSpecId, sku: i.sku, preset: i.preset, poseId: i.assignment.poseId, expressionId: i.assignment.expressionId, refs: i.refs.map((x) => x.role), ...(i.dependsOn ? { dependsOn: i.dependsOn } : {}) })),
     estCostUsd: r.images.length * profile.estimatedCostUsd,
     budgetRemainingUsd: budgetRemaining(),
   };
@@ -118,10 +139,10 @@ export async function createProduction(draft: ProductionDraft): Promise<{ id: st
   try {
     db.prepare("INSERT INTO productions (id, name, spec, spec_hash, provider, est_cost) VALUES (?, ?, ?, ?, ?, ?)")
       .run(id, draft.name || id, JSON.stringify(r.spec), r.specHash, profile.id, r.images.length * profile.estimatedCostUsd);
-    const ins = db.prepare("INSERT INTO images (id, production_id, sku, preset, slot_index, request, compile_hash, job, state) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'queued')");
+    const ins = db.prepare("INSERT INTO images (id, production_id, sku, preset, slot_index, request, compile_hash, job, state, depends_on) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'queued', ?)");
     for (const img of r.images) {
       const slotIndex = r.spec.slots.findIndex((s) => s.preset === img.preset);
-      ins.run(img.imageSpecId, id, img.sku, img.preset, slotIndex, JSON.stringify(img), img.compileHash, JSON.stringify(newJob(img.imageSpecId, img)));
+      ins.run(img.imageSpecId, id, img.sku, img.preset, slotIndex, JSON.stringify(img), img.compileHash, JSON.stringify(newJob(img.imageSpecId, img)), img.dependsOn ?? null);
     }
     db.exec("COMMIT");
   } catch (e) {
@@ -134,14 +155,14 @@ export async function createProduction(draft: ProductionDraft): Promise<{ id: st
 // ---------- Productions ----------
 
 export type ImageRow = {
-  id: string; sku: string; preset: PresetId; slotIndex: number; state: JobRecord["state"]; job: JobRecord;
+  id: string; sku: string; preset: PresetId; slotIndex: number; state: JobRecord["state"]; job: JobRecord; dependsOn: string | null;
   rawAsset: string | null; finalAsset: string | null; prompt: string; refs: CompiledRequest["refs"]; updatedAt: string;
 };
 
 const toImage = (r: any): ImageRow => {
   const req = JSON.parse(r.request) as CompiledRequest;
   return {
-    id: r.id, sku: r.sku, preset: r.preset, slotIndex: r.slot_index, state: r.state, job: JSON.parse(r.job),
+    id: r.id, sku: r.sku, preset: r.preset, slotIndex: r.slot_index, state: r.state, job: JSON.parse(r.job), dependsOn: r.depends_on ?? null,
     rawAsset: r.raw_asset, finalAsset: r.final_asset, prompt: req.prompt, refs: req.refs, updatedAt: r.updated_at,
   };
 };
@@ -199,4 +220,37 @@ export function overview() {
     recent: listProductions().slice(0, 6),
     models: listModels().filter((m) => m.status === "active").length,
   };
+}
+
+// ---------- Session anchor ----------
+
+/**
+ * Freezes the session anchor into a dependent image's request, once, before its first submission.
+ * The request is recompiled from the production's frozen spec with the anchor's final image; the new compileHash
+ * is written to both the row and the job, and the change is recorded in the job history.
+ * Returns false when the image is not ready (anchor not finished) or the request is already frozen.
+ */
+export function freezeAnchor(imageId: string): boolean {
+  const db = getDb();
+  const img: any = db.prepare("SELECT * FROM images WHERE id = ?").get(imageId);
+  if (!img?.depends_on) return false;
+  const req = JSON.parse(img.request) as CompiledRequest;
+  if (req.refs.some((r) => r.role === "session_anchor")) return false;
+  const job = JSON.parse(img.job) as JobRecord;
+  if (job.attempt !== 1 || job.providerJobId || job.state !== "queued") return false; // never re-freeze a started job
+  const anchor: any = db.prepare("SELECT state, final_asset FROM images WHERE id = ?").get(img.depends_on);
+  if (!anchor || anchor.state !== "succeeded" || !anchor.final_asset) return false;
+  const p: any = db.prepare("SELECT spec, provider FROM productions WHERE id = ?").get(img.production_id);
+  const profile = PROFILES[p.provider] ?? DEFAULT_PROFILE;
+  const compiled = compileProduction(JSON.parse(p.spec), profile, undefined, { anchors: { [img.sku]: anchor.final_asset } });
+  const next = compiled.images.find((i) => i.imageSpecId === imageId);
+  if (!next) throw new Error(`Recompile lost image ${imageId}`);
+  const frozenJob: JobRecord = {
+    ...job,
+    compileHash: next.compileHash,
+    events: [...job.events.slice(0, -1), { ...job.events[job.events.length - 1]!, note: `session anchor frozen: ${anchor.final_asset.slice(7, 19)}` }],
+  };
+  db.prepare("UPDATE images SET request = ?, compile_hash = ?, job = ?, updated_at = datetime('now') WHERE id = ?")
+    .run(JSON.stringify(next), next.compileHash, JSON.stringify(frozenJob), imageId);
+  return true;
 }

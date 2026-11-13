@@ -7,7 +7,7 @@ import { hostname } from "node:os";
 import { DEFAULT_POLICY, GeminiProvider, loadLocalSecrets, normalizeBackground, runJob, type CompiledRequest } from "@ow-studio/core";
 import { getDb } from "../lib/server/db";
 import { SqliteJobStore } from "../lib/server/jobstore";
-import { assets, budgetRemaining, DEFAULT_PROFILE } from "../lib/server/repo";
+import { assets, budgetRemaining, DEFAULT_PROFILE, freezeAnchor } from "../lib/server/repo";
 
 loadLocalSecrets();
 const WORKER_ID = `${hostname()}:${process.pid}`;
@@ -24,6 +24,8 @@ function claim(): any | null {
       SELECT i.id FROM images i JOIN productions p ON p.id = i.production_id
       WHERE p.deleted_at IS NULL AND i.state IN ('queued', 'submitting', 'provider_running', 'validating')
         AND (i.claimed_until IS NULL OR i.claimed_until < datetime('now'))
+        -- Shots that depend on a session anchor wait until the anchor has succeeded.
+        AND (i.depends_on IS NULL OR EXISTS (SELECT 1 FROM images a WHERE a.id = i.depends_on AND a.state = 'succeeded' AND a.final_asset IS NOT NULL))
       ORDER BY i.updated_at LIMIT 1)
     RETURNING *`).get(WORKER_ID) ?? null;
 }
@@ -34,6 +36,10 @@ function release(id: string, patch: { raw?: string; final?: string } = {}) {
 }
 
 async function processOne(row: any) {
+  // A dependent shot gets its session anchor frozen into the request before it is ever submitted.
+  if (row.depends_on && freezeAnchor(row.id)) {
+    row = getDb().prepare("SELECT * FROM images WHERE id = ?").get(row.id);
+  }
   const request = JSON.parse(row.request) as CompiledRequest;
   const job = await runJob(row.id, {
     store, adapter, request,

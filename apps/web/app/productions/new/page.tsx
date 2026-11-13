@@ -64,6 +64,7 @@ export default function NewProductionPage() {
   const [models, setModels] = useState<ModelRow[]>([]);
   const [model, setModel] = useState<string | null>(null);
   const [presets, setPresets] = useState<PresetId[]>(BRAND_SET);
+  const [sessionAnchor, setSessionAnchor] = useState(true);
   const [styling, setStyling] = useState({
     hairState: "sleek, centre parted, tucked behind the ears",
     makeup: DEFAULT_MAKEUP,
@@ -142,14 +143,14 @@ export default function NewProductionPage() {
     if (!products.length || !presets.length) return null;
     return {
       name: name || `${products.map((p) => p.sku).join(", ")}`.slice(0, 80),
-      products, modelId, modelVersion: Number(version), presets,
+      products, modelId, modelVersion: Number(version), presets, sessionAnchor,
       styling: {
         hairState: styling.hairState, makeup: styling.makeup, top: styling.top, innerTop: styling.innerTop,
         bottoms: styling.bottoms, footwear: styling.footwear,
         accessories: styling.accessories.split(",").map((s) => s.trim()).filter(Boolean),
       },
     };
-  }, [model, skus, files, info, presets, styling, name]);
+  }, [model, skus, files, info, presets, styling, name, sessionAnchor]);
 
   useEffect(() => {
     if (!draft) { setPreview(null); return; }
@@ -326,6 +327,19 @@ export default function NewProductionPage() {
               {PRESET_LABELS[p]}
             </ToggleButton>
           ))}
+        </div>
+        <div className="mt-8 flex items-start gap-4 max-w-2xl">
+          <ToggleButton isSelected={sessionAnchor} onChange={setSessionAnchor} className="rounded-none shrink-0" isDisabled={!presets.includes("full_body")}>
+            {sessionAnchor && presets.includes("full_body") ? "On" : "Off"}
+          </ToggleButton>
+          <div>
+            <div className="ow-nav mb-1">One studio session</div>
+            <p className="text-sm text-black/60 leading-relaxed">
+              The front is generated first. Once it has passed, it is sent with the other shots as the session reference for light, hair,
+              makeup and how the garment sits, so the set reads as one shoot. The face still follows the identity portrait and every garment
+              detail still follows the packshots.{!presets.includes("full_body") ? " Needs the Front shot." : ""}
+            </p>
+          </div>
         </div>
       </Section>
 

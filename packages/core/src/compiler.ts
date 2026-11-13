@@ -14,10 +14,18 @@ import {
 import { buildBlocks, buildExclusions, TEMPLATE_VERSION } from "./templates";
 
 /** Bump on any change to compiler logic that can alter output. Part of every compileHash. */
-export const COMPILER_VERSION = "1.0.0";
+export const COMPILER_VERSION = "1.1.0";
 
 export type CompileContext = { compilerVersion: string; templateVersion: string };
 export const DEFAULT_CONTEXT: CompileContext = { compilerVersion: COMPILER_VERSION, templateVersion: TEMPLATE_VERSION };
+
+/** Presets that can serve as a SKU's session anchor, in order of preference. */
+export const ANCHOR_PRESETS = ["full_body", "front_crop"] as const;
+
+export type CompileOptions = {
+  /** Final image of each SKU's session anchor, once it has succeeded. Keyed by SKU. */
+  anchors?: Record<string, string>;
+};
 
 export type ProductionCompileResult = {
   spec: ProductionSpec;
@@ -81,10 +89,16 @@ function productionConflicts(spec: ProductionSpec, profile: ProviderProfile): Co
   if (spec.style.longEdgePx > profile.maxLongEdgePx) {
     c.push({ code: "RESOLUTION_TOO_HIGH", severity: "error", message: `Requested ${spec.style.longEdgePx}px exceeds provider max ${profile.maxLongEdgePx}px` });
   }
-  const hasBack = spec.slots.some((s) => s.preset === "back");
+  const hasBack = spec.slots.some((s) => s.preset === "back" || s.preset === "back_full");
   for (const p of spec.products) {
     if (p.flags.includes("open_back") && !hasBack) {
       c.push({ code: "OPEN_BACK_NO_BACK_PRESET", severity: "warning", sku: p.sku, message: `${p.sku} has an open back but the set has no back image` });
+    }
+    if (p.flags.includes("asymmetric_hem") && !p.asymmetry) {
+      c.push({ code: "ASYMMETRY_UNMEASURED", severity: "warning", sku: p.sku, message: `${p.sku}: the long side of the hem could not be measured from the front packshot, so mirroring is not prevented` });
+    }
+    if (p.asymmetry?.backAgrees === false) {
+      c.push({ code: "PACKSHOTS_DISAGREE", severity: "warning", sku: p.sku, message: `${p.sku}: the front and back packshots show the long side of the hem on the same image side; one of them may be mirrored` });
     }
   }
   return c;
@@ -116,18 +130,38 @@ export function compileImage(spec: ImageSpec, assignment: PoseAssignment, profil
     prompt,
     refs,
     params,
+    ...(spec.dependsOn ? { dependsOn: spec.dependsOn } : {}),
   };
   // The hash covers every input that can influence the request, not just the output text.
   const compileHash = "cmp_" + hashOf({ body, imageSpec: spec });
   return { request: { ...body, compileHash }, conflicts: [...conflicts, ...imageConflicts(spec)] };
 }
 
+/**
+ * Production-wide consistency: per SKU, the first front shot is the session anchor. Every other shot of that SKU
+ * depends on it and, once its final image exists, receives it as a low-priority session reference.
+ * Anchors never depend on anything, so their requests do not change when anchors are supplied.
+ */
+export function linkSessionAnchors(specs: ImageSpec[], enabled: boolean, anchors: Record<string, string>): ImageSpec[] {
+  if (!enabled) return specs;
+  const anchorBySku = new Map<string, string>();
+  for (const preset of ANCHOR_PRESETS) {
+    for (const s of specs) if (s.preset === preset && !anchorBySku.has(s.product.sku)) anchorBySku.set(s.product.sku, s.imageSpecId);
+  }
+  return specs.map((s) => {
+    const anchorId = anchorBySku.get(s.product.sku);
+    if (!anchorId || anchorId === s.imageSpecId) return s;
+    const asset = anchors[s.product.sku];
+    return { ...s, dependsOn: anchorId, ...(asset ? { anchorAsset: asset } : {}) };
+  });
+}
+
 /** Pure and deterministic: no clock, no randomness, no environment access. */
-export function compileProduction(rawSpec: unknown, profile: ProviderProfile, ctx: CompileContext = DEFAULT_CONTEXT): ProductionCompileResult {
+export function compileProduction(rawSpec: unknown, profile: ProviderProfile, ctx: CompileContext = DEFAULT_CONTEXT, opts: CompileOptions = {}): ProductionCompileResult {
   const spec = ProductionSpec.parse(rawSpec);
   const specHash = "spec_" + hashOf(spec);
-  const imageSpecs = expandSpec(spec);
-  const plan = planPoses(imageSpecs, spec.productionId);
+  const imageSpecs = linkSessionAnchors(expandSpec(spec), spec.sessionAnchor, opts.anchors ?? {});
+  const plan = planPoses(imageSpecs, spec.seed ?? spec.productionId);
   const conflicts: Conflict[] = [...productionConflicts(spec, profile), ...plan.conflicts];
   const images: CompiledRequest[] = [];
   for (const s of imageSpecs) {

@@ -35,8 +35,9 @@ describe("reference selection", () => {
   it("uses the detail packshot when present, front otherwise", () => {
     const top = r.images.find((i) => i.sku === "TEST-TP-002" && i.preset === "detail")!;
     const dress = r.images.find((i) => i.sku === "TEST-DR-001" && i.preset === "detail")!;
-    expect(top.refs.map((x) => x.role)).toEqual(["garment_detail", "garment_front"]);
-    expect(dress.refs.map((x) => x.role)).toEqual(["garment_front"]);
+    // The close-up also gets the headless body reference for skin tone and proportions.
+    expect(top.refs.map((x) => x.role)).toEqual(["garment_detail", "garment_front", "body_front"]);
+    expect(dress.refs.map((x) => x.role)).toEqual(["garment_front", "body_front"]);
   });
 
   it("trims lowest-priority references to the provider limit and says so", () => {

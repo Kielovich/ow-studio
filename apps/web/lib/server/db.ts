@@ -1,6 +1,10 @@
 import { mkdirSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { DatabaseSync } from "node:sqlite";
+import type { DatabaseSync as DatabaseSyncType } from "node:sqlite";
+
+// Loaded via getBuiltinModule so no bundler (Turbopack, Vite) tries to resolve "node:sqlite" itself.
+const { DatabaseSync } = process.getBuiltinModule("node:sqlite") as typeof import("node:sqlite");
+type DatabaseSync = DatabaseSyncType;
 
 /** Repo-level data directory (git-ignored). Override with OW_DATA_DIR. */
 export const DATA_DIR = process.env.OW_DATA_DIR ?? resolve(process.cwd(), "..", "..", ".data");
@@ -45,6 +49,12 @@ CREATE INDEX IF NOT EXISTS images_by_state ON images(state);
 CREATE INDEX IF NOT EXISTS images_by_production ON images(production_id);
 `;
 
+/** Additive migrations only: existing productions keep working (new columns are NULL for them). */
+function migrate(d: DatabaseSync) {
+  const cols = new Set((d.prepare("PRAGMA table_info(images)").all() as { name: string }[]).map((c) => c.name));
+  if (!cols.has("depends_on")) d.exec("ALTER TABLE images ADD COLUMN depends_on TEXT");
+}
+
 let db: DatabaseSync | null = null;
 
 export function getDb(): DatabaseSync {
@@ -53,5 +63,6 @@ export function getDb(): DatabaseSync {
   db = new DatabaseSync(join(DATA_DIR, "studio.db"));
   db.exec("PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 5000; PRAGMA foreign_keys = ON;");
   db.exec(SCHEMA);
+  migrate(db);
   return db;
 }

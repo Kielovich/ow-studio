@@ -9,13 +9,20 @@ import { Tile } from "@/components/tile";
 import { ACTIVE_STATES, assetUrl, BRAND_SET, PRESET_LABELS, STATE_LABEL, usd, type PresetId } from "@/lib/types";
 
 type Img = {
-  id: string; sku: string; preset: PresetId; slotIndex: number; state: string; finalAsset: string | null; rawAsset: string | null;
+  id: string; sku: string; preset: PresetId; slotIndex: number; state: string; finalAsset: string | null; rawAsset: string | null; dependsOn: string | null;
   prompt: string; refs: { role: string; asset: string }[];
   job: { attempt: number; costUsd: number; lastError?: { kind: string; message: string }; awaitingReason?: string; validation?: { ok: boolean; reasons: string[] }; events: { state: string; note?: string }[] };
 };
 type Prod = { id: string; name: string; createdAt: string; estCost: number; provider: string; images: Img[]; spec: { model: { displayName: string; version: number } } };
 
 const order = (p: PresetId) => { const i = BRAND_SET.indexOf(p); return i < 0 ? 99 : i; };
+
+const REF_NAMES: Record<string, string> = {
+  garment_front: "packshot front", garment_back: "packshot back", garment_detail: "packshot detail", garment_side: "packshot side",
+  garment_orientation: "packshot front · orientation", identity_primary: "identity portrait", identity_angle: "identity angle",
+  character_sheet: "character sheet", facial_detail: "facial detail", body_front: "body front", body_back: "body back",
+  expression_sheet: "expression", pose: "pose", session_anchor: "session reference (front)",
+};
 
 export function ProductionView() {
   const { id } = useParams<{ id: string }>();
@@ -99,7 +106,9 @@ export function ProductionView() {
             <div className="ow-nav mb-4">{sku}</div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
               {imgs.map((img) => {
-                const st = STATE_LABEL[img.state] ?? { label: img.state, color: "default" as const };
+                const anchor = img.dependsOn ? p.images.find((x) => x.id === img.dependsOn) : undefined;
+                const waiting = img.state === "queued" && anchor && anchor.state !== "succeeded";
+                const st = waiting ? { label: "Waiting for front", color: "default" as const } : STATE_LABEL[img.state] ?? { label: img.state, color: "default" as const };
                 return (
                   <div key={img.id}>
                     <button className="block w-full text-left" onClick={() => { setShowRaw(false); setOpen(img); }} disabled={!img.finalAsset && !img.job.lastError}>
@@ -151,7 +160,7 @@ export function ProductionView() {
                           <div className="ow-eyebrow mb-2">References sent</div>
                           <div className="grid grid-cols-4 gap-2">
                             {open.refs.map((r) => (
-                              <div key={r.role + r.asset}><Tile src={assetUrl(r.asset, 240)} alt={r.role} /><div className="text-[10px] mt-1 text-black/60">{r.role.replace(/_/g, " ")}</div></div>
+                              <div key={r.role + r.asset}><Tile src={assetUrl(r.asset, 240)} alt={r.role} /><div className="text-[10px] mt-1 text-black/60">{REF_NAMES[r.role] ?? r.role.replace(/_/g, " ")}</div></div>
                             ))}
                           </div>
                         </div>

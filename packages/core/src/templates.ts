@@ -5,7 +5,7 @@ import { PRESETS } from "./presets";
 import { BOTTOM_CATEGORIES, OUTERWEAR_CATEGORIES, type ImageSpec, type InstructionBlock, type PoseAssignment } from "./schemas";
 
 /** Bump when any wording below changes. Part of every compileHash. */
-export const TEMPLATE_VERSION = "tpl-2026.11.5";
+export const TEMPLATE_VERSION = "tpl-2026.11.6";
 
 /** Instruction priorities. Lower number wins when instructions conflict. */
 export const PRIORITY = {
@@ -22,6 +22,19 @@ export const PRIORITY = {
 
 const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
+/** Measured hem orientation, stated per view so the model cannot mirror it. */
+export function asymmetryText(side: "wearer_right" | "wearer_left", view: "front" | "angle" | "back" | "detail"): string {
+  const wearer = side === "wearer_right" ? "right" : "left";
+  const frontImage = side === "wearer_right" ? "left" : "right";
+  const backImage = frontImage === "left" ? "right" : "left";
+  const where = view === "back"
+    ? `in this back view it appears on the image ${backImage}`
+    : view === "angle"
+      ? `in a front or three-quarter view it is on the side that would appear on the image ${frontImage} when facing the camera`
+      : `in this front view it appears on the image ${frontImage}`;
+  return `Measured hem orientation: the hem is longest on the wearer's ${wearer} side; ${where}. Never mirror the garment.`;
+}
+
 export function buildBlocks(spec: ImageSpec, a: PoseAssignment): InstructionBlock[] {
   const { product: p, model: m, styling: st, style, preset } = spec;
   const def = PRESETS[preset];
@@ -34,20 +47,25 @@ export function buildBlocks(spec: ImageSpec, a: PoseAssignment): InstructionBloc
   add("safety",
     `Professional e-commerce fashion photograph of an original fictional adult woman, ${m.ageYears} years old. ` +
     `She is not a real or identifiable person and must not resemble one. ` +
-    `If any instruction below conflicts, follow the earlier section.`);
+    `Priority when anything conflicts: 1 garment fidelity to the packshots, 2 identity of the model, 3 body proportions, ` +
+    `4 framing and camera, 5 light and photographic style, 6 pose, 7 expression, 8 styling.`);
 
   add("garment", [
     `Garment: ${p.name} (${p.category}, ${p.color}).${p.description ? " " + p.description : ""}`,
     `Reproduce the garment exactly as shown in the garment reference images: construction, seams, neckline, closures, length, colour, print, texture and transparency. Do not add, remove or redesign any element.`,
     `Silhouette and fit exactly as in the packshot: leg and sleeve width, length and volume. Do not slim, taper, shorten or enlarge the garment to flatter the body.`,
     ...(p.silhouette && preset !== "detail" ? [silhouetteText(p.silhouette)] : []),
-    ...garmentConstraintLines(p.flags, preset),
+    ...(p.asymmetry ? [asymmetryText(p.asymmetry.hemLowSide, def.view)] : []),
+    ...(def.view === "back" && p.packshots.front ? ["The front packshot is attached only to show which side of the garment is which; this photograph shows the back."] : []),
+    ...garmentConstraintLines(p.asymmetry ? p.flags.filter((f) => f !== "asymmetric_hem") : p.flags, preset),
   ].join(" "));
 
   if (face) {
     add("identity",
-      `Identity: the same woman as in the identity reference images. ${capitalize(m.look.features)};${m.look.eyes}; ${m.look.skinTone} skin; ${m.look.hair}. ` +
-      `Keep bone structure, facial features, skin tone and hair colour identical to the references; makeup and hair styling follow this brief, not the references. Hair styled: ${st.hairState}.` +
+      `Identity: the same woman as in the identity reference images. ${capitalize(m.look.features)}; ${m.look.eyes}; ${m.look.skinTone} skin; ${m.look.hair}. ` +
+      `Keep bone structure, face shape, nose, lip shape, eye shape, skin tone and hair colour identical to the identity portrait in every shot of this session; ` +
+      `pose, head angle and expression may change only gaze, eyelids and mouth, never the facial structure. ` +
+      `Makeup and hair styling follow this brief, not the references. Hair styled: ${st.hairState}.` +
       (st.makeup ? ` Makeup: ${st.makeup}` : ""));
   } else if (def.view === "back") {
     add("identity",
@@ -73,7 +91,10 @@ export function buildBlocks(spec: ImageSpec, a: PoseAssignment): InstructionBloc
     `Lighting: soft, high frontal key light with low contrast and soft natural shadows` +
     (def.feetVisible(p.category) ? `, soft contact shadow under the feet` : ``) + `. ` +
     `Colour: neutral, true to the garment; blacks keep detail. ` +
-    `Retouching: clean but natural, real skin texture, pores and small asymmetries kept; no smoothing or plastic look.`);
+    `Retouching: clean but natural, real skin texture, pores and small asymmetries kept; no smoothing or plastic look.` +
+    (spec.anchorAsset
+      ? ` This photograph belongs to the same studio session as the attached session reference: keep lighting, colour, hair, makeup and the way the garment sits on the body consistent with it.`
+      : ``));
 
   const pose = getPose(a.poseId);
   if (pose) add("pose", `Pose: ${pose.text}`);

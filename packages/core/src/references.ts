@@ -19,23 +19,29 @@ export const ROLE_CONTROLS: Record<RefRole, Attribute[]> = {
   body_back: ["body"],
   expression_sheet: ["expression"],
   pose: ["pose"],
+  // Session consistency only: lighting, colour, hair, makeup, how the garment sits. Never identity or garment detail.
+  session_anchor: ["session"],
+  // Front packshot shown in a back view only to fix which side is which.
+  garment_orientation: ["orientation"],
 };
 
 /** Roles per preset, highest priority first. Trimming to the provider limit removes from the end. */
 export const PRESET_ROLES: Record<PresetId, RefRole[]> = {
   front_crop: ["garment_front", "identity_primary", "body_front", "facial_detail", "expression_sheet"],
   three_quarter: ["garment_front", "garment_side", "identity_primary", "identity_angle", "body_front", "facial_detail"],
-  back: ["garment_back", "body_back", "character_sheet"],
+  back: ["garment_back", "character_sheet", "body_back"],
   // Identity before body: with body first, the face drifted in full-body shots (phase 3 finding).
   full_body: ["garment_front", "identity_primary", "body_front", "facial_detail"],
   three_quarter_full: ["garment_front", "garment_side", "identity_primary", "identity_angle", "body_front", "facial_detail"],
-  back_full: ["garment_back", "body_back", "character_sheet"],
+  // Identity/hair before body, as for full body: the anchor is then inserted between them.
+  back_full: ["garment_back", "garment_orientation", "character_sheet", "body_back"],
   styled_full: ["garment_front", "identity_primary", "body_front", "facial_detail"],
-  detail: ["garment_detail", "garment_front"],
+  // The close-up shows neck, jaw and skin: the headless body reference anchors skin tone and proportions.
+  detail: ["garment_detail", "garment_front", "body_front"],
 };
 
 /** Roles that depict the person (count against a provider's character/person limit). */
-const PERSON_ROLES: readonly RefRole[] = ["identity_primary", "identity_angle", "character_sheet", "facial_detail", "body_front", "body_back", "expression_sheet"];
+const PERSON_ROLES: readonly RefRole[] = ["identity_primary", "identity_angle", "character_sheet", "facial_detail", "body_front", "body_back", "expression_sheet", "session_anchor"];
 
 /** Human-readable role descriptions used in the prompt's reference legend. */
 export const ROLE_LABELS: Record<RefRole, string> = {
@@ -51,6 +57,8 @@ export const ROLE_LABELS: Record<RefRole, string> = {
   body_back: "full-body reference of the same model, back (body proportions only, ignore clothing)",
   expression_sheet: "expression sheet of the same model (expression only)",
   pose: "pose reference (pose only; ignore its person, face and clothing)",
+  session_anchor: "approved front shot from this same studio session (match its lighting, colour, hair, makeup and how the garment sits on the body; the face still follows the identity portrait and every garment detail still follows the packshots)",
+  garment_orientation: "garment packshot, front (orientation only: shows which side of the garment is which; this shot shows the back)",
 };
 
 /** Roles that only make sense when a face is in frame. */
@@ -82,7 +90,9 @@ function assetFor(role: RefRole, spec: ImageSpec): AssetHash | undefined {
     case "body_front": return r.fullBodyFront;
     case "body_back": return r.fullBodyBack;
     case "expression_sheet": return r.expressionSheet;
+    case "garment_orientation": return p.front;
     case "pose": return undefined;
+    case "session_anchor": return spec.anchorAsset;
   }
 }
 
@@ -110,6 +120,14 @@ export function selectReferences(spec: ImageSpec, assignment: PoseAssignment, pr
     if (!asset || seen.has(asset)) continue;
     seen.add(asset);
     wanted.push({ role, asset, controls: ROLE_CONTROLS[role] });
+  }
+  // Session anchor: after the garment and identity references, before body and detail references.
+  if (spec.anchorAsset && !seen.has(spec.anchorAsset)) {
+    const after = new Set<RefRole>(["garment_front", "garment_back", "garment_side", "garment_detail", "garment_orientation", "identity_primary", "identity_angle", "character_sheet"]);
+    let at = 0;
+    wanted.forEach((r, i) => { if (after.has(r.role)) at = i + 1; });
+    wanted.splice(at, 0, { role: "session_anchor", asset: spec.anchorAsset, controls: ROLE_CONTROLS.session_anchor });
+    seen.add(spec.anchorAsset);
   }
   const poseAsset = getPose(assignment.poseId)?.referenceAsset;
   if (poseAsset && !seen.has(poseAsset)) wanted.push({ role: "pose", asset: poseAsset, controls: ROLE_CONTROLS.pose });

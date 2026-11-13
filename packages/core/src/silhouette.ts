@@ -74,3 +74,53 @@ export function silhouetteText(s: BottomsSilhouette): string {
     `Keep this leg volume on the body; the legs must not look slimmer or more tapered than this.`
   );
 }
+
+/**
+ * Which image side the hem is longest on, measured from the garment's bottom profile.
+ * Returns null when the two halves differ by less than 4% of the garment height (treated as symmetric).
+ */
+export function measureHemLowImageSideRaw(rgb: Uint8Array, W: number, H: number, bg: [number, number, number] = [241, 241, 241], threshold = 18): "image_left" | "image_right" | null {
+  const bottom = new Int32Array(W).fill(-1);
+  let top = H, low = -1, minX = W, maxX = -1;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = 3 * (y * W + x);
+    const on = Math.max(Math.abs(rgb[i]! - bg[0]), Math.abs(rgb[i + 1]! - bg[1]), Math.abs(rgb[i + 2]! - bg[2])) > threshold;
+    if (!on) continue;
+    bottom[x] = y;
+    if (y < top) top = y;
+    if (y > low) low = y;
+    if (x < minX) minX = x;
+    if (x > maxX) maxX = x;
+  }
+  if (maxX - minX < 20 || low - top < 20) return null;
+  const mid = (minX + maxX) / 2;
+  let left = -1, right = -1;
+  for (let x = minX; x <= maxX; x++) {
+    const b = bottom[x]!;
+    if (b < 0) continue;
+    if (x < mid) left = Math.max(left, b);
+    else right = Math.max(right, b);
+  }
+  const diff = (left - right) / (low - top);
+  if (Math.abs(diff) < 0.04) return null;
+  return diff > 0 ? "image_left" : "image_right";
+}
+
+/**
+ * Hem orientation in wearer terms. On a front packshot the wearer's right appears on the image left;
+ * on a back packshot it appears on the image right. The back packshot, when given, is a cross-check.
+ */
+export async function measureHemAsymmetry(front: Uint8Array, back?: Uint8Array): Promise<{ hemLowSide: "wearer_right" | "wearer_left"; backAgrees?: boolean } | null> {
+  const raw = async (img: Uint8Array) => {
+    const { data, info } = await sharp(img).removeAlpha().toColourspace("srgb").raw().toBuffer({ resolveWithObject: true });
+    return measureHemLowImageSideRaw(new Uint8Array(data.buffer, data.byteOffset, data.byteLength), info.width, info.height);
+  };
+  const f = await raw(front);
+  if (!f) return null;
+  const hemLowSide = f === "image_left" ? "wearer_right" : "wearer_left";
+  if (!back) return { hemLowSide };
+  const b = await raw(back);
+  if (!b) return { hemLowSide };
+  const backSide = b === "image_right" ? "wearer_right" : "wearer_left";
+  return { hemLowSide, backAgrees: backSide === hemLowSide };
+}

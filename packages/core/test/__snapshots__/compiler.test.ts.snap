@@ -3,10 +3,10 @@
 exports[`compiler determinism > matches the golden output 1`] = `
 [
   {
-    "expr": "neutral_camera",
-    "hash": "cmp_e3cbdf1348d1bddae1696548b2146efee0897bd57dece46cc521a6c3854b44ba",
+    "expr": "calm_camera",
+    "hash": "cmp_426c5240a95111d01f20595a15f867ab0ce4a02b801823806227710aabed73e2",
     "id": "img_38b2c4f56e954dd700f97492",
-    "pose": "front_neutral",
+    "pose": "front_soft_knee",
     "preset": "front_crop",
     "refs": [
       "garment_front",
@@ -19,9 +19,9 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_away",
-    "hash": "cmp_c351df7e8c846d3a03a10dd59a20c7d3dd08e6d831fd61cf534aee6d3bee03be",
+    "hash": "cmp_b8ebb84500bc21a0551bae5906f56bce8f314fb4545810b58c32008eb55cda41",
     "id": "img_8b4c8075854ecee8bb1a96cf",
-    "pose": "tq_away_left",
+    "pose": "tq_away_right",
     "preset": "three_quarter",
     "refs": [
       "garment_front",
@@ -34,22 +34,22 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_df015ae669ef4012f7513d720e9961371c7ec216c282d4d2ad6c7e5983e129e3",
+    "hash": "cmp_447aad432f86fd729828fd26627919b81a8d6a4be4316c1c3da66ef379857285",
     "id": "img_0106a25df8ef1d2c0f3b3f30",
     "pose": "back_neutral",
     "preset": "back",
     "refs": [
       "garment_back",
-      "body_back",
       "character_sheet",
+      "body_back",
     ],
     "sku": "TEST-DR-001",
   },
   {
-    "expr": "soft_neutral_camera",
-    "hash": "cmp_78829bce376d1d48dde146762fdb5716497865664560bf8299e9a84052b91bd1",
+    "expr": "neutral_camera",
+    "hash": "cmp_f27f6d372e88641ea4a619b56096b76d01a972d291d89cb7b3ec5060a6be6522",
     "id": "img_896fe5fd0087a21d258eee72",
-    "pose": "front_weight_shift",
+    "pose": "front_neutral",
     "preset": "full_body",
     "refs": [
       "garment_front",
@@ -61,20 +61,21 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_b67864274f51942ddf1f4ca392772681c063df32c6295afc1494a6d8690b6992",
+    "hash": "cmp_1b3e81177789db55c14f0d3719ff22a0f917822ab690dcdf5b9224eba0c1519b",
     "id": "img_826ff3934934b4ef2ffef43e",
     "pose": "detail_still",
     "preset": "detail",
     "refs": [
       "garment_front",
+      "body_front",
     ],
     "sku": "TEST-DR-001",
   },
   {
-    "expr": "neutral_camera",
-    "hash": "cmp_6ac4c419fb196716f6b3daa9f3a38d5c20a1752f238b514163ec42d11b99dc66",
+    "expr": "calm_camera",
+    "hash": "cmp_4f0894572b6de2947023f56cce69efadb8a614345b0a6c9849e1a62ba5d23544",
     "id": "img_d8bc1d1d8fa3f2047e2b2131",
-    "pose": "front_neutral",
+    "pose": "front_soft_knee",
     "preset": "front_crop",
     "refs": [
       "garment_front",
@@ -84,9 +85,9 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_away",
-    "hash": "cmp_c8ba9a349275f0e3e51409b02be27b09ad98297eb7a7de694b847385edd94453",
+    "hash": "cmp_19f4c508c05eb78c1e755525b5d8d21b324d3b403f4475b709b00cf53e382b3b",
     "id": "img_e6a8c6724abc90e1c9f6a121",
-    "pose": "tq_away_left",
+    "pose": "tq_away_right",
     "preset": "three_quarter",
     "refs": [
       "garment_front",
@@ -96,22 +97,22 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_4e4d4f2944702d285d994e94777e391612440868fbf1e2233da323df15989ebc",
+    "hash": "cmp_30950c031abf7b46e77a4128843729f5e84f32a28fa9e780901284b462c2fc8f",
     "id": "img_288f6f3948289ca53fe1a7ac",
     "pose": "back_neutral",
     "preset": "back",
     "refs": [
       "garment_back",
-      "body_back",
       "character_sheet",
+      "body_back",
     ],
     "sku": "TEST-PT-003",
   },
   {
-    "expr": "soft_neutral_camera",
-    "hash": "cmp_0908691a2b0ceecd311335572b53d508d9396efd0f7a0032d25d262d8f053974",
+    "expr": "neutral_camera",
+    "hash": "cmp_10bb2a275d36f8e083c9d3f98d3cef44b413fe7276bc25c64bbd181653d3d4cb",
     "id": "img_0e7c51aeb079c6fbeb232c76",
-    "pose": "front_weight_shift",
+    "pose": "front_neutral",
     "preset": "full_body",
     "refs": [
       "garment_front",
@@ -123,20 +124,21 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_014210650b6434ef8faa295b3af870e81f41a9536123691f689afb54e5ae502e",
+    "hash": "cmp_1de865202c51450782610a1cad4f83c8338d08d7160122ec4962557fd045037f",
     "id": "img_af7a26ae45a683a877547b11",
     "pose": "detail_still",
     "preset": "detail",
     "refs": [
       "garment_front",
+      "body_front",
     ],
     "sku": "TEST-PT-003",
   },
   {
-    "expr": "neutral_camera",
-    "hash": "cmp_b3a19dfb15cf1233d1456eabda8a85cbe86df34689de67a23dcca8f7c4a9e0ba",
+    "expr": "calm_camera",
+    "hash": "cmp_00b172979b9989588dd89aceda353ae6db0600eed12cb6582e60826a6827eb14",
     "id": "img_c8adf68633ea53fbb87601ea",
-    "pose": "front_neutral",
+    "pose": "front_soft_knee",
     "preset": "front_crop",
     "refs": [
       "garment_front",
@@ -149,7 +151,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_away",
-    "hash": "cmp_10d1471ca91d8f6b133da77d9de8384c994f3c87bebc7abb9e8e165881b05735",
+    "hash": "cmp_bee28faf254a71e82f129c10c36f573ec73d9dcb3b3d4d3774c633b458b3a7b2",
     "id": "img_5a611cae61a4e9cd138a2c6c",
     "pose": "tq_away_left",
     "preset": "three_quarter",
@@ -164,22 +166,22 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_f149e16662599d11b39c3fcc28d20c56ade083b863be8fb31e011c574e3c7ebf",
+    "hash": "cmp_d41ae08df4a7a6083e52133d841a9cfbadcaf9937177de6505770fe95e40cd9e",
     "id": "img_abae3cc68572abc234ff18b0",
     "pose": "back_neutral",
     "preset": "back",
     "refs": [
       "garment_back",
-      "body_back",
       "character_sheet",
+      "body_back",
     ],
     "sku": "TEST-TP-002",
   },
   {
-    "expr": "soft_neutral_camera",
-    "hash": "cmp_36e5ab60bf0d6866a21ba07ad58790b4b78487afef8bc0591eb9d893cd3d90d5",
+    "expr": "neutral_camera",
+    "hash": "cmp_90f2da157ed48ae86a4bc93cda0893fb786d16b81baa36f29acf775a2dd504dc",
     "id": "img_a701e44c5b29e401cf7030ce",
-    "pose": "front_weight_shift",
+    "pose": "front_neutral",
     "preset": "full_body",
     "refs": [
       "garment_front",
@@ -191,13 +193,14 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_5a8c51b40d80ac5228204b219566ac7b515f90bd7793d7d2f5477ad0c289c12e",
+    "hash": "cmp_ea7a8ab39fc7c213031d4f7cda1c6413bff6f93679b41e6df2e6253c0b5b7fea",
     "id": "img_adb689893d05356b8ccf9559",
     "pose": "detail_still",
     "preset": "detail",
     "refs": [
       "garment_detail",
       "garment_front",
+      "body_front",
     ],
     "sku": "TEST-TP-002",
   },
@@ -205,7 +208,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
 `;
 
 exports[`compiler determinism > matches the golden output 2`] = `
-"Professional e-commerce fashion photograph of an original fictional adult woman, 24 years old. She is not a real or identifiable person and must not resemble one. If any instruction below conflicts, follow the earlier section.
+"Professional e-commerce fashion photograph of an original fictional adult woman, 24 years old. She is not a real or identifiable person and must not resemble one. Priority when anything conflicts: 1 garment fidelity to the packshots, 2 identity of the model, 3 body proportions, 4 framing and camera, 5 light and photographic style, 6 pose, 7 expression, 8 styling.
 
 Reference images, in the order attached:
 1. garment packshot, front (authority for garment and fit)
@@ -216,7 +219,7 @@ Reference images, in the order attached:
 
 Garment: Satin halter top (top, black). Satin halter top with a deep V neckline, gathered bust, ruched waistband and open back. Reproduce the garment exactly as shown in the garment reference images: construction, seams, neckline, closures, length, colour, print, texture and transparency. Do not add, remove or redesign any element. Silhouette and fit exactly as in the packshot: leg and sleeve width, length and volume. Do not slim, taper, shorten or enlarge the garment to flatter the body. Halter neckline and neck fastening exactly as in the packshot. The back is open as in the back packshot; front views must not reveal back construction that is not visible from the front. Satin sheen follows the folds of the fabric; soft highlights, no plastic look.
 
-Identity: the same woman as in the identity reference images. Straight brows, narrow jaw, defined cheekbones;dark-brown eyes; olive skin; long straight dark-brown hair. Keep bone structure, facial features, skin tone and hair colour identical to the references; makeup and hair styling follow this brief, not the references. Hair styled: sleek, tucked behind the ears.
+Identity: the same woman as in the identity reference images. Straight brows, narrow jaw, defined cheekbones; dark-brown eyes; olive skin; long straight dark-brown hair. Keep bone structure, face shape, nose, lip shape, eye shape, skin tone and hair colour identical to the identity portrait in every shot of this session; pose, head angle and expression may change only gaze, eyelids and mouth, never the facial structure. Makeup and hair styling follow this brief, not the references. Hair styled: sleek, tucked behind the ears.
 
 Body: 178 cm tall, EU size 36, proportions exactly as in the full-body reference. The garment fits as it would on EU size 36: natural tension and folds where it meets the body.
 
@@ -224,9 +227,9 @@ Straight-on front view, camera at chest height, short telephoto look (about 85 m
 
 Background: seamless flat neutral grey, RGB 241,241,241, no gradient, no vignette, no props. Lighting: soft, high frontal key light with low contrast and soft natural shadows. Colour: neutral, true to the garment; blacks keep detail. Retouching: clean but natural, real skin texture, pores and small asymmetries kept; no smoothing or plastic look.
 
-Pose: Standing square to the camera, weight evenly on both feet, feet hip-width apart, arms hanging relaxed at the sides with open, softly curved fingers, shoulders relaxed and level, head straight.
+Pose: Standing facing the camera, weight almost even with one knee softly relaxed, feet hip-width apart, arms hanging naturally with loose fingers, shoulders down and level, chin neutral.
 
-Expression: Neutral, relaxed expression, lips closed, calm direct gaze into the camera.
+Expression: Calm, composed expression, lips closed, relaxed brow, steady gaze into the camera.
 
 Styling (secondary, must not draw attention from the garment): bottoms: straight light-blue jeans.
 

@@ -31,6 +31,8 @@ export type Expression = {
 export const POSES: readonly Pose[] = [
   { id: "front_neutral", presets: ["front_crop", "full_body"], torsoYaw: 0, headYaw: 0, weight: "even", arms: { left: "relaxed", right: "relaxed" }, naturalness: 1, calm: true,
     text: "Standing square to the camera, weight evenly on both feet, feet hip-width apart, arms hanging relaxed at the sides with open, softly curved fingers, shoulders relaxed and level, head straight." },
+  { id: "front_soft_knee", presets: ["front_crop", "full_body"], torsoYaw: 0, headYaw: 0, weight: "even", arms: { left: "relaxed", right: "relaxed" }, naturalness: 0.98, calm: true,
+    text: "Standing facing the camera, weight almost even with one knee softly relaxed, feet hip-width apart, arms hanging naturally with loose fingers, shoulders down and level, chin neutral." },
   { id: "front_weight_shift", presets: ["front_crop", "full_body", "styled_full"], torsoYaw: 0, headYaw: 0, weight: "left", arms: { left: "relaxed", right: "relaxed" }, naturalness: 0.95, calm: false,
     text: "Standing facing the camera with weight shifted onto one leg, the other knee slightly bent, hips subtly angled, arms relaxed at the sides, head straight." },
   { id: "front_hand_hem", presets: ["front_crop", "full_body"], torsoYaw: 0, headYaw: 0, weight: "right", arms: { left: "relaxed", right: "hem" }, naturalness: 0.85, calm: false,
@@ -51,6 +53,8 @@ export const POSES: readonly Pose[] = [
     text: "Body turned about 40 degrees from the camera, the far hand lightly on the hip, weight on the back leg, head slightly toward the camera, gaze off-camera." },
   { id: "back_neutral", presets: ["back", "back_full"], torsoYaw: 180, headYaw: 0, weight: "even", arms: { left: "relaxed", right: "relaxed" }, naturalness: 1, calm: true,
     text: "Standing with the back to the camera, weight even, arms relaxed at the sides, head straight forward." },
+  { id: "back_soft_knee", presets: ["back", "back_full"], torsoYaw: 180, headYaw: 0, weight: "even", arms: { left: "relaxed", right: "relaxed" }, naturalness: 0.98, calm: true,
+    text: "Back to the camera, weight almost even with one knee softly relaxed, arms hanging naturally a little away from the body so the side seams stay visible, head straight." },
   { id: "back_head_turn", presets: ["back", "back_full"], torsoYaw: 180, headYaw: 30, weight: "left", arms: { left: "relaxed", right: "relaxed" }, naturalness: 0.9, calm: false,
     text: "Back to the camera, weight on one leg, head turned slightly to the side so only the cheek line is visible, arms relaxed." },
   { id: "styled_bag_low", presets: ["styled_full"], torsoYaw: 15, headYaw: 20, weight: "left", arms: { left: "bag", right: "relaxed" }, naturalness: 0.9, calm: false,
@@ -66,12 +70,14 @@ export const POSES: readonly Pose[] = [
 export const EXPRESSIONS: readonly Expression[] = [
   { id: "neutral_camera", presets: ["front_crop", "full_body", "styled_full"], gaze: "camera", naturalness: 1,
     text: "Neutral, relaxed expression, lips closed, calm direct gaze into the camera." },
+  { id: "calm_camera", presets: ["front_crop", "full_body"], gaze: "camera", naturalness: 0.98,
+    text: "Calm, composed expression, lips closed, relaxed brow, steady gaze into the camera." },
   { id: "soft_neutral_camera", presets: ["front_crop", "full_body", "styled_full"], gaze: "camera", naturalness: 0.9,
     text: "Soft neutral expression, lips very slightly parted, relaxed eyes looking into the camera." },
   { id: "neutral_away", presets: ["three_quarter", "three_quarter_full"], gaze: "away", naturalness: 1,
     text: "Neutral, relaxed expression, gaze off-camera in the direction of the head turn." },
   { id: "soft_away", presets: ["styled_full"], gaze: "away", naturalness: 0.95,
-    text: "Soft, self-assured expression, lips very slightly parted, gaze off-camera." },
+    text: "Relaxed, natural expression, lips gently closed or barely parted, gaze off-camera. The same face as in the identity portrait: no added glamour or pout." },
   { id: "none", presets: ["back", "back_full", "detail"], gaze: "none", naturalness: 1,
     text: "" },
 ];
@@ -118,6 +124,21 @@ function rank<T extends { id: string }>(items: T[], score: (t: T) => number, see
     const ta = tieBreak(seed, a.id), tb = tieBreak(seed, b.id);
     return ta < tb ? -1 : ta > tb ? 1 : 0;
   });
+}
+
+/** Score band within which choices count as equally good; the seed picks among them. */
+const VARIATION_BAND = 0.05;
+
+/**
+ * Controlled variation: rank by score, keep everything within VARIATION_BAND of the best,
+ * then pick deterministically by seed. Same seed, same choice; different productions vary.
+ */
+function pickInBand<T extends { id: string }>(items: T[], score: (t: T) => number, seed: string): T | undefined {
+  const ranked = rank(items, score, seed);
+  if (!ranked.length) return undefined;
+  const top = score(ranked[0]!);
+  const band = ranked.filter((t) => score(t) >= top - VARIATION_BAND);
+  return [...band].sort((a, b) => (tieBreak(seed, a.id) < tieBreak(seed, b.id) ? -1 : 1))[0];
 }
 
 export type PosePlan = { assignments: Map<string, PoseAssignment>; conflicts: Conflict[] };
@@ -169,7 +190,10 @@ export function planPoses(specs: readonly ImageSpec[], seed: string): PosePlan {
       const m = manual.get(s.imageSpecId) ?? {};
       const isFirstOfPreset = !seenPreset.has(s.preset);
       seenPreset.add(s.preset);
-      const slotSeed = `${seed}|${sku}|${s.slotIndex}`;
+      // Main shots (calm-first presets) share one choice across all SKUs of a production, so the gallery stays uniform;
+      // other shots vary per SKU.
+      const sharedMain = isFirstOfPreset && CALM_FIRST.includes(s.preset);
+      const slotSeed = sharedMain ? `${seed}|main|${s.preset}` : `${seed}|${sku}|${s.slotIndex}`;
 
       let poseId = m.pose;
       if (poseId === undefined && s.manualPose === undefined) {
@@ -184,8 +208,8 @@ export function planPoses(specs: readonly ImageSpec[], seed: string): PosePlan {
           if (expressive.length) candidates = expressive;
         }
         // In the styled shot, a pose that uses a styled accessory (it is only offered when the styling has one) wins.
-        const accessoryBonus = (p: Pose) => (s.preset === "styled_full" && [p.arms.left, p.arms.right].includes("bag") ? 0.1 : 0);
-        const best = rank(candidates, (p) => 0.7 * p.naturalness + 0.3 * visibilityScore(p) + accessoryBonus(p) - (usedPoses.has(p.id) ? 0.5 : 0), slotSeed)[0];
+        const accessoryBonus = (p: Pose) => (s.preset === "styled_full" && [p.arms.left, p.arms.right].includes("bag") ? 0.15 : 0);
+        const best = pickInBand(candidates, (p) => 0.7 * p.naturalness + 0.3 * visibilityScore(p) + accessoryBonus(p) - (usedPoses.has(p.id) ? 0.5 : 0), slotSeed);
         if (!best) {
           conflicts.push({ code: "NO_COMPATIBLE_POSE", severity: "error", message: `No pose fits ${s.preset} for this garment`, sku, imageSpecId: s.imageSpecId });
           continue;
@@ -204,7 +228,7 @@ export function planPoses(specs: readonly ImageSpec[], seed: string): PosePlan {
         }
         // Main shots stay at the most neutral expression; variation is only allowed in full_body.
         const variation = s.preset === "full_body" || s.preset === "styled_full" ? 0.15 : 0;
-        const best = rank(candidates, (e) => e.naturalness - (usedExpr.has(e.id) ? variation : 0), slotSeed)[0];
+        const best = pickInBand(candidates, (e) => e.naturalness - (usedExpr.has(e.id) ? variation : 0), slotSeed);
         exprId = best?.id ?? "none";
         usedExpr.add(exprId);
       }

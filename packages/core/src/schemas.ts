@@ -36,6 +36,12 @@ export const Product = z.object({
   color: z.string().min(1),
   description: z.string().default(""),
   flags: setOf(GarmentFlag).default([]),
+  /** Measured from the packshots at ingest (see silhouette.ts): which side of the wearer the hem is longest on. */
+  asymmetry: z.object({
+    hemLowSide: z.enum(["wearer_right", "wearer_left"]),
+    /** false when the back packshot points the other way (one of the packshots is probably mirrored). */
+    backAgrees: z.boolean().optional(),
+  }).optional(),
   /** Measured from the front packshot at ingest (see silhouette.ts). */
   silhouette: z.object({ kind: z.literal("bottoms"), hemToThigh: z.number().min(0.2).max(2), hemSpanToHip: z.number().min(0.2).max(2) }).optional(),
   packshots: z
@@ -130,6 +136,10 @@ export const ProductionSpec = z
     styling: Styling,
     style: PhotoStyle.default({}),
     providerProfileId: z.string().min(1),
+    /** Seed for pose and expression planning. Set from the draft content so preview and run plan identically. Defaults to productionId. */
+    seed: z.string().min(1).optional(),
+    /** Generate the front shot first and use it as the shared session reference for the other shots of the same SKU. */
+    sessionAnchor: z.boolean().default(true),
   })
   .superRefine((spec, ctx) => {
     const seen = new Set<string>();
@@ -169,6 +179,10 @@ export type ImageSpec = {
   style: PhotoStyle;
   manualPose?: string;
   manualExpression?: string;
+  /** imageSpecId of this SKU's session anchor (the front shot) when this image depends on it. */
+  dependsOn?: string;
+  /** Final image of the anchor, frozen into this request once the anchor has succeeded. */
+  anchorAsset?: AssetHash;
 };
 
 export type Severity = "error" | "warning";
@@ -180,13 +194,14 @@ export type Conflict = {
   imageSpecId?: string;
 };
 
-export const Attribute = z.enum(["garment", "fit", "identity", "facial_detail", "hair", "body", "expression", "pose"]);
+export const Attribute = z.enum(["garment", "fit", "identity", "facial_detail", "hair", "body", "expression", "pose", "session", "orientation"]);
 export type Attribute = z.infer<typeof Attribute>;
 
 export const RefRole = z.enum([
   "garment_front", "garment_back", "garment_detail", "garment_side",
   "identity_primary", "identity_angle", "character_sheet", "facial_detail",
   "body_front", "body_back", "expression_sheet", "pose",
+  "session_anchor", "garment_orientation",
 ]);
 export type RefRole = z.infer<typeof RefRole>;
 
@@ -214,5 +229,7 @@ export type CompiledRequest = {
   prompt: string;
   refs: RefSlot[];
   params: { aspectRatio: AspectRatio; width: number; height: number; seed?: number };
+  /** Set on shots that wait for the session anchor; the request is recompiled with the anchor before first submission. */
+  dependsOn?: string;
   compileHash: string;
 };
