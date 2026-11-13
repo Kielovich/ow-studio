@@ -19,6 +19,10 @@ Internal tool for a fashion e-commerce team. A user imports garment packshots (f
 | `apps/web/lib/auth.ts`, `apps/web/proxy.ts` | Shared-password login, signed session cookie, guard on paid and writing routes |
 | `apps/web/app/` | Next.js 16 App Router (Cache Components on), HeroUI v3 UI, API route handlers |
 | `apps/web/lib/import.ts`, `lib/outcome.ts` | Folder import parsing; status and metrics (pure, shared with the client) |
+| `apps/web/lib/client.ts` | Client JSON fetch: 401 returns to the login, 404 and network errors get their own UI states |
+| `apps/web/lib/server/simulated.ts` | Simulated provider (the real Gemini adapter with a local fake fetch). Worker uses it with `OW_PROVIDER=simulated`: no network, no cost |
+| `apps/web/e2e/run.mjs` | End-to-end test in Chromium against a production build with isolated data and the simulated worker |
+| `docs/realism-audit.md`, `docs/audit/` | Realism defect checklist, scores and the benchmark A/B tooling |
 | `docs/` | Decisions and test findings. `docs/review-and-import.md` and `docs/consistency.md` explain the current behaviour |
 
 Next.js 16 differs from older versions: read `node_modules/next/dist/docs/` before changing framework code (`proxy.ts` replaces middleware, `RouteContext`, `connection()` for request-time route handlers).
@@ -38,6 +42,9 @@ These are product rules, each covered by tests. If the new runtime makes one imp
 9. **Output.** Provider output is requested at the 2K tier (2048 x 2048 for 1:1). The background is normalised to RGB 241 (`post/background.ts`); exports are exactly 2000 x 2000 px sRGB JPEG, quality 95, 4:4:4 (`post/export.ts`), in the ZIP and in single downloads. The ZIP holds approved images only by default, plus `manifest.csv`.
 10. **Access control.** Every page and API needs a session; in production without `OW_PASSWORD` and `OW_SESSION_SECRET` the app refuses everything (503) rather than running open.
 11. **Content.** Models are original fictional adults. Brand packshots used in tests are internal test material: do not publish them, do not put them in public assets, do not copy the brand's logo onto anything public.
+12. **Realism language stays in the compiler** (`REAL_HAIR`, `REAL_HANDS`, `REAL_BODY`, the body-skin and lighting text in `templates.ts`, and the exclusions). It is covered by tests. Lesson from the benchmark: never ask the light to "show the garment's folds"; it added gathers to a smooth dress.
+13. **A paid output is never lost.** The provider output is stored before post-processing; if background normalisation or the colour check fails, the raw output becomes the final.
+14. **Automatic checks only flag what they can be trusted on.** The colour-drift check compares the image cluster nearest the packshot colour; it never blocks, it labels the image "Check colour" for review.
 
 ## 4. What probably has to change for Sites
 
@@ -69,7 +76,15 @@ Run from the repository root:
 npm test --workspaces --if-present
 ```
 
-Today: 101 tests in `packages/core`, 22 in `apps/web` (folder import, idempotent creation, attempts, ZIP, metrics, unknown outcome, session anchor, access control). All must pass on the new data layer. Then check by hand on the deployed site, without paid calls:
+Today: 107 tests in `packages/core` and 24 in `apps/web` (folder import, idempotent creation, attempts, ZIP, metrics, unknown outcome, session anchor, access control, colour check, realism language). All must pass on the new data layer.
+
+End to end (run it before and after the port; it starts its own isolated server and simulated worker, no paid calls):
+
+```bash
+npm run e2e -w web
+```
+
+It checks 36 things in a real browser: login and logout, folder import with conflicts, the import session after a reload, idempotent Run, simulated generation, approve/reject/new attempt/compare, the approved ZIP and 2000 px downloads, every page at 1440 and 390 px without horizontal scroll or console errors, keyboard focus, the not-found state, the health check and the daily backup. On Sites, run the same flows against the deployed site with `OW_PROVIDER=simulated` on a staging copy if the runtime allows it; otherwise by hand. Then check by hand on the deployed site, without paid calls:
 
 1. Unauthenticated: pages redirect to the login, APIs answer 401.
 2. After login: the 7 models are listed (seeded).
@@ -81,6 +96,12 @@ Today: 101 tests in `packages/core`, 22 in `apps/web` (folder import, idempotent
 
 A fresh deployment needs only the seed (`apps/web/seed/`, imported automatically on an empty database). Productions made on the old setup are not migrated.
 
-## 8. Report back
+## 8. State at handover (2026-11-13)
+
+- Realism work is in progress: a 12-defect audit (`docs/realism-audit.md`) and the realism block v2 in the compiler (template `tpl-2026.11.14b`). The owner is judging the first blind A/B round; further rounds (new reference images per model) may change model versions, never the code paths.
+- Known open item: one end-to-end run had an image stuck in "submitting" until its lease expired; not reproduced in five runs since, cause not identified. The worker now releases the lease on any crash and logs the stack. Watch for `crashed:` in the worker log.
+- Railway is the tested fallback host (`Dockerfile`, `docs/deploy.md`).
+
+## 9. Report back
 
 When done, report: what you changed per row of section 4, which invariants you verified and how, test results, the site URL, and anything you could not port.
