@@ -39,11 +39,16 @@ export default function ModelsPage() {
                   <Chip size="sm" color={v.status === "active" ? "success" : "default"}>{v.status}</Chip>
                   <span className="text-sm text-black/50">{new Date(v.createdAt + "Z").toLocaleDateString()}</span>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                  {Object.entries(REF_LABELS).map(([k, label]) => (
-                    <div key={k}>
-                      <Tile src={assetUrl(v.data.refs[k] as string, 480)} alt={label} />
-                      <div className="ow-eyebrow mt-2">{label}</div>
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                  {[
+                    ...Object.entries(REF_LABELS)
+                      .filter(([k]) => k === "primaryPortrait" || v.data.refs[k] !== v.data.refs.primaryPortrait)
+                      .map(([k, label]) => ({ key: k, label, hash: v.data.refs[k] as string })),
+                    ...((v.data.refs.identityAngles as string[]) ?? []).map((h, i) => ({ key: `angle${i}`, label: i === 0 ? "Three-quarter" : "Profile", hash: h })),
+                  ].map((r) => (
+                    <div key={r.key}>
+                      <Tile src={assetUrl(r.hash, 480)} alt={r.label} />
+                      <div className="ow-eyebrow mt-2">{r.label}</div>
                     </div>
                   ))}
                 </div>
