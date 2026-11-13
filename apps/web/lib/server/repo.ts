@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import {
-  BOTTOM_CATEGORIES, compileProduction, DEFAULT_CONTEXT, GEMINI_PRO_PROFILE, hashOf, LocalAssetStore, measureBottomsSilhouette, measureGarmentColour, measureHemAsymmetry, ModelVersion, newJob,
+  BOTTOM_CATEGORIES, compileProduction, cropFabric, DEFAULT_CONTEXT, GEMINI_PRO_PROFILE, hashOf, LocalAssetStore, measureBottomsSilhouette, measureGarmentColour, measureHemAsymmetry, ModelVersion, newJob,
   type Category, type CompiledRequest, type Conflict, type GarmentFlag, type JobRecord, type PresetId, type ProductionSpecInput,
   type ProviderProfile, type Styling, approveRetry, OW_SET,
 } from "@ow-studio/core";
@@ -87,7 +87,10 @@ async function buildSpec(draft: ProductionDraft, productionId: string): Promise<
       asymmetry = (await measureHemAsymmetry((await assets.resolve(p.packshots.front)).bytes, back)) ?? undefined;
     }
     const colorHex = p.packshots.front ? (await measureGarmentColour((await assets.resolve(p.packshots.front)).bytes)) ?? undefined : undefined;
-    products.push({ ...p, packshots, ...(silhouette ? { silhouette } : {}), ...(asymmetry ? { asymmetry } : {}), ...(colorHex ? { colorHex } : {}) });
+    // Plain-fabric crop from the front packshot, sent as a surface-only reference (sheen, weave, pile, colour).
+    const crop = p.packshots.front ? await cropFabric((await assets.resolve(p.packshots.front)).bytes) : null;
+    const fabricCrop = crop ? await assets.putBytes(crop.bytes) : undefined;
+    products.push({ ...p, packshots, ...(silhouette ? { silhouette } : {}), ...(asymmetry ? { asymmetry } : {}), ...(colorHex ? { colorHex } : {}), ...(fabricCrop ? { fabricCrop } : {}) });
   }
   return {
     profile,

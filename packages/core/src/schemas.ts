@@ -46,6 +46,8 @@ export const Product = z.object({
   }).optional(),
   /** Measured from the front packshot at ingest (see silhouette.ts). */
   silhouette: z.object({ kind: z.literal("bottoms"), hemToThigh: z.number().min(0.2).max(2), hemSpanToHip: z.number().min(0.2).max(2) }).optional(),
+  /** Square crop of plain fabric cut from the front packshot at ingest (see silhouette.ts): surface reference only. */
+  fabricCrop: AssetHash.optional(),
   packshots: z
     .object({
       front: AssetHash.optional(),
@@ -197,14 +199,14 @@ export type Conflict = {
   imageSpecId?: string;
 };
 
-export const Attribute = z.enum(["garment", "fit", "identity", "facial_detail", "hair", "body", "expression", "pose", "session", "orientation"]);
+export const Attribute = z.enum(["garment", "fit", "identity", "facial_detail", "hair", "body", "expression", "pose", "session", "orientation", "texture"]);
 export type Attribute = z.infer<typeof Attribute>;
 
 export const RefRole = z.enum([
   "garment_front", "garment_back", "garment_detail", "garment_side",
   "identity_primary", "identity_angle", "character_sheet", "facial_detail",
   "body_front", "body_back", "expression_sheet", "pose",
-  "session_anchor", "garment_orientation",
+  "session_anchor", "garment_orientation", "garment_texture",
 ]);
 export type RefRole = z.infer<typeof RefRole>;
 

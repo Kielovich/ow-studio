@@ -23,7 +23,7 @@ const REF_NAMES: Record<string, string> = {
   garment_front: "packshot front", garment_back: "packshot back", garment_detail: "packshot detail", garment_side: "packshot side",
   garment_orientation: "packshot front · orientation", identity_primary: "identity portrait", identity_angle: "identity angle",
   character_sheet: "character sheet", facial_detail: "facial detail", body_front: "body front", body_back: "body back",
-  expression_sheet: "expression", pose: "pose", session_anchor: "session reference (front)",
+  expression_sheet: "expression", pose: "pose", session_anchor: "session reference (front)", garment_texture: "fabric crop (surface only)",
 };
 
 const OUTCOME_LABEL: Record<Attempt["outcome"], string> = { succeeded: "Finished", needs_review: "Size check", failed: "Failed", unknown: "Unknown outcome" };

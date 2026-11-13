@@ -110,6 +110,23 @@ describe("close-up per garment type", () => {
   });
 });
 
+describe("fabric crop reference", () => {
+  it("is sent right after the garment packshots, surface only, and omitted when absent", () => {
+    const crop = asset("fabric/crop");
+    const spec = exampleSpec({ products: [{ ...PRODUCT_SUIT_PANTS, fabricCrop: crop }] });
+    const r = compileProduction(spec, MOCK_PROFILE);
+    for (const i of r.images) {
+      const roles = i.refs.map((x) => x.role);
+      const at = roles.indexOf("garment_texture");
+      expect(at).toBeGreaterThan(0);
+      expect(roles.slice(0, at).every((x) => x.startsWith("garment_"))).toBe(true);
+      expect(i.refs[at]!.controls).toEqual(["texture"]);
+      expect(i.prompt).toMatch(/fabric crop cut from the front packshot \(authority for the fabric surface only/);
+    }
+    expect(compileProduction(exampleSpec(), MOCK_PROFILE).images.some((i) => i.refs.some((x) => x.role === "garment_texture"))).toBe(false);
+  });
+});
+
 describe("conflicts", () => {
   const codes = (r: ReturnType<typeof compileProduction>) => r.conflicts.map((c) => c.code);
 

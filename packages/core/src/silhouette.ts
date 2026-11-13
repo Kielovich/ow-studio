@@ -141,3 +141,71 @@ export async function measureGarmentColour(image: Uint8Array, bg: [number, numbe
   const med = (a: number[]) => { const s = [...a].sort((x, y) => x - y); return s[Math.floor(s.length / 2)]!; };
   return "#" + ch.map((a) => med(a).toString(16).padStart(2, "0")).join("");
 }
+
+/**
+ * Plain-fabric crop from a packshot on a flat light background: the largest square that lies entirely on the garment
+ * (with a safety margin from every background pixel, so gaps such as between the legs never enter), nearest the
+ * garment's centre of mass, cut at the packshot's native resolution. It shows the model how the surface really looks
+ * (sheen, weave, pile, colour) without saying anything about shape. Deterministic; null when no square of at least
+ * minSidePx fits (for example thin straps), so no misleading crop is ever sent.
+ */
+export async function cropFabric(
+  image: Uint8Array,
+  opts: { bg?: [number, number, number]; threshold?: number; marginPx?: number; minSidePx?: number; outSidePx?: number } = {},
+): Promise<{ bytes: Uint8Array; box: { left: number; top: number; size: number } } | null> {
+  const bg = opts.bg ?? [241, 241, 241];
+  const threshold = opts.threshold ?? 18;
+  const minSidePx = opts.minSidePx ?? 96;
+  const outSidePx = opts.outSidePx ?? 512;
+  const meta = await sharp(image).metadata();
+  const W0 = meta.width!, H0 = meta.height!;
+  // Work at up to 700 px: fine enough to keep narrow gaps (a 2 px gap at 1100 px is still a pixel here).
+  const scale = Math.min(1, 700 / Math.max(W0, H0));
+  const W = Math.round(W0 * scale), H = Math.round(H0 * scale);
+  // Nearest-neighbour downscale: averaging would blend a thin background gap into the dark garment around it.
+  const { data } = await sharp(image).removeAlpha().toColourspace("srgb").resize({ width: W, height: H, fit: "fill", kernel: "nearest" }).raw().toBuffer({ resolveWithObject: true });
+  const N = W * H;
+  const on = new Uint8Array(N);
+  let sx = 0, sy = 0, n = 0;
+  for (let i = 0; i < N; i++) {
+    const k = 3 * i;
+    if (Math.max(Math.abs(data[k]! - bg[0]), Math.abs(data[k + 1]! - bg[1]), Math.abs(data[k + 2]! - bg[2])) > threshold) { on[i] = 1; sx += i % W; sy += (i / W) | 0; n++; }
+  }
+  if (n < 100) return null;
+  const cx = sx / n, cy = sy / n;
+  // Erode: a pixel counts only if no background pixel lies within the margin (box test via an integral image).
+  const r = Math.max(1, Math.round((opts.marginPx ?? 8) * scale));
+  const I = new Int32Array((W + 1) * (H + 1));
+  for (let y = 0; y < H; y++) { let row = 0; for (let x = 0; x < W; x++) { row += on[y * W + x]!; I[(y + 1) * (W + 1) + x + 1] = I[y * (W + 1) + x + 1]! + row; } }
+  const core = new Uint8Array(N);
+  for (let y = r; y < H - r; y++) for (let x = r; x < W - r; x++) {
+    const x0 = x - r, y0 = y - r, x1 = x + r + 1, y1 = y + r + 1;
+    const cnt = I[y1 * (W + 1) + x1]! - I[y0 * (W + 1) + x1]! - I[y1 * (W + 1) + x0]! + I[y0 * (W + 1) + x0]!;
+    if (cnt === (2 * r + 1) ** 2) core[y * W + x] = 1;
+  }
+  // Largest all-core square ending at each pixel (classic dynamic programme), then the best position.
+  const dp = new Int32Array(N);
+  let maxS = 0;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = y * W + x;
+    if (!core[i]) continue;
+    dp[i] = x && y ? 1 + Math.min(dp[i - 1]!, dp[i - W]!, dp[i - W - 1]!) : 1;
+    if (dp[i]! > maxS) maxS = dp[i]!;
+  }
+  if (maxS * (1 / scale) < minSidePx) return null;
+  // Among squares at least 85% of the largest, prefer the one nearest the garment centre (a calm, central area).
+  const want = Math.floor(maxS * 0.85);
+  let best: { x: number; y: number; d: number } | null = null;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    if (dp[y * W + x]! < want) continue;
+    const x0 = x - want + 1, y0 = y - want + 1;
+    const d = (x0 + want / 2 - cx) ** 2 + (y0 + want / 2 - cy) ** 2;
+    if (!best || d < best.d) best = { x: x0, y: y0, d };
+  }
+  const left = Math.round(best!.x / scale), top = Math.round(best!.y / scale);
+  const size = Math.min(W0 - left, H0 - top, Math.floor(want / scale));
+  if (size < minSidePx) return null;
+  const out = await sharp(image).removeAlpha().extract({ left, top, width: size, height: size })
+    .resize({ width: Math.max(size, outSidePx), height: Math.max(size, outSidePx), kernel: "lanczos3" }).png().toBuffer();
+  return { bytes: new Uint8Array(out), box: { left, top, size } };
+}
