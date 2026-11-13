@@ -6,7 +6,7 @@
  */
 import { hostname } from "node:os";
 import { GeminiProvider, loadLocalSecrets } from "@ow-studio/core";
-import { getDb } from "../lib/server/db";
+import { backupDatabase, getDb } from "../lib/server/db";
 import { SqliteJobStore } from "../lib/server/jobstore";
 import { processImage } from "../lib/server/pipeline";
 import { assets, DEFAULT_PROFILE } from "../lib/server/repo";
@@ -47,5 +47,17 @@ async function loop(n: number) {
   }
 }
 
+function backup() {
+  try {
+    const f = backupDatabase();
+    if (f) console.log(`[backup] ${f}`);
+  } catch (e) {
+    console.error("[backup] failed:", (e as Error).message);
+  }
+}
+backup();
+setInterval(backup, 60 * 60 * 1000).unref();
+
+if (!process.env.GEMINI_API_KEY) console.error("[worker] GEMINI_API_KEY is not set: every generation will fail until it is.");
 console.log(`worker ${WORKER_ID} up: provider ${profile.id}, concurrency ${profile.concurrency}`);
 for (let n = 0; n < profile.concurrency; n++) void loop(n);

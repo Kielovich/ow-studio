@@ -1,4 +1,4 @@
-import { mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, rmSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import type { DatabaseSync as DatabaseSyncType } from "node:sqlite";
@@ -101,4 +101,20 @@ export function getDb(): DatabaseSync {
   db.exec(SCHEMA);
   migrate(db);
   return db;
+}
+
+/**
+ * Daily consistent snapshot of the database (VACUUM INTO) under DATA_DIR/backups, keeping the newest `keep`.
+ * Assets are content-addressed and never change, so the volume itself plus these snapshots cover recovery.
+ * Returns the file written, or null when today's snapshot already exists.
+ */
+export function backupDatabase(keep = 7, now = new Date()): string | null {
+  const dir = join(DATA_DIR, "backups");
+  mkdirSync(dir, { recursive: true });
+  const file = join(dir, `studio-${now.toISOString().slice(0, 10)}.db`);
+  if (existsSync(file)) return null;
+  getDb().exec(`VACUUM INTO '${file.replace(/'/g, "''")}'`);
+  const old = readdirSync(dir).filter((f) => /^studio-\d{4}-\d{2}-\d{2}\.db$/.test(f)).sort().slice(0, -keep);
+  for (const f of old) rmSync(join(dir, f));
+  return file;
 }

@@ -1,0 +1,201 @@
+{
+  "exportedAt": "2026-11-13T13:32:49.705Z",
+  "models": [
+    {
+      "status": "active",
+      "data": {
+        "modelId": "M01",
+        "version": 3,
+        "displayName": "Sable",
+        "ageYears": 21,
+        "heightCm": 178,
+        "euSize": 36,
+        "look": {
+          "hair": "long straight dark-brown hair with a centre part, usually styled as: sleek slicked-back low bun with a clean centre part, no loose strands",
+          "skinTone": "olive",
+          "eyes": "dark-brown eyes",
+          "features": "high cheekbones, straight natural brows, soft full lips"
+        },
+        "refs": {
+          "primaryPortrait": "sha256:d76cf6fc782ce359e6837051e76296f572991d319608cc88a52036465b27ecf1",
+          "identityAngles": [
+            "sha256:6eb69addfa6ac1cc9f9c651e9ebdb9b9c8020d86c8cf28b5d380ba81c5abc55a",
+            "sha256:b3dc01d203bbc3106ed232944cdbd41f5ce19483fb247d6dc8db16684cf949d6"
+          ],
+          "fullBodyFront": "sha256:a3f544d306e950bf033c8a301186bdebb79e80763d50fa39cee48acc8c456c0c",
+          "fullBodyBack": "sha256:13a003a76a5c56da7eafdaac5eeefd8bfc12fdaa34891d8fdae425fa3e5ecd22",
+          "characterSheet": "sha256:85500785c27fc56136c3141f50cface9e4198ce719e2a2a12908eae0aac6bd99",
+          "facialDetailSheet": "sha256:d76cf6fc782ce359e6837051e76296f572991d319608cc88a52036465b27ecf1"
+        }
+      }
+    },
+    {
+      "status": "active",
+      "data": {
+        "modelId": "M05",
+        "version": 1,
+        "displayName": "Mei",
+        "ageYears": 21,
+        "heightCm": 176,
+        "euSize": 34,
+        "look": {
+          "hair": "long straight glossy black hair with a centre part, usually styled as: high sleek ponytail, hair pulled back tightly with a centre part",
+          "skinTone": "light warm",
+          "eyes": "dark-brown monolid eyes",
+          "features": "East Asian, high cheekbones, small straight nose, soft full lips"
+        },
+        "refs": {
+          "primaryPortrait": "sha256:8512727b3ce68ef8b56c5df7d38655602d8c40c32b4e94110d731c182364d2e2",
+          "identityAngles": [
+            "sha256:aa0b934c8a6becdd6172ab9ff687ca994d99a7eefa9d5f5d4bc56347c22d9865",
+            "sha256:bf79438daaa3e54da00b6b821a5f769f72ffd8f767d403b4c388779248e589f7"
+          ],
+          "fullBodyFront": "sha256:3ad846c0d5afc6e6c69815d2eeca41f4a3e2fc2c6b992c0b9ad9954408fcc8de",
+          "fullBodyBack": "sha256:17bd659d860b5eb26030b6d18cf6be9bc5ba9d9cfa649a0627abb12c823ccd29",
+          "characterSheet": "sha256:85c4649b942ec189f30017f9c52c3ea94268d8e28eca90f11411073a5b076830",
+          "facialDetailSheet": "sha256:8512727b3ce68ef8b56c5df7d38655602d8c40c32b4e94110d731c182364d2e2"
+        }
+      }
+    },
+    {
+      "status": "active",
+      "data": {
+        "modelId": "M06",
+        "version": 1,
+        "displayName": "Lucía",
+        "ageYears": 20,
+        "heightCm": 177,
+        "euSize": 36,
+        "look": {
+          "hair": "long dark-brown natural curls, usually styled as: long defined curls with volume, a soft side part",
+          "skinTone": "golden tan",
+          "eyes": "hazel eyes",
+          "features": "Latina, high cheekbones, strong natural brows, full lips"
+        },
+        "refs": {
+          "primaryPortrait": "sha256:82999784f5e6e0e288d6efd69763821f518e981314344b1e70e5c00f2e447561",
+          "identityAngles": [
+            "sha256:f382e511c7e112b9dc4a72aabcf38cce1d8077c9f814ea6fd5f40528c385344a",
+            "sha256:4d506f6954c662addba6851f859f0b1347fbab9bbe7d55c6a7926a05d8e7e787"
+          ],
+          "fullBodyFront": "sha256:1119fb283bd214f82e1cd1f1df8fadd27bc3625aea93154d72743f1792eb2967",
+          "fullBodyBack": "sha256:0b0c28f99618a1eb23c04e735fe1cb254b0c2e7e1f9f12d29826f290a1608221",
+          "characterSheet": "sha256:4b51040a96f3e251575ebd088f62ac2c4392fc19207c746b78006e528092059b",
+          "facialDetailSheet": "sha256:82999784f5e6e0e288d6efd69763821f518e981314344b1e70e5c00f2e447561"
+        }
+      }
+    },
+    {
+      "status": "active",
+      "data": {
+        "modelId": "M07",
+        "version": 1,
+        "displayName": "Liv",
+        "ageYears": 20,
+        "heightCm": 178,
+        "euSize": 34,
+        "look": {
+          "hair": "very light blonde hair, usually styled as: slicked-back low bun with a clean centre part, sleek, no loose strands",
+          "skinTone": "fair, cool undertone",
+          "eyes": "light blue eyes",
+          "features": "high cheekbones, delicate straight nose, soft full lips, light brushed-up brows"
+        },
+        "refs": {
+          "primaryPortrait": "sha256:83763924d635458e79200ff14a4a277c095f767d4a41427adef72e4b907a96dd",
+          "identityAngles": [
+            "sha256:031af07ae1d04d2f0dffc64203be29bf07bde6d9a97e02bee6d66fae8632af03",
+            "sha256:070e7b7a83594b9899df5b76d89d46ba6ffff2be3c2c8720bc5f1b25a0cb0af1"
+          ],
+          "fullBodyFront": "sha256:601d57946d41179c087064eafc02d61fd2a7b2968ee06bdb52e58e13c45d1757",
+          "fullBodyBack": "sha256:c2435cee30bf8d5a89509fed6bf4814c11796d598ef41577316ab3c598b793f8",
+          "characterSheet": "sha256:bd75ef73c61432a8b1889d32d20a7bda2ffb7be391f209a7a0e930eca959a863",
+          "facialDetailSheet": "sha256:83763924d635458e79200ff14a4a277c095f767d4a41427adef72e4b907a96dd"
+        }
+      }
+    },
+    {
+      "status": "active",
+      "data": {
+        "modelId": "M08",
+        "version": 1,
+        "displayName": "Nadia",
+        "ageYears": 21,
+        "heightCm": 177,
+        "euSize": 36,
+        "look": {
+          "hair": "jet-black hair, usually styled as: long, glossy, completely straight hair worn down with a centre part, tucked behind the ears",
+          "skinTone": "light olive",
+          "eyes": "dark-brown almond-shaped eyes",
+          "features": "high cheekbones, straight strong brows, full lips, defined jaw"
+        },
+        "refs": {
+          "primaryPortrait": "sha256:afea634967496b7a0cddfaee1c6dc80bcd502361bf54d57e6e0c2474a9392afa",
+          "identityAngles": [
+            "sha256:3acef69049d1a841ff88af807b04beac6ae1c114750b513f0607aac1d51ac742",
+            "sha256:7bf53db3f711ff43059fa9068d900ec5c3a98abfd86c4ca0cf1965e379b34b12"
+          ],
+          "fullBodyFront": "sha256:cc63a9c0593bd25668748b84747473233ae5cbdfa6a570bbd4b916ac7d2caf77",
+          "fullBodyBack": "sha256:e8a30f0beecf9428cbf6f66b4e5b8c72498d751ce9a943f06be718f7149ae4ad",
+          "characterSheet": "sha256:e566380711b4ba75b3a0bc06e7a4dac23d30cd6f80c94f30c88bbb2412f5e905",
+          "facialDetailSheet": "sha256:afea634967496b7a0cddfaee1c6dc80bcd502361bf54d57e6e0c2474a9392afa"
+        }
+      }
+    },
+    {
+      "status": "active",
+      "data": {
+        "modelId": "M09",
+        "version": 1,
+        "displayName": "Noa",
+        "ageYears": 20,
+        "heightCm": 176,
+        "euSize": 34,
+        "look": {
+          "hair": "chestnut-brown hair, usually styled as: blunt chin-length bob with a centre part, sleek and straight",
+          "skinTone": "fair with a warm undertone",
+          "eyes": "hazel eyes",
+          "features": "high cheekbones, soft straight nose, full lips, natural brows"
+        },
+        "refs": {
+          "primaryPortrait": "sha256:ac4e056e3586ab88d8db47a49242a639565218132650baef72d0ff5519d36b2c",
+          "identityAngles": [
+            "sha256:ae4b5f9f4a186f9dd1772d6ccf210e738edfd7ecf012234b4a6eeaa6ae073de1",
+            "sha256:5ddab2d97171f0c44f73c8706a8f1ad9140ac281c76cb52fa1bece2af96c9681"
+          ],
+          "fullBodyFront": "sha256:e1888d50cb75e6411f60fa5fa6e4089a01c8314e720e3cae980535a04d79b8d2",
+          "fullBodyBack": "sha256:d53db68e5bf647541fd214491595860e6c1cff1a8200a75fbfb0482353172596",
+          "characterSheet": "sha256:8fb0b67f57ae1edb7cb73cf55bef286443e8ceb0f4c2f2c5857f1b7b0ab0e5c8",
+          "facialDetailSheet": "sha256:ac4e056e3586ab88d8db47a49242a639565218132650baef72d0ff5519d36b2c"
+        }
+      }
+    },
+    {
+      "status": "active",
+      "data": {
+        "modelId": "M10",
+        "version": 1,
+        "displayName": "Kaia",
+        "ageYears": 21,
+        "heightCm": 180,
+        "euSize": 36,
+        "look": {
+          "hair": "black hair, usually styled as: sleek slicked-back high bun, smooth with a crisp hairline",
+          "skinTone": "medium-deep brown, warm undertone",
+          "eyes": "dark-brown eyes",
+          "features": "high sculpted cheekbones, full lips, long elegant neck, smooth forehead"
+        },
+        "refs": {
+          "primaryPortrait": "sha256:3d9cf7d607fc1b7b1c7fe58c48d78c110af058a6f1ea258db75ed18c7aba5746",
+          "identityAngles": [
+            "sha256:287f49b616f9d45c521db96621d444dd523587ff945202b1a1c9fa1c708e356f",
+            "sha256:ae28cf7a710fc8bf5b21c0acb3120c0a82173852a35ba13ee1b7dc74be80609b"
+          ],
+          "fullBodyFront": "sha256:62f9c59b2ad4cc0a3ab0e5ebf0b2602b9ecfcb9332578c539f07edde4e12c716",
+          "fullBodyBack": "sha256:c950ea9ab34b93d95526f2a53c082a5f91b21d58fb738bf45415b39dc60e1503",
+          "characterSheet": "sha256:070947dec2e938b1939aa8e536f0b3da5f452c11f5945070231da137ebe7d298",
+          "facialDetailSheet": "sha256:3d9cf7d607fc1b7b1c7fe58c48d78c110af058a6f1ea258db75ed18c7aba5746"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+**/node_modules
+**/.next
+.git
+apps/web/.run
+apps/web/.sim
+**/*.log
+.data
+.assets
+.assets-inbox
