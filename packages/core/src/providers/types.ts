@@ -1,4 +1,4 @@
-import type { CompiledRequest, ProviderProfile } from "../schemas.js";
+import type { CompiledRequest, ProviderProfile } from "../schemas";
 
 export type ProviderErrorKind =
   | "network_before_accept"

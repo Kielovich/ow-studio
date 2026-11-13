@@ -1,6 +1,6 @@
-import { hashOf } from "./canonical.js";
-import { planPoses } from "./poses.js";
-import { ROLE_LABELS, selectReferences } from "./references.js";
+import { hashOf } from "./canonical";
+import { planPoses } from "./poses";
+import { ROLE_LABELS, selectReferences } from "./references";
 import {
   OUTERWEAR_CATEGORIES,
   ProductionSpec,
@@ -10,8 +10,8 @@ import {
   type PhotoStyle,
   type PoseAssignment,
   type ProviderProfile,
-} from "./schemas.js";
-import { buildBlocks, buildExclusions, TEMPLATE_VERSION } from "./templates.js";
+} from "./schemas";
+import { buildBlocks, buildExclusions, TEMPLATE_VERSION } from "./templates";
 
 /** Bump on any change to compiler logic that can alter output. Part of every compileHash. */
 export const COMPILER_VERSION = "1.0.0";

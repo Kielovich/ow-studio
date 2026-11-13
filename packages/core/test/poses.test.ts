@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { compileProduction, GarmentFlag, getPose, OW_SET, MOCK_PROFILE, poseIncompatibility, PresetId, Category, type Product, Styling } from "../src/index.js";
-import { asset, exampleSpec, PRODUCT_HALTER_TOP, PRODUCT_SUIT_PANTS } from "../src/fixtures.js";
+import { compileProduction, GarmentFlag, getPose, OW_SET, MOCK_PROFILE, poseIncompatibility, PresetId, Category, type Product, Styling } from "../src/index";
+import { asset, exampleSpec, PRODUCT_HALTER_TOP, PRODUCT_SUIT_PANTS } from "../src/fixtures";
 
 /** Tiny deterministic PRNG so the "random" sweep is reproducible. */
 function lcg(seed: number) {

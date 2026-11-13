@@ -1,7 +1,7 @@
 import { mkdir, readFile, writeFile, copyFile } from "node:fs/promises";
 import { join, extname } from "node:path";
-import { sha256Hex } from "./canonical.js";
-import { imageDimensions } from "./providers/gemini.js";
+import { sha256Hex } from "./canonical";
+import { imageDimensions } from "./providers/gemini";
 
 /**
  * Local content-addressed asset store for development and the provider capability test.

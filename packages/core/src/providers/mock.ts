@@ -1,5 +1,5 @@
-import type { CompiledRequest, ProviderProfile } from "../schemas.js";
-import { ProviderError, type ProviderAdapter, type ProviderErrorKind, type ProviderStatus } from "./types.js";
+import type { CompiledRequest, ProviderProfile } from "../schemas";
+import { ProviderError, type ProviderAdapter, type ProviderErrorKind, type ProviderStatus } from "./types";
 
 export const MOCK_PROFILE: ProviderProfile = {
   id: "mock",

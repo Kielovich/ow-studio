@@ -1,6 +1,6 @@
-import { hashOf } from "./canonical.js";
-import { ProviderError, type ProviderAdapter, type ProviderErrorKind, type ProviderStatus } from "./providers/types.js";
-import type { CompiledRequest } from "./schemas.js";
+import { hashOf } from "./canonical";
+import { ProviderError, type ProviderAdapter, type ProviderErrorKind, type ProviderStatus } from "./providers/types";
+import type { CompiledRequest } from "./schemas";
 
 export type JobState =
   | "queued" | "submitting" | "provider_running" | "validating"

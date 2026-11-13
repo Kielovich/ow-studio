@@ -1,8 +1,8 @@
-import { garmentConstraintLines } from "./garmentConstraints.js";
-import { silhouetteText } from "./silhouette.js";
-import { getExpression, getPose } from "./poses.js";
-import { PRESETS } from "./presets.js";
-import { BOTTOM_CATEGORIES, OUTERWEAR_CATEGORIES, type ImageSpec, type InstructionBlock, type PoseAssignment } from "./schemas.js";
+import { garmentConstraintLines } from "./garmentConstraints";
+import { silhouetteText } from "./silhouette";
+import { getExpression, getPose } from "./poses";
+import { PRESETS } from "./presets";
+import { BOTTOM_CATEGORIES, OUTERWEAR_CATEGORIES, type ImageSpec, type InstructionBlock, type PoseAssignment } from "./schemas";
 
 /** Bump when any wording below changes. Part of every compileHash. */
 export const TEMPLATE_VERSION = "tpl-2026.11.5";

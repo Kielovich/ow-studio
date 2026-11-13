@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { compileProduction, MOCK_PROFILE, ROLE_CONTROLS, type RefRole } from "../src/index.js";
-import { exampleSpec, MODEL_SABLE } from "../src/fixtures.js";
+import { compileProduction, MOCK_PROFILE, ROLE_CONTROLS, type RefRole } from "../src/index";
+import { exampleSpec, MODEL_SABLE } from "../src/fixtures";
 
 const identityRoles: RefRole[] = ["identity_primary", "identity_angle", "facial_detail", "character_sheet", "expression_sheet"];
 

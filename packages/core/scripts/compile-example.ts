@@ -1,5 +1,5 @@
-import { compileProduction, MOCK_PROFILE } from "../src/index.js";
-import { exampleSpec } from "../src/fixtures.js";
+import { compileProduction, MOCK_PROFILE } from "../src/index";
+import { exampleSpec } from "../src/fixtures";
 
 const r = compileProduction(exampleSpec(), MOCK_PROFILE);
 

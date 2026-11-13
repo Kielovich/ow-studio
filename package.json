@@ -1,10 +1,16 @@
 {
   "name": "ow-studio",
   "private": true,
-  "workspaces": ["packages/*"],
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
   "scripts": {
     "test": "npm run test -w @ow-studio/core",
     "typecheck": "npm run typecheck -w @ow-studio/core",
-    "example": "npm run example -w @ow-studio/core"
+    "example": "npm run example -w @ow-studio/core",
+    "dev": "npm run dev -w web",
+    "worker": "npm run worker -w web",
+    "build": "npm run build -w web"
   }
 }

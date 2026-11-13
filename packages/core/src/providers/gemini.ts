@@ -1,5 +1,5 @@
-import type { CompiledRequest, ProviderProfile } from "../schemas.js";
-import { ProviderError, type GeneratedAsset, type ProviderAdapter, type ProviderStatus } from "./types.js";
+import type { CompiledRequest, ProviderProfile } from "../schemas";
+import { ProviderError, type GeneratedAsset, type ProviderAdapter, type ProviderStatus } from "./types";
 
 /*
  * Gemini "Nano Banana" adapter for the Interactions API.

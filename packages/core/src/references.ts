@@ -1,6 +1,6 @@
-import { getPose } from "./poses.js";
-import { PRESETS } from "./presets.js";
-import type { Attribute, AssetHash, Conflict, ImageSpec, PoseAssignment, PresetId, ProviderProfile, RefRole, RefSlot } from "./schemas.js";
+import { getPose } from "./poses";
+import { PRESETS } from "./presets";
+import type { Attribute, AssetHash, Conflict, ImageSpec, PoseAssignment, PresetId, ProviderProfile, RefRole, RefSlot } from "./schemas";
 
 /**
  * What each reference role is allowed to control. This is the precedence contract:

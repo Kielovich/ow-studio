@@ -1,4 +1,4 @@
-import { BOTTOM_CATEGORIES, type Category, type PresetId } from "./schemas.js";
+import { BOTTOM_CATEGORIES, type Category, type PresetId } from "./schemas";
 
 export type PresetDef = {
   id: PresetId;

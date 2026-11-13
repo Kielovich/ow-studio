@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   approveRetry, compileProduction, decideRetry, DEFAULT_POLICY, InMemoryJobStore, MOCK_PROFILE, MockProvider, newJob,
   ProviderError, runJob, type CompiledRequest, type MockStep, type ProviderAdapter, type RetryPolicy,
-} from "../src/index.js";
-import { exampleSpec } from "../src/fixtures.js";
+} from "../src/index";
+import { exampleSpec } from "../src/fixtures";
 
 const request: CompiledRequest = compileProduction(exampleSpec(), MOCK_PROFILE).images[0]!;
 const policy: RetryPolicy = { ...DEFAULT_POLICY, budgetRemainingUsd: 10, maxPolls: 5 };

@@ -1,41 +1,29 @@
 # OW Studio
 
-Turns garment packshots into consistent on-model e-commerce images featuring original fictional adult models.
+Turns garment packshots into consistent on-model e-commerce images with original fictional adult models, styled after the brand's gallery.
 
-## Status: Phase 2 (compiler contracts)
-
-`packages/core` is pure domain logic with no UI, database or real provider yet.
-
-| Module | Purpose |
-|---|---|
-| `schemas.ts` | Zod contracts: Product, ModelVersion, ProductionSpec, ProviderProfile, CompiledRequest |
-| `canonical.ts` | Canonical JSON and hashing. Order, whitespace and Unicode never change a hash |
-| `presets.ts` | front_crop, three_quarter, back, full_body, detail: camera, crop, visibility, allowed yaw |
-| `poses.ts` | Pose and expression library plus a deterministic planner (manual choices are locked) |
-| `references.ts` | Reference precedence and selection per preset and provider limit |
-| `templates.ts` | Versioned instruction blocks in fixed priority order |
-| `compiler.ts` | `compileProduction(spec, profile)`: compiled requests, conflicts and `canRun` |
-| `jobs.ts` | Job state machine, retry policy (no automatic paid retries), crash-safe resume |
-| `providers/` | Adapter interface plus a scripted `MockProvider` (no network) |
-
-## Guarantees covered by tests
-
-- Identical input gives byte-identical compiled instructions and the same `compileHash`. Pixels are never promised to be identical.
-- Product order, flag order and duplicates do not change any hash. A compiler, template or model-reference version bump changes it.
-- The garment reference always comes first. Back and detail views and face-less crops never send face references. Pose references control pose only.
-- A manual pose or expression is never overridden. If it conflicts, Run is blocked with an error.
-- Billable or uncertain failures wait for approval. Only non-billable transport errors auto-retry, with capped backoff.
-- After a worker crash, a job either resumes without a second paid submission or stops for approval.
-
-## Commands
+## Run it
 
 ```bash
 npm install
-npm test
-npm run typecheck
-npm run example   # compiles a 3-SKU test production and prints one prompt
+npm run seed -w web        # registers the model library (Sable v1/v2) from the phase 3 assets
+npm run dev                # web app on http://localhost:3000
+npm run worker             # generation worker, in a second terminal
 ```
 
-## Next
+The worker reads `GEMINI_API_KEY` from the environment or from `~/.ow-studio/secrets.env` (never committed). Data (SQLite database and content-addressed assets) lives in `.data/`, which is git-ignored. The monthly budget is set with `OW_BUDGET_USD` (default 25).
 
-Phase 3: provider capability test (2 to 3 providers on the hard materials: mesh, lace, sequin, fur, faux leather), then one real generation flow.
+## Structure
+
+| Path | What |
+|---|---|
+| `packages/core` | Domain logic: compiler, presets (brand gallery set), pose planner, references, job runner, Gemini adapter, background normalisation, silhouette measurement. 68 tests. |
+| `apps/web` | Next.js 16 + HeroUI v3 app in the brand's look: Studio, New production, Productions, Models, Settings. API route handlers and a separate worker process. |
+| `docs/` | Decisions and phase 3 findings (real-API results). |
+
+## Flow
+
+1. **New production.** Drop packshots named `SKU_front` / `SKU_back` / `SKU_detail`. The SKU and angle are recognised; anything else is assigned by hand. Add construction flags and choose the model, shots and styling.
+2. **Review.** The production is compiled live: conflicts, image count, estimated cost and remaining budget. Blocking problems disable Run.
+3. **Generation.** The worker claims images with a lease and calls Nano Banana Pro. It auto-retries only non-billable errors; paid retries need explicit approval. The background is normalised to RGB 241.
+4. **Results.** The production page shows live status, a lightbox (final vs raw output, references sent, history, compiled prompt), retry approval, ZIP download and delete.

@@ -1,7 +1,7 @@
 /** Normalise backgrounds of generated images: npx tsx scripts/postprocess.ts <inDir> <outDir> */
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { normalizeBackground } from "../src/post/background.js";
+import { normalizeBackground } from "../src/post/background";
 
 const [inDir = "out/phase3", outDir = "out/phase3/final"] = process.argv.slice(2);
 await mkdir(outDir, { recursive: true });

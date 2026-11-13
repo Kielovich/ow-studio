@@ -7,8 +7,8 @@
  * Without --confirm it prints the request and the estimated cost and exits without calling the API.
  */
 import { mkdir, writeFile } from "node:fs/promises";
-import { GEMINI_ENDPOINT, GEMINI_API_REVISION, GEMINI_NB21_PROFILE, GEMINI_PRO_PROFILE, extractImages, imageDimensions } from "../src/index.js";
-import { loadLocalSecrets } from "../src/secrets.js";
+import { GEMINI_ENDPOINT, GEMINI_API_REVISION, GEMINI_NB21_PROFILE, GEMINI_PRO_PROFILE, extractImages, imageDimensions } from "../src/index";
+import { loadLocalSecrets } from "../src/secrets";
 
 loadLocalSecrets();
 

@@ -13,9 +13,9 @@ import { join } from "node:path";
 import {
   compileProduction, DEFAULT_POLICY, extractImages, GEMINI_API_REVISION, GEMINI_ENDPOINT, GEMINI_PRO_PROFILE, GeminiProvider,
   InMemoryJobStore, LocalAssetStore, OW_SET, measureBottomsSilhouette, newJob, runJob, type ProductionSpecInput,
-} from "../src/index.js";
-import { MODEL_SABLE } from "../src/fixtures.js";
-import { loadLocalSecrets } from "../src/secrets.js";
+} from "../src/index";
+import { MODEL_SABLE } from "../src/fixtures";
+import { loadLocalSecrets } from "../src/secrets";
 
 loadLocalSecrets();
 const confirm = process.argv.includes("--confirm");

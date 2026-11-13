@@ -1,4 +1,4 @@
-import type { GarmentFlag, PresetId } from "./schemas.js";
+import type { GarmentFlag, PresetId } from "./schemas";
 
 /** Construction-specific instructions, keyed by garment flag. Versioned together with the templates. */
 export const GARMENT_CONSTRAINTS: Record<GarmentFlag, string> = {

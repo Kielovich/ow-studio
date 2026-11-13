@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { canonicalJson, compileProduction, MOCK_PROFILE, PRESETS, type ProviderProfile } from "../src/index.js";
-import { asset, exampleSpec, PRODUCT_HALTER_TOP, PRODUCT_MESH_MAXI, PRODUCT_SUIT_PANTS } from "../src/fixtures.js";
+import { canonicalJson, compileProduction, MOCK_PROFILE, PRESETS, type ProviderProfile } from "../src/index";
+import { asset, exampleSpec, PRODUCT_HALTER_TOP, PRODUCT_MESH_MAXI, PRODUCT_SUIT_PANTS } from "../src/fixtures";
 
 const hashes = (r: ReturnType<typeof compileProduction>) => r.images.map((i) => [i.imageSpecId, i.compileHash]);
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { measureBottomsSilhouetteRaw, silhouetteText } from "../src/silhouette.js";
+import { measureBottomsSilhouetteRaw, silhouetteText } from "../src/silhouette";
 
 /** Synthetic trousers: waistband/hip block, then two legs with a given taper. */
 function trousers(hemInset: number, W = 300, H = 400) {

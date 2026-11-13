@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizeBackgroundRaw } from "../src/post/background.js";
+import { normalizeBackgroundRaw } from "../src/post/background";
 
 /** Synthetic studio shot: grey gradient background with a cast, dark subject touching the bottom,
  * an arm loop enclosing a background pocket, a contact shadow and a soft edge. */

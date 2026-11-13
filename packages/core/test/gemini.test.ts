@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   compileProduction, DEFAULT_POLICY, GEMINI_ENDPOINT, GEMINI_NB21_PROFILE, GeminiProvider, imageDimensions, imageSizeTier,
   InMemoryJobStore, newJob, runJob, type FetchLike, type ProviderProfile,
-} from "../src/index.js";
-import { exampleSpec } from "../src/fixtures.js";
+} from "../src/index";
+import { exampleSpec } from "../src/fixtures";
 
 function fakePng(width: number, height: number): Uint8Array {
   const b = new Uint8Array(33);

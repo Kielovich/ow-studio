@@ -1,6 +1,6 @@
-import { hashOf } from "./canonical.js";
-import { PRESETS, yawAllowed } from "./presets.js";
-import { OUTERWEAR_CATEGORIES, type Conflict, type GarmentFlag, type ImageSpec, type PoseAssignment, type PresetId, type Product, type Styling } from "./schemas.js";
+import { hashOf } from "./canonical";
+import { PRESETS, yawAllowed } from "./presets";
+import { OUTERWEAR_CATEGORIES, type Conflict, type GarmentFlag, type ImageSpec, type PoseAssignment, type PresetId, type Product, type Styling } from "./schemas";
 
 export type ArmState = "relaxed" | "hip" | "hem" | "pocket" | "crossed" | "bag";
 

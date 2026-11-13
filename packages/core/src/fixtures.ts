@@ -1,5 +1,5 @@
-import { sha256Hex } from "./canonical.js";
-import type { ProductionSpecInput } from "./schemas.js";
+import { sha256Hex } from "./canonical";
+import type { ProductionSpecInput } from "./schemas";
 
 /** Deterministic fake asset hash for fixtures. */
 export const asset = (label: string) => `sha256:${sha256Hex(label)}`;

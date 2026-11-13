@@ -1,0 +1,143 @@
+@import "tailwindcss";
+@import "@heroui/styles";
+@import "@fontsource/figtree/300.css";
+@import "@fontsource/figtree/400.css";
+@import "@fontsource/figtree/500.css";
+@import "@fontsource/figtree/600.css";
+@import "@fontsource/playfair-display/400.css";
+@import "@fontsource/playfair-display/400-italic.css";
+
+/*
+ * OW look, taken from the brand site's theme tokens (owcollection.com, 2026-11-13):
+ * text #111111 on white, meta surfaces #f5f5f5 / #e8e8e8, borders #aaaaaa, black uppercase buttons
+ * with 0.04em tracking, Playfair Display headings, Figtree body, uppercase 14px navigation.
+ */
+:root {
+  color-scheme: light;
+
+  --ow-ink: #111111;
+  --ow-meta: #f5f5f5;
+  --ow-meta-dark: #e8e8e8;
+  --ow-canvas: #f1f1f1; /* product image background, RGB 241 */
+  --ow-line: #e8e8e8;
+  --ow-border: #aaaaaa;
+  --ow-muted: rgba(17, 17, 17, 0.6);
+  --ow-footer: #faf9f6;
+
+  /* HeroUI semantic tokens mapped to the OW palette */
+  --background: #ffffff;
+  --foreground: var(--ow-ink);
+  --surface: #ffffff;
+  --surface-foreground: var(--ow-ink);
+  --overlay: #ffffff;
+  --overlay-foreground: var(--ow-ink);
+  --muted: rgba(17, 17, 17, 0.55);
+  --default: var(--ow-meta);
+  --default-foreground: var(--ow-ink);
+  --accent: var(--ow-ink);
+  --accent-foreground: #ffffff;
+  --field-background: #ffffff;
+  --field-foreground: var(--ow-ink);
+  --field-placeholder: rgba(17, 17, 17, 0.4);
+  --field-border: var(--ow-border);
+  --success: #478947;
+  --success-foreground: #ffffff;
+  --warning: #a77a06;
+  --warning-foreground: #ffffff;
+  --danger: #d02f2e;
+  --danger-foreground: #ffffff;
+  --border: var(--ow-line);
+  --separator: var(--ow-line);
+  --focus: var(--ow-ink);
+  --link: var(--ow-ink);
+  --radius: 0px;
+  --field-radius: 0px;
+  --field-border-width: 1px;
+  --surface-shadow: none;
+  --field-shadow: none;
+  --overlay-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+@theme inline {
+  --font-sans: "Figtree", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Playfair Display", ui-serif, Georgia, serif;
+  --color-ink: var(--ow-ink);
+  --color-meta: var(--ow-meta);
+  --color-meta-dark: var(--ow-meta-dark);
+  --color-canvas: var(--ow-canvas);
+  --color-line: var(--ow-line);
+  --color-footer: var(--ow-footer);
+}
+
+html,
+body {
+  background: #ffffff;
+  color: var(--ow-ink);
+  font-family: "Figtree", ui-sans-serif, system-ui, sans-serif;
+  font-size: 15px;
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer components {
+  /* Buttons: OW style, square, uppercase, tracked */
+  .button {
+    @apply rounded-none uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+  .button--primary {
+    background: var(--ow-ink);
+    color: #fff;
+  }
+  .button--primary:hover,
+  .button--primary[data-hovered="true"] {
+    background: #444444;
+  }
+  .button--secondary,
+  .button--outline {
+    background: transparent;
+    color: var(--ow-ink);
+    box-shadow: inset 0 0 0 1px var(--ow-ink);
+  }
+  /* Toggles: outlined when off, solid black when on */
+  .toggle-button {
+    @apply rounded-none;
+    background: #ffffff;
+    color: var(--ow-ink);
+    box-shadow: inset 0 0 0 1px var(--ow-meta-dark);
+    font-size: 0.8rem;
+  }
+  .toggle-button:hover {
+    box-shadow: inset 0 0 0 1px var(--ow-ink);
+  }
+  .toggle-button[data-selected="true"],
+  .toggle-button[aria-pressed="true"] {
+    background: var(--ow-ink);
+    color: #ffffff;
+    box-shadow: none;
+  }
+  .chip {
+    @apply rounded-none uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.68rem;
+  }
+}
+
+/* Typographic helpers */
+.ow-display {
+  font-family: "Playfair Display", ui-serif, Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+.ow-eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.7rem;
+  color: var(--ow-muted);
+}
+.ow-nav {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.8rem;
+}
