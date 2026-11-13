@@ -86,7 +86,8 @@ export const ModelVersion = z.object({
 export type ModelVersion = z.infer<typeof ModelVersion>;
 
 export const Styling = z.object({
-  hairState: z.string().min(1),
+  /** Optional override. Empty means: the model's own hairstyle, exactly as in her identity portrait. */
+  hairState: z.string().optional(),
   /** Hair and makeup brief for the production. The identity references stay makeup-free. */
   makeup: z.string().optional(),
   bottoms: z.string().optional(),

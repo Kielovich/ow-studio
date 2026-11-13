@@ -46,3 +46,11 @@ A texture pass was run on the 7 chosen faces (Sable, Mei, Lucía, Liv, Nadia, No
 - All rejected versions are kept in model-gen/state.json.
 
 The same skin language now goes into the production prompts (template tpl-2026.11.7), the default makeup brief and the reference-set prompts. Each model also gets a 5-view character sheet (front, three-quarter, profile, back of head, full body), used as the `character_sheet` reference.
+
+## Model library (registered 2026-11-13)
+
+Active models: Sable v3, Mei, Lucía, Liv, Nadia, Noa and Kaia. Each has portrait, three-quarter, profile, headless body front/back and a 5-view character sheet, all 2K. Sable v1/v2 are archived; their productions keep them.
+
+The production hair and makeup fields are now empty by default, meaning each model's own signature look from her portrait. A filled field is a production-wide override. Previously a default hair value forced one style onto every model.
+
+Reference-prompt bug fixed: references used the base hair description instead of the styled hair, so Sable's angles and Liv's back body had loose hair. Those three images were rejected and regenerated.

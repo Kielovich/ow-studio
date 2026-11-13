@@ -5,7 +5,7 @@ import { PRESETS } from "./presets";
 import { BOTTOM_CATEGORIES, OUTERWEAR_CATEGORIES, type ImageSpec, type InstructionBlock, type PoseAssignment } from "./schemas";
 
 /** Bump when any wording below changes. Part of every compileHash. */
-export const TEMPLATE_VERSION = "tpl-2026.11.7";
+export const TEMPLATE_VERSION = "tpl-2026.11.8";
 
 /** Instruction priorities. Lower number wins when instructions conflict. */
 export const PRIORITY = {
@@ -65,11 +65,11 @@ export function buildBlocks(spec: ImageSpec, a: PoseAssignment): InstructionBloc
       `Identity: the same woman as in the identity reference images. ${capitalize(m.look.features)}; ${m.look.eyes}; ${m.look.skinTone} skin; ${m.look.hair}. ` +
       `Keep bone structure, face shape, nose, lip shape, eye shape, skin tone and hair colour identical to the identity portrait in every shot of this session; ` +
       `pose, head angle and expression may change only gaze, eyelids and mouth, never the facial structure. ` +
-      `Makeup and hair styling follow this brief, not the references. Hair styled: ${st.hairState}.` +
-      (st.makeup ? ` Makeup: ${st.makeup}` : ""));
+      (st.hairState ? `Hair styled for this production: ${st.hairState}.` : `Hair: her own hairstyle exactly as in the identity portrait.`) +
+      (st.makeup ? ` Makeup for this production: ${st.makeup}` : ` Makeup: exactly as in the identity portrait.`));
   } else if (def.view === "back") {
     add("identity",
-      `Back view: hair colour and length as in the character sheet (${m.look.hair}), styled: ${st.hairState}. ` +
+      `Back view: hair as in the character sheet (${m.look.hair})${st.hairState ? `, styled for this production: ${st.hairState}` : ""}. ` +
       `The face is not visible. Hair must not cover the back of the garment or any closure.`);
   } else if (def.view === "detail") {
     add("identity", `Skin, where visible: ${m.look.skinTone}, with natural texture. No face in frame.`);

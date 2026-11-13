@@ -107,6 +107,17 @@ describe("shared session instructions", () => {
   });
 });
 
+describe("model's own look", () => {
+  it("uses the portrait's hair and makeup unless the production overrides them", () => {
+    const own = byPreset(compileProduction(brandSet({ styling: { accessories: [] } }), profile).images);
+    expect(block(own.full_body!, "identity")).toMatch(/her own hairstyle exactly as in the identity portrait.*Makeup: exactly as in the identity portrait/);
+    expect(block(own.back_full!, "identity")).not.toMatch(/styled for this production/);
+    const over = byPreset(compileProduction(brandSet({ styling: { hairState: "low bun", makeup: "red lip", accessories: [] } }), profile).images);
+    expect(block(over.full_body!, "identity")).toMatch(/Hair styled for this production: low bun.*Makeup for this production: red lip/);
+    expect(block(over.back_full!, "identity")).toMatch(/styled for this production: low bun/);
+  });
+});
+
 describe("garment orientation", () => {
   const s = byPreset(compileProduction(brandSet(), profile).images);
 

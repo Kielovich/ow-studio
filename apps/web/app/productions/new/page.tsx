@@ -66,8 +66,9 @@ export default function NewProductionPage() {
   const [presets, setPresets] = useState<PresetId[]>(BRAND_SET);
   const [sessionAnchor, setSessionAnchor] = useState(true);
   const [styling, setStyling] = useState({
-    hairState: "sleek, centre parted, tucked behind the ears",
-    makeup: DEFAULT_MAKEUP,
+    // Empty = the model's own signature hair and makeup from her identity portrait.
+    hairState: "",
+    makeup: "",
     top: "a plain fitted black long-sleeve crew-neck top that ends at the waist",
     innerTop: "a plain fitted black crew-neck top",
     bottoms: "straight black tailored trousers",
@@ -145,7 +146,9 @@ export default function NewProductionPage() {
       name: name || `${products.map((p) => p.sku).join(", ")}`.slice(0, 80),
       products, modelId, modelVersion: Number(version), presets, sessionAnchor,
       styling: {
-        hairState: styling.hairState, makeup: styling.makeup, top: styling.top, innerTop: styling.innerTop,
+        ...(styling.hairState.trim() ? { hairState: styling.hairState } : {}),
+        ...(styling.makeup.trim() ? { makeup: styling.makeup } : {}),
+        top: styling.top, innerTop: styling.innerTop,
         bottoms: styling.bottoms, footwear: styling.footwear,
         accessories: styling.accessories.split(",").map((s) => s.trim()).filter(Boolean),
       },
@@ -346,10 +349,10 @@ export default function NewProductionPage() {
       <Section n={4} title="Styling" hint="Hair, makeup and the pieces worn with the product. Accessories appear only in the styled shot.">
         <div className="grid md:grid-cols-2 gap-5">
           <Field label="Production name" value={name} onChange={setName} placeholder="e.g. SS27 drop 1" />
-          <Field label="Hair" value={styling.hairState} onChange={(v) => setStyling((s) => ({ ...s, hairState: v }))} />
+          <Field label="Hair (empty = model's own)" value={styling.hairState} onChange={(v) => setStyling((s) => ({ ...s, hairState: v }))} placeholder="Her signature hairstyle from the portrait" />
           <TextField value={styling.makeup} onChange={(v) => setStyling((s) => ({ ...s, makeup: v }))} className="md:col-span-2">
-            <Label className="ow-eyebrow">Makeup</Label>
-            <TextArea rows={2} />
+            <Label className="ow-eyebrow">Makeup (empty = model's own)</Label>
+            <TextArea rows={2} placeholder={`Her clean-glam look from the portrait. Example override: ${DEFAULT_MAKEUP}`} />
           </TextField>
           <Field label="Top (with bottoms)" value={styling.top} onChange={(v) => setStyling((s) => ({ ...s, top: v }))} />
           <Field label="Under outerwear" value={styling.innerTop} onChange={(v) => setStyling((s) => ({ ...s, innerTop: v }))} />
