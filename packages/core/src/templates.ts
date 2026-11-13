@@ -5,7 +5,7 @@ import { PRESETS } from "./presets";
 import { BOTTOM_CATEGORIES, OUTERWEAR_CATEGORIES, type ImageSpec, type InstructionBlock, type PoseAssignment } from "./schemas";
 
 /** Bump when any wording below changes. Part of every compileHash. */
-export const TEMPLATE_VERSION = "tpl-2026.11.10";
+export const TEMPLATE_VERSION = "tpl-2026.11.13";
 
 /** Instruction priorities. Lower number wins when instructions conflict. */
 export const PRIORITY = {

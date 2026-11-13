@@ -92,6 +92,24 @@ describe("instruction priorities", () => {
   });
 });
 
+describe("close-up per garment type", () => {
+  it("frames bottoms at the waist (waistband, closure, pockets), tops below the lips", () => {
+    const r = compileProduction(exampleSpec({ slots: [{ preset: "detail" }] }), MOCK_PROFILE);
+    const framing = (sku: string) => r.images.find((i) => i.sku === sku && i.preset === "detail")!.instructionBlocks.find((b) => b.key === "framing")!.text;
+    expect(framing("TEST-PT-003")).toMatch(/waistband down to mid-thigh/);
+    expect(framing("TEST-PT-003")).toMatch(/Camera at hip height/);
+    expect(framing("TEST-PT-003")).not.toMatch(/lips|chest height/);
+    expect(framing("TEST-TP-002")).toMatch(/below the lips/);
+  });
+
+  it("states that a coated finish is not leather", () => {
+    const spec = exampleSpec({ products: [{ ...PRODUCT_SUIT_PANTS, flags: ["coated"] }], slots: [{ preset: "full_body" }] });
+    const garment = compileProduction(spec, MOCK_PROFILE).images[0]!.instructionBlocks.find((b) => b.key === "garment")!.text;
+    expect(garment).toMatch(/Coated fabric, not leather/);
+    expect(garment).toMatch(/no leather grain/);
+  });
+});
+
 describe("conflicts", () => {
   const codes = (r: ReturnType<typeof compileProduction>) => r.conflicts.map((c) => c.code);
 

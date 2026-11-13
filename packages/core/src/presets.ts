@@ -136,9 +136,13 @@ export const PRESETS: Record<PresetId, PresetDef> = {
   detail: {
     id: "detail",
     view: "detail",
-    camera: "On-model close-up, straight-on, camera at chest height, short telephoto look (about 100 mm equivalent), fabric in sharp focus.",
-    crop: () => "Square close-up from just below the lips down to the upper hips; only the jawline and neck may show, no eyes in frame. Garment centred.",
-    visibility: "Neckline, fabric texture, stitching and edge finish are clearly readable.",
+    camera: "On-model close-up, straight-on, short telephoto look (about 100 mm equivalent), fabric in sharp focus.",
+    // Bottoms: the close-up is about the waist (waistband, closure, pockets), not the styling top above it.
+    crop: (c) => isBottom(c)
+      ? "Camera at hip height. Square close-up from just above the waistband down to mid-thigh: waistband, closure and front pockets fill the frame, garment centred. " +
+        "The top worn with it shows only as a narrow strip above the waistband; no chest, no face."
+      : "Camera at chest height. Square close-up from just below the lips down to the upper hips; only the jawline and neck may show, no eyes in frame. Garment centred.",
+    visibility: "The garment's construction details, fabric texture, stitching and edge finish are clearly readable.",
     faceVisible: () => false,
     torsoYaw: { min: -20, max: 20 },
     maxHeadYaw: 90,
