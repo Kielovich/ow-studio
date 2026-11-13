@@ -5,3 +5,7 @@ out/
 .assets/
 .assets-inbox/
 .data/
+
+# Local one-off run scripts
+apps/web/.run/
+apps/web/.sim/
