@@ -141,3 +141,11 @@ body {
   letter-spacing: 0.04em;
   font-size: 0.8rem;
 }
+
+/* Keyboard focus for native links and buttons (image tiles, model picker, nav). HeroUI components draw their own ring. */
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--ow-ink);
+  outline-offset: 3px;
+}

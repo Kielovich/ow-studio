@@ -4,6 +4,7 @@ import { AlertDialog, Button, Chip, Modal, ProgressBar, Skeleton, Spinner } from
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { LinkButton } from "@/components/link-button";
+import { getJson, isNotFound } from "@/lib/client";
 import { PageTitle } from "@/components/page-title";
 import { Tile } from "@/components/tile";
 import type { Attempt, Metrics, StatusView } from "@/lib/outcome";
@@ -43,12 +44,17 @@ export function ProductionView() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  const load = useCallback(() => fetch(`/api/productions/${id}`).then((r) => (r.ok ? r.json() : null)).then((d) => d && setP(d)), [id]);
+  const [missing, setMissing] = useState(false);
+  const [offline, setOffline] = useState(false);
+  const load = useCallback(() => getJson<Prod>(`/api/productions/${id}`)
+    .then((d) => { setOffline(false); if (isNotFound(d)) setMissing(true); else setP(d); })
+    .catch(() => setOffline(true)), [id]);
   useEffect(() => {
     void load();
+    if (missing) return; // a production that does not exist will not appear: stop polling
     const t = setInterval(load, 3000);
     return () => clearInterval(t);
-  }, [load]);
+  }, [load, missing]);
 
   const bySku = useMemo(() => {
     const m = new Map<string, Img[]>();
@@ -57,7 +63,17 @@ export function ProductionView() {
     return [...m.entries()];
   }, [p]);
 
-  if (!p) return <div className="pt-12"><Skeleton className="h-12 w-80 mb-10" /><Skeleton className="aspect-[5/1] w-full" /></div>;
+  if (missing) return (
+    <div className="pt-24 max-w-lg">
+      <div className="ow-eyebrow mb-3">Production</div>
+      <h1 className="ow-display text-4xl mb-4">Not found</h1>
+      <p className="text-black/60 mb-8">This production does not exist or has been deleted.</p>
+      <LinkButton href="/productions">All productions</LinkButton>
+    </div>
+  );
+  if (!p) return offline
+    ? <div className="pt-24 max-w-lg"><h1 className="ow-display text-3xl mb-3">Cannot reach the studio</h1><p className="text-black/60">Retrying every few seconds.</p></div>
+    : <div className="pt-12"><Skeleton className="h-12 w-80 mb-10" /><Skeleton className="aspect-[5/1] w-full" /></div>;
 
   const open = p.images.find((i) => i.id === openId) ?? null;
   const total = p.images.length;
@@ -122,7 +138,8 @@ export function ProductionView() {
             {m.unknownAttempts > 0 && <dd className="text-xs text-warning mt-1">+ {m.unknownAttempts} unknown {m.unknownAttempts === 1 ? "outcome" : "outcomes"}, may have been billed</dd>}</div>
           <div><dt className="ow-eyebrow mb-1">Per approved image</dt><dd className="ow-display text-2xl">{m.costPerApprovedUsd === null ? "–" : usd(m.costPerApprovedUsd)}</dd></div>
         </dl>
-        {actionError && <p className="text-danger text-sm">{actionError}</p>}
+        {actionError && <p className="text-danger text-sm" role="alert">{actionError}</p>}
+        {offline && <p className="text-warning text-sm" role="status">Connection lost. Showing the last known state; retrying.</p>}
       </div>
 
       <div className="flex flex-col gap-16">

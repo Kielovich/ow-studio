@@ -463,6 +463,8 @@ export function getDraft(id: string): DraftRecord | null {
 export function listDrafts(limit = 8) {
   return (getDb().prepare("SELECT id, data, production_id, updated_at FROM drafts ORDER BY updated_at DESC LIMIT ?").all(limit) as any[]).map((r) => {
     const d = JSON.parse(r.data);
-    return { id: r.id, name: d.name || null, files: Array.isArray(d.files) ? d.files.length : 0, productionId: r.production_id ?? null, updatedAt: r.updated_at };
+    // Unnamed imports are listed by their folders (sets), e.g. "Look-07, Look-08".
+    const sets = Array.isArray(d.files) ? [...new Set(d.files.map((f: any) => f?.set).filter(Boolean))].slice(0, 4).join(", ") : "";
+    return { id: r.id, name: d.name || sets || null, files: Array.isArray(d.files) ? d.files.length : 0, productionId: r.production_id ?? null, updatedAt: r.updated_at };
   });
 }

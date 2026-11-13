@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { LinkButton } from "@/components/link-button";
 import { PageTitle } from "@/components/page-title";
 import { Tile } from "@/components/tile";
+import { getJson, isNotFound } from "@/lib/client";
 import { assetUrl, usd } from "@/lib/types";
 
 type Overview = {
@@ -15,8 +16,9 @@ type Overview = {
 
 export default function StudioPage() {
   const [data, setData] = useState<Overview | null>(null);
+  const [failed, setFailed] = useState(false);
   useEffect(() => {
-    const load = () => fetch("/api/overview").then((r) => r.json()).then(setData).catch(() => {});
+    const load = () => getJson<Overview>("/api/overview").then((d) => { if (!isNotFound(d)) { setData(d); setFailed(false); } }).catch(() => setFailed(true));
     load();
     const t = setInterval(load, 5000);
     return () => clearInterval(t);
@@ -37,6 +39,7 @@ export default function StudioPage() {
         <LinkButton href="/productions/new">New production</LinkButton>
       </PageTitle>
 
+      {failed && <p className="text-danger text-sm mb-4" role="alert">Could not reach the studio. Retrying…</p>}
       <section className="grid grid-cols-2 md:grid-cols-4 border-y border-line">
         {(data ? stats : Array.from({ length: 4 }, () => null)).map((s, i) => (
           <div key={i} className={`py-8 px-1 md:px-6 ${i > 0 ? "md:border-l border-line" : ""}`}>
