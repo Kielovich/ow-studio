@@ -12,7 +12,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import {
   compileProduction, DEFAULT_POLICY, extractImages, GEMINI_API_REVISION, GEMINI_ENDPOINT, GEMINI_PRO_PROFILE, GeminiProvider,
-  InMemoryJobStore, LocalAssetStore, measureBottomsSilhouette, newJob, runJob, type ProductionSpecInput,
+  InMemoryJobStore, LocalAssetStore, OW_SET, measureBottomsSilhouette, newJob, runJob, type ProductionSpecInput,
 } from "../src/index.js";
 import { MODEL_SABLE } from "../src/fixtures.js";
 import { loadLocalSecrets } from "../src/secrets.js";
@@ -98,7 +98,7 @@ async function main() {
   // Body references (paid once, cached).
   const refsFile = join(OUT, "body-refs.json");
   let bodyRefs: { front: string; back: string } | null = existsSync(refsFile) ? JSON.parse(await readFile(refsFile, "utf8")) : null;
-  const plannedImages = (ONLY ? 1 : 3) * (PRESET ? 1 : 3);
+  const plannedImages = (ONLY ? 1 : 3) * (PRESET ? 1 : OW_SET.length);
   const plannedCost = (bodyRefs ? 0 : 2 * profile.estimatedCostUsd) + plannedImages * profile.estimatedCostUsd;
   console.log(`model ${profile.id} | planned: ${bodyRefs ? 0 : 2} body refs + ${plannedImages} images | est. $${plannedCost.toFixed(2)} | budget $${BUDGET}`);
   if (plannedCost > BUDGET) throw new Error("planned cost exceeds budget");
@@ -141,8 +141,8 @@ async function main() {
         description: "Fitted long-sleeve crew-neck mini dress in opaque black jersey with curved sheer black mesh panels across the bodice, waist, sleeves and hem, and an asymmetric diagonal hem.",
         flags: ["sheer", "long_sleeve", "asymmetric_hem"], packshots: { front: pack.meshF, back: pack.meshB } },
     ],
-    slots: [{ preset: "front_crop" }, { preset: "back" }, { preset: "full_body" }],
-    styling: { hairState: "sleek, tucked behind the ears", makeup: OW_MAKEUP, top: "a plain fitted black long-sleeve crew-neck top that ends at the waist so the whole waistband, button and belt loops stay visible", innerTop: "a plain fitted black crew-neck top", bottoms: "straight black tailored trousers", footwear: "black pointed-toe ankle boots", accessories: [] },
+    slots: OW_SET.map((preset) => ({ preset })),
+    styling: { hairState: "sleek, tucked behind the ears", makeup: OW_MAKEUP, top: "a plain fitted black long-sleeve crew-neck top that ends at the waist so the whole waistband, button and belt loops stay visible", innerTop: "a plain fitted black crew-neck top", bottoms: "straight black tailored trousers", footwear: "black pointed-toe stiletto pumps", accessories: ["small black evening bag carried by its handle"] },
     style: { background: [241, 241, 241], aspectRatio: "1:1", longEdgePx: 2000 },
     providerProfileId: profile.id,
   };

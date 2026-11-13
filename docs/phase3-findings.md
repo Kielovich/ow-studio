@@ -82,3 +82,21 @@ Rules for model management (phase 4):
 - The identity portrait carries the look (makeup and grooming). A new look means a new model version.
 - Body references are stored headless: they carry body proportions only.
 - `Styling.makeup` stays as reinforcement in the prompt.
+
+## Brand gallery set (2026-11-13)
+
+Reference: 5 brand shots supplied by the user. Measured framing: head top 2-4% from the top edge, soles 2-4% from the bottom, figure 92-95% of the height, centred, background RGB 241.
+
+New preset set `OW_SET`: full_body (front), three_quarter_full, back_full, styled_full (accessory, gaze off-camera), detail (close-up from below the lips to the hips).
+
+Test, mesh dress, Nano Banana Pro, $0.80 for 5 images. Measured figure height:
+
+| Preset | Figure height | Reference range |
+|---|---|---|
+| full_body | 0.954 | 0.923-0.954 |
+| three_quarter_full | 0.921 | 0.931 |
+| back_full | 0.955 | 0.954 |
+| styled_full | 0.931 | 0.929 |
+
+- Direction and pose match the references: three-quarter turned to image left, styled shot with the bag held low and legs crossed in a step, close-up cropped below the lips.
+- Open issues: the hem asymmetry looks mirrored in the styled shot (mirroring check still to build), and a faint floor horizon line remains after normalisation.

@@ -22,6 +22,16 @@ const upperCrop = (c: Category) =>
     ? "Crop from mid-chest down to and including the feet; the face may be outside the frame."
     : "Crop from just above the head to mid-thigh.";
 
+/** Full-body framing measured from the brand's reference shots (5 images, 2026-11-13): head top ~3% from the
+ * top edge, soles ~4% from the bottom edge, figure ~93% of the frame height, centred. */
+const FULL_FRAME =
+  "Full body head to toe in a square frame. The top of the head sits about 3% below the top edge and the soles about 4% above the bottom edge, " +
+  "so the figure fills about 93% of the frame height. Figure horizontally centred with even space on both sides.";
+const FULL_CAMERA = "Camera at hip height, level, normal lens look (about 50 mm equivalent), no wide-angle distortion.";
+
+/** The brand's standard gallery: front, three-quarter, back, styled, close-up. */
+export const OW_SET: readonly PresetId[] = ["full_body", "three_quarter_full", "back_full", "styled_full", "detail"];
+
 export const PRESETS: Record<PresetId, PresetDef> = {
   front_crop: {
     id: "front_crop",
@@ -62,21 +72,57 @@ export const PRESETS: Record<PresetId, PresetDef> = {
   full_body: {
     id: "full_body",
     view: "front",
-    camera: "Front view, camera at waist height, normal lens look (about 50 to 70 mm equivalent).",
-    crop: () => "Head to toe, 5 to 8 percent margin above the head and below the feet, figure centred.",
-    visibility: "Full garment length and hem are visible.",
+    camera: `Straight-on front view. ${FULL_CAMERA}`,
+    crop: () => FULL_FRAME,
+    visibility: "The full garment, its length and hem are visible and unobstructed.",
     faceVisible: () => true,
-    torsoYaw: { min: -15, max: 15 },
-    maxHeadYaw: 30,
+    torsoYaw: { min: -10, max: 10 },
+    maxHeadYaw: 15,
+    expressionApplies: true,
+    feetVisible: () => true,
+  },
+  three_quarter_full: {
+    id: "three_quarter_full",
+    view: "angle",
+    camera: `Three-quarter view: body turned 25 to 40 degrees from the camera, head turned a little further in the same direction. ${FULL_CAMERA}`,
+    crop: () => FULL_FRAME,
+    visibility: "Front and side silhouette of the garment are visible; hem and side seam unobstructed.",
+    faceVisible: () => true,
+    torsoYaw: { min: 25, max: 45, absolute: true },
+    maxHeadYaw: 60,
+    expressionApplies: true,
+    feetVisible: () => true,
+  },
+  back_full: {
+    id: "back_full",
+    view: "back",
+    camera: `Straight-on back view. ${FULL_CAMERA}`,
+    crop: () => FULL_FRAME,
+    visibility: "The entire back construction is visible: closures, straps, open back and back hem. Hair does not cover it.",
+    faceVisible: () => false,
+    torsoYaw: { min: 170, max: 190 },
+    maxHeadYaw: 45,
+    expressionApplies: false,
+    feetVisible: () => true,
+  },
+  styled_full: {
+    id: "styled_full",
+    view: "front",
+    camera: `Front view, the body may angle up to 25 degrees. ${FULL_CAMERA}`,
+    crop: () => FULL_FRAME,
+    visibility: "The garment stays fully visible; accessories and hands never cover it.",
+    faceVisible: () => true,
+    torsoYaw: { min: 0, max: 25, absolute: true },
+    maxHeadYaw: 45,
     expressionApplies: true,
     feetVisible: () => true,
   },
   detail: {
     id: "detail",
     view: "detail",
-    camera: "Close-up, frontal or slight angle, macro-like detail, shallow but sufficient depth of field to keep the fabric sharp.",
-    crop: () => "Tight crop on one garment section (texture, closure, neckline or edge). Skin occupies at most 40 percent of the frame. No face in frame.",
-    visibility: "Fabric texture, stitching and edge finish are in sharp focus.",
+    camera: "On-model close-up, straight-on, camera at chest height, short telephoto look (about 100 mm equivalent), fabric in sharp focus.",
+    crop: () => "Square close-up from just below the lips down to the upper hips; only the jawline and neck may show, no eyes in frame. Garment centred.",
+    visibility: "Neckline, fabric texture, stitching and edge finish are clearly readable.",
     faceVisible: () => false,
     torsoYaw: { min: -20, max: 20 },
     maxHeadYaw: 90,

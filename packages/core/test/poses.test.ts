@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { compileProduction, GarmentFlag, getPose, MOCK_PROFILE, poseIncompatibility, PresetId, Category, type Product, Styling } from "../src/index.js";
+import { compileProduction, GarmentFlag, getPose, OW_SET, MOCK_PROFILE, poseIncompatibility, PresetId, Category, type Product, Styling } from "../src/index.js";
 import { asset, exampleSpec, PRODUCT_HALTER_TOP, PRODUCT_SUIT_PANTS } from "../src/fixtures.js";
 
 /** Tiny deterministic PRNG so the "random" sweep is reproducible. */
@@ -37,8 +37,24 @@ describe("pose planning", () => {
     expect(r.canRun).toBe(true);
   });
 
+  it("plans the brand gallery set: calm front/three-quarter/back, expressive styled shot, close-up without face", () => {
+    const r = compileProduction(exampleSpec({ slots: OW_SET.map((preset) => ({ preset })) }), MOCK_PROFILE);
+    expect(r.canRun).toBe(true);
+    for (const i of r.images) {
+      const pose = getPose(i.assignment.poseId)!;
+      if (["full_body", "three_quarter_full", "back_full"].includes(i.preset)) expect(pose.calm).toBe(true);
+      if (i.preset === "styled_full") {
+        expect(pose.calm).toBe(false);
+        expect(i.assignment.expressionId).toBe("soft_away");
+        expect(i.assignment.poseId).toBe("styled_bag_low"); // the fixture styling has a shoulder bag
+      }
+      if (i.preset === "detail") expect(i.exclusions).toContain("a face visible to the camera");
+      if (i.preset !== "detail") expect(i.prompt).toMatch(/figure fills about 93% of the frame height/);
+    }
+  });
+
   it("only chooses a bag pose when styling contains a bag", () => {
-    const noBag = compileProduction(exampleSpec({ products: [PRODUCT_HALTER_TOP], slots: [{ preset: "full_body" }, { preset: "full_body" }, { preset: "full_body" }, { preset: "full_body" }], styling: { ...exampleSpec().styling!, accessories: [] } }), MOCK_PROFILE);
+    const noBag = compileProduction(exampleSpec({ products: [PRODUCT_HALTER_TOP], slots: [{ preset: "styled_full" }, { preset: "styled_full" }, { preset: "styled_full" }, { preset: "styled_full" }], styling: { ...exampleSpec().styling!, accessories: [] } }), MOCK_PROFILE);
     expect(noBag.images.map((i) => i.assignment.poseId)).not.toContain("front_bag_shoulder");
   });
 

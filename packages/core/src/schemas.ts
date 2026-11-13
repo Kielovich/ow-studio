@@ -22,7 +22,7 @@ export type GarmentFlag = z.infer<typeof GarmentFlag>;
 export const PackshotSlot = z.enum(["front", "back", "detail", "side"]);
 export type PackshotSlot = z.infer<typeof PackshotSlot>;
 
-export const PresetId = z.enum(["front_crop", "three_quarter", "back", "full_body", "detail"]);
+export const PresetId = z.enum(["front_crop", "three_quarter", "back", "full_body", "three_quarter_full", "back_full", "styled_full", "detail"]);
 export type PresetId = z.infer<typeof PresetId>;
 
 /** Arrays that are semantically sets: deduplicated and sorted so order never affects hashes. */

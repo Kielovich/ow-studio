@@ -28,6 +28,9 @@ export const PRESET_ROLES: Record<PresetId, RefRole[]> = {
   back: ["garment_back", "body_back", "character_sheet"],
   // Identity before body: with body first, the face drifted in full-body shots (phase 3 finding).
   full_body: ["garment_front", "identity_primary", "body_front", "facial_detail"],
+  three_quarter_full: ["garment_front", "garment_side", "identity_primary", "identity_angle", "body_front", "facial_detail"],
+  back_full: ["garment_back", "body_back", "character_sheet"],
+  styled_full: ["garment_front", "identity_primary", "body_front", "facial_detail"],
   detail: ["garment_detail", "garment_front"],
 };
 
@@ -58,6 +61,9 @@ const REQUIRED_GARMENT: Record<PresetId, RefRole> = {
   three_quarter: "garment_front",
   back: "garment_back",
   full_body: "garment_front",
+  three_quarter_full: "garment_front",
+  back_full: "garment_back",
+  styled_full: "garment_front",
   detail: "garment_front",
 };
 

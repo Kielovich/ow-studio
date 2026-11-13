@@ -4,7 +4,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
 [
   {
     "expr": "neutral_camera",
-    "hash": "cmp_4404331ca8c8504d7f499d09ae5d608d6e0991aa51847b17470b82d752e759ac",
+    "hash": "cmp_e3cbdf1348d1bddae1696548b2146efee0897bd57dece46cc521a6c3854b44ba",
     "id": "img_38b2c4f56e954dd700f97492",
     "pose": "front_neutral",
     "preset": "front_crop",
@@ -19,7 +19,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_away",
-    "hash": "cmp_10df67250b91a3d4e099473cc79d5e80a5a71fbceeecc19d9b277603bdc0067c",
+    "hash": "cmp_c351df7e8c846d3a03a10dd59a20c7d3dd08e6d831fd61cf534aee6d3bee03be",
     "id": "img_8b4c8075854ecee8bb1a96cf",
     "pose": "tq_away_left",
     "preset": "three_quarter",
@@ -34,7 +34,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_a4133fda9a30864e93234b9c94a6200b879c87fea249e962612079f1268a3f4a",
+    "hash": "cmp_df015ae669ef4012f7513d720e9961371c7ec216c282d4d2ad6c7e5983e129e3",
     "id": "img_0106a25df8ef1d2c0f3b3f30",
     "pose": "back_neutral",
     "preset": "back",
@@ -47,7 +47,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "soft_neutral_camera",
-    "hash": "cmp_432ee6142dbce1bfc3261dedf3f5c30b55846174253058ecd19e7febb31e9cef",
+    "hash": "cmp_78829bce376d1d48dde146762fdb5716497865664560bf8299e9a84052b91bd1",
     "id": "img_896fe5fd0087a21d258eee72",
     "pose": "front_weight_shift",
     "preset": "full_body",
@@ -61,7 +61,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_2490e0b901a5b49bf7f1613cb11b3e028c1e620822f34f2777ab680c81e76a87",
+    "hash": "cmp_b67864274f51942ddf1f4ca392772681c063df32c6295afc1494a6d8690b6992",
     "id": "img_826ff3934934b4ef2ffef43e",
     "pose": "detail_still",
     "preset": "detail",
@@ -72,7 +72,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_camera",
-    "hash": "cmp_e883fd4be5dca5fcefa0b44d17cb3b7eade387ae00c8c11c8afd39754c0d4e37",
+    "hash": "cmp_6ac4c419fb196716f6b3daa9f3a38d5c20a1752f238b514163ec42d11b99dc66",
     "id": "img_d8bc1d1d8fa3f2047e2b2131",
     "pose": "front_neutral",
     "preset": "front_crop",
@@ -84,7 +84,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_away",
-    "hash": "cmp_9f60be511690adac3cf5a88047a13ef81bdbd6051f5cd9c8f68e217b10f61213",
+    "hash": "cmp_c8ba9a349275f0e3e51409b02be27b09ad98297eb7a7de694b847385edd94453",
     "id": "img_e6a8c6724abc90e1c9f6a121",
     "pose": "tq_away_left",
     "preset": "three_quarter",
@@ -96,7 +96,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_3b1eda380fbea614fdf953a933a645fb20ca52c1d5084da1c2db769cb0cb43ba",
+    "hash": "cmp_4e4d4f2944702d285d994e94777e391612440868fbf1e2233da323df15989ebc",
     "id": "img_288f6f3948289ca53fe1a7ac",
     "pose": "back_neutral",
     "preset": "back",
@@ -109,7 +109,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "soft_neutral_camera",
-    "hash": "cmp_47b09393597f7ef1f41bf3528698bd6ec5366967282881d12c777afdca4ca51a",
+    "hash": "cmp_0908691a2b0ceecd311335572b53d508d9396efd0f7a0032d25d262d8f053974",
     "id": "img_0e7c51aeb079c6fbeb232c76",
     "pose": "front_weight_shift",
     "preset": "full_body",
@@ -123,7 +123,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_b6221ceaaec51d647ceae075d9d3d913e5f43dfe2c96670c5634ed15c620e51d",
+    "hash": "cmp_014210650b6434ef8faa295b3af870e81f41a9536123691f689afb54e5ae502e",
     "id": "img_af7a26ae45a683a877547b11",
     "pose": "detail_still",
     "preset": "detail",
@@ -134,7 +134,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_camera",
-    "hash": "cmp_45a04c984c4d1b5aa95d675e25a94f874cee6c5e8824192e0cb11c5f49d3e6da",
+    "hash": "cmp_b3a19dfb15cf1233d1456eabda8a85cbe86df34689de67a23dcca8f7c4a9e0ba",
     "id": "img_c8adf68633ea53fbb87601ea",
     "pose": "front_neutral",
     "preset": "front_crop",
@@ -149,7 +149,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_away",
-    "hash": "cmp_e8fb516dd716b47a767e1c79ba4304f7001181cc2270ba34fa43f43c9e5be31e",
+    "hash": "cmp_10d1471ca91d8f6b133da77d9de8384c994f3c87bebc7abb9e8e165881b05735",
     "id": "img_5a611cae61a4e9cd138a2c6c",
     "pose": "tq_away_left",
     "preset": "three_quarter",
@@ -164,7 +164,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_035d4b1e3e64b2e2a9d9622104ea464d4c8c429c5869abb088eaca338a00814f",
+    "hash": "cmp_f149e16662599d11b39c3fcc28d20c56ade083b863be8fb31e011c574e3c7ebf",
     "id": "img_abae3cc68572abc234ff18b0",
     "pose": "back_neutral",
     "preset": "back",
@@ -177,7 +177,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "soft_neutral_camera",
-    "hash": "cmp_89fb01d17b8f283b43bc76d3667074e889b09ca6a516036a6f89bb6380fb4b17",
+    "hash": "cmp_36e5ab60bf0d6866a21ba07ad58790b4b78487afef8bc0591eb9d893cd3d90d5",
     "id": "img_a701e44c5b29e401cf7030ce",
     "pose": "front_weight_shift",
     "preset": "full_body",
@@ -191,7 +191,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_f5c42bc11b332e59004c306ba336ca5124b05707374244964ad8bd238046d312",
+    "hash": "cmp_5a8c51b40d80ac5228204b219566ac7b515f90bd7793d7d2f5477ad0c289c12e",
     "id": "img_adb689893d05356b8ccf9559",
     "pose": "detail_still",
     "preset": "detail",

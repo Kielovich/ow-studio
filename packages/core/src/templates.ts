@@ -5,7 +5,7 @@ import { PRESETS } from "./presets.js";
 import { BOTTOM_CATEGORIES, OUTERWEAR_CATEGORIES, type ImageSpec, type InstructionBlock, type PoseAssignment } from "./schemas.js";
 
 /** Bump when any wording below changes. Part of every compileHash. */
-export const TEMPLATE_VERSION = "tpl-2026.11.4";
+export const TEMPLATE_VERSION = "tpl-2026.11.5";
 
 /** Instruction priorities. Lower number wins when instructions conflict. */
 export const PRIORITY = {
@@ -87,7 +87,7 @@ export function buildBlocks(spec: ImageSpec, a: PoseAssignment): InstructionBloc
   if (!BOTTOM_CATEGORIES.includes(p.category) && p.category !== "dress" && st.bottoms) styling.push(`bottoms: ${st.bottoms}`);
   if (def.feetVisible(p.category) && st.footwear) styling.push(`footwear: ${st.footwear}`);
   if (def.feetVisible(p.category) && st.legwear) styling.push(`legwear: ${st.legwear}`);
-  if (preset === "full_body" && st.accessories.length) styling.push(`accessories: ${st.accessories.join(", ")}`);
+  if (preset === "styled_full" && st.accessories.length) styling.push(`accessories: ${st.accessories.join(", ")}`);
   if (styling.length) add("styling", `Styling (secondary, must not draw attention from the garment): ${styling.join("; ")}.`);
 
   return blocks.sort((x, y) => x.priority - y.priority);
