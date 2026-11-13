@@ -9,3 +9,6 @@ out/
 # Local one-off run scripts
 apps/web/.run/
 apps/web/.sim/
+
+# Local exports of generated images (internal test material, never committed)
+/*.zip
