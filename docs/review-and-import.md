@@ -30,3 +30,8 @@
 ## Trousers close-up retest (2026-11-13, `prod_20261113_18031d`, 1 image, $0.16, tpl-2026.11.13)
 - Framing fixed: waistband, button, fly and front pockets fill the frame; the styling top is no longer the subject.
 - Coated finish improved but not solved: the twill of the base denim and the topstitching are now readable, but the surface is still glossier and more neutral black than the matte, slightly warm packshot. Prompt wording alone appears to be at its limit; next lever is a fabric crop of the packshot sent as a texture reference.
+
+## Fabric crop reference (2026-11-13, `prod_20261113_3da198`, 2 images, $0.32)
+- New `garment_texture` reference: the largest square fully inside the garment on the front packshot (eroded mask, so gaps such as between the legs never enter), sent right after the garment packshots and controlling texture only.
+- Result on the coated trousers: the denim twill under the coating is now clearly rendered, the front is slightly less glossy, but the surface is still glossier and cooler than the matte, slightly warm packshot. Prompt plus texture reference appear to be at the model's limit for this finish; treat it as a review item.
+- Regression found and fixed: the bottoms close-up showed bare skin between the styling top and the waistband (crop wording plus "top ends at the waist"). The framing now requires the top to reach the waistband (tpl-2026.11.13b).

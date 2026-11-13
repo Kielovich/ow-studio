@@ -99,6 +99,7 @@ describe("close-up per garment type", () => {
     expect(framing("TEST-PT-003")).toMatch(/waistband down to mid-thigh/);
     expect(framing("TEST-PT-003")).toMatch(/Camera at hip height/);
     expect(framing("TEST-PT-003")).not.toMatch(/lips|chest height/);
+    expect(framing("TEST-PT-003")).toMatch(/no skin showing/);
     expect(framing("TEST-TP-002")).toMatch(/below the lips/);
   });
 
