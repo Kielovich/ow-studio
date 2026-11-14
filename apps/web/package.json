@@ -28,6 +28,7 @@
     "@types/node": "^22.10.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "playwright": "1.63.0",
     "tailwindcss": "4.3.3",
     "tsx": "^4.19.2",
     "typescript": "^5"

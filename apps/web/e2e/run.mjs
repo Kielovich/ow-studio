@@ -2,7 +2,8 @@
  * End-to-end test of the main flows in a real browser, against an isolated environment:
  * empty data directory, seeded models, login enabled, worker with the SIMULATED provider (no network, no cost).
  *
- *   npm run e2e -w web            (from the repository root; builds the app, uses the pre-installed Playwright Chromium)
+ *   npx playwright install --with-deps chromium   (once per machine: the browser for the pinned Playwright devDependency)
+ *   npm run e2e -w web            (from the repository root; builds the app and runs it in Chromium)
  *   E2E_SHOTS=dir npm run e2e -w web   also writes screenshots of every page at 1440 and 390 px
  *
  * Fails on any assertion, page error or console error.

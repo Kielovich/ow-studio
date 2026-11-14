@@ -78,9 +78,10 @@ npm test --workspaces --if-present
 
 Today: 113 tests in `packages/core` and 24 in `apps/web` (folder import, idempotent creation, attempts, ZIP, metrics, unknown outcome, session anchor, access control, colour check, realism language). All must pass on the new data layer.
 
-End to end (run it before and after the port; it starts its own isolated server and simulated worker, no paid calls):
+End to end (run it before and after the port; it starts its own isolated server and simulated worker, no paid calls). Node 22.13 or newer (`node:sqlite`). Install the browser once:
 
 ```bash
+npx playwright install --with-deps chromium
 npm run e2e -w web
 ```
 
