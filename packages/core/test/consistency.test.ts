@@ -161,13 +161,17 @@ describe("realism language (docs/realism-audit.md)", () => {
     expect(block(s.full_body!, "identity")).toMatch(/flyaways and baby hairs/);
     expect(block(s.full_body!, "identity")).toMatch(/satin or matte finish/);
     expect(block(s.back_full!, "identity")).toMatch(/flyaways and baby hairs/);
-    expect(block(s.full_body!, "style")).toMatch(/not the stylised model hand/);
+    expect(block(s.full_body!, "style")).toMatch(/thumb resting alongside the index finger/);
+    // The stock gesture is no longer named anywhere (naming it may prime it).
+    for (const i of Object.values(s)) expect(i!.prompt).not.toMatch(/thumb touching the middle finger/);
+    expect(block(s.full_body!, "identity")).toMatch(/do not beautify, idealise, slim or correct symmetry/);
+    expect(block(s.full_body!, "style")).toMatch(/luminance comes from the light alone/);
     expect(block(s.full_body!, "style")).toMatch(/Body skin is real too/);
     expect(block(s.full_body!, "style")).toMatch(/gentle fall-off across the body/);
     // Round 1 lesson: asking the light to "show the garment's folds" added gathers to a smooth dress.
     expect(block(s.full_body!, "style")).not.toMatch(/shows its folds/);
     expect(block(s.full_body!, "style")).toMatch(/never adds folds, gathers or creases/);
-    for (const i of Object.values(s)) expect(i!.exclusions).toEqual(expect.arrayContaining(["helmet-like hair without a single loose strand", "the stylised model hand with the thumb touching the middle finger"]));
+    for (const i of Object.values(s)) expect(i!.exclusions).toEqual(expect.arrayContaining(["helmet-like hair without a single loose strand", "CGI or 3D-render look, beauty-filter skin"]));
   });
   it("never asks for studio equipment in frame, and keeps the head out of back views of bottoms (rounds 1-2)", () => {
     for (const i of Object.values(s)) {

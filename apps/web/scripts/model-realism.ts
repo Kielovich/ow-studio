@@ -4,7 +4,7 @@
  * Body references are reused from the current version. Old versions are never changed.
  *
  *   npx tsx scripts/model-realism.ts <modelId> portrait [--confirm]   1 image: the new identity portrait
- *   npx tsx scripts/model-realism.ts <modelId> refs [--confirm]       3 images: three-quarter, profile, character sheet
+ *   npx tsx scripts/model-realism.ts <modelId> refs [--confirm] [--redo characterSheet]   three-quarter, profile, 5-panel character sheet
  *   npx tsx scripts/model-realism.ts <modelId> register               new active version (older active one archived)
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -47,9 +47,12 @@ const fromPortrait = (kind: "threeQuarter" | "profile" | "characterSheet", hair:
   const finish = `Hair: ${hair}; ${REAL.hair}. Makeup: ${REAL.makeup}. Skin: ${REAL.skin}. Light: ${REAL.light}. Camera: ${REAL.camera}.`;
   if (kind === "threeQuarter") return `Identity reference, three-quarter view, of ${same}\n\nHead and shoulders, head and body turned about 40 degrees to the side, eyes following the head, calm expression, lips closed. Plain fitted black tank top.\n\n${finish}`;
   if (kind === "profile") return `Identity reference, side profile, of ${same}\n\nHead and shoulders in exact side profile (90 degrees), calm expression, lips closed. Plain fitted black tank top.\n\n${finish}`;
-  return `Professional model character reference sheet of ${same}\n\nOne wide image with five views of her side by side, evenly spaced, same scale: 1) head and shoulders front, 2) head and shoulders three-quarter, ` +
-    `3) head and shoulders side profile, 4) back of the head and shoulders showing the hairstyle, 5) full body front in a plain fitted black tank top and black leggings, barefoot. ` +
-    `Identical face, hair, makeup and skin in every view; calm expression, lips closed. No text, labels or numbers.\n\n${finish}`;
+  // Simple beats overloaded: exactly five large panels, one neutral pose, even light, no text (each extra panel steals
+  // pixels from the others once the model downsizes the reference).
+  return `Character reference sheet of ${same}\n\nOne wide image with exactly five large panels side by side, evenly spaced, nothing else: ` +
+    `1) face close-up, front, 2) full body front, 3) full body back, 4) full body left profile, 5) full body right profile. ` +
+    `The full-body panels share one scale and the same neutral standing pose: arms relaxed at the sides, legs straight, no dynamic pose; plain fitted black tank top and black leggings, barefoot. ` +
+    `Identical face, hair, makeup and skin in every panel; calm expression, lips closed. Soft even studio light, plain light grey background. No text, labels, numbers, rulers or extra panels.\n\n${finish}`;
 };
 
 async function generate(prompt: string, refs: string[], aspect: "1:1" | "16:9"): Promise<string> {
@@ -84,6 +87,9 @@ async function main() {
     console.log("portrait ->", state.portrait);
   } else if (stage === "refs") {
     if (!state.portrait) throw new Error("make and approve the portrait first");
+    // --redo characterSheet regenerates one reference (the old hash is kept under rejected).
+    const redo = process.argv.includes("--redo") ? process.argv[process.argv.indexOf("--redo") + 1]!.split(",") : [];
+    for (const k of redo) if (state[k]) { state[`rejected_${k}`] = state[k]!; delete state[k]; }
     const kinds = (["threeQuarter", "profile", "characterSheet"] as const).filter((k) => !state[k]);
     console.log(`${kinds.length} images, est. $${(kinds.length * GEMINI_PRO_PROFILE.estimatedCostUsd).toFixed(2)}`);
     if (!confirm) return console.log("Dry run. Add --confirm.");
