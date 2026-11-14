@@ -83,7 +83,7 @@ npm test --workspaces --if-present
 npm run typecheck -w web
 ```
 
-Today: 115 tests in `packages/core` and 24 in `apps/web` (folder import, idempotent creation, attempts, ZIP, metrics, unknown outcome, session anchor, access control, colour check, realism language). All must pass on the new data layer.
+Today: 125 tests in `packages/core` and 29 in `apps/web` (folder import, idempotent creation, attempts, ZIP, metrics, unknown outcome, session anchor, access control, colour check, realism language). All must pass on the new data layer.
 
 End to end (run it before and after the port; it starts its own isolated server and simulated worker, no paid calls). Node 22.13 or newer (`node:sqlite`). Install the browser once:
 
@@ -92,7 +92,7 @@ npx playwright install --with-deps chromium
 npm run e2e -w web
 ```
 
-It checks 47 things in a real browser: login and logout, folder import with conflicts, the import session after a reload, idempotent Run, simulated generation, approve/reject/new attempt/compare, the approved ZIP and 2000 px downloads, the model library (overview of portraits and names, a model page with her reference images and a large view), every page at 1440 and 390 px without horizontal scroll or console errors, the compact mobile menu, the tip boxes (dismiss, stay dismissed, bring back from Settings) and an (i) explanation, keyboard focus, the not-found state, the health check and the daily backup. On Sites, run the same flows against the deployed site with `OW_PROVIDER=simulated` on a staging copy if the runtime allows it; otherwise by hand. Then check by hand on the deployed site, without paid calls:
+It checks 54 things in a real browser: login and logout, folder import with conflicts, the import session after a reload, idempotent Run, simulated generation, approve/reject/new attempt/compare, the approved ZIP and 2000 px downloads, the model library (overview of portraits and names, a model page with her reference images and a large view), every page at 1440 and 390 px without horizontal scroll or console errors, the compact mobile menu, the tip boxes (dismiss, stay dismissed, bring back from Settings) and an (i) explanation, a look added by hand (top, bottom, shoes, accessory, fit reference) and the references it adds, keyboard focus, the not-found state, the health check and the daily backup. On Sites, run the same flows against the deployed site with `OW_PROVIDER=simulated` on a staging copy if the runtime allows it; otherwise by hand. Then check by hand on the deployed site, without paid calls:
 
 1. Unauthenticated: pages redirect to the login, APIs answer 401.
 2. After login: the 7 models are listed (seeded).

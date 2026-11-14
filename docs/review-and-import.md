@@ -8,6 +8,18 @@
 - Metrics per production: approved, approved on the first recorded attempt, attempts, spent, spent per approved image, and attempts with an unknown outcome (not counted in spent, may have been billed).
 - Migration: images finished before this change get one backfilled attempt (not reviewed). Verified on a copy of the real database: 20 images → 20 attempts, idempotent on reopen.
 
+## Looks: top, bottom, shoes, accessories, fit reference (2026-11-14, branch `feature/manual-look`)
+
+A look is one set (a folder, or a look added by hand with a slot per image: top front/back, bottom front/back, shoes, up to three accessories, fit reference). The products of a look are photographed wearing each other: each product still gets its own brand set, and in every image the other garment of the look is drawn from its own packshot instead of from the styling text.
+
+- Only garments that are worn together combine: top with bottom or outerwear, bottom with top or outerwear, a dress only with outerwear. A folder of three dresses is not one look (`wornTogether` in `repo.ts`).
+- Shoes are sent only where the feet are in the picture; accessories only in the styled shot; nothing of the look in the close-up.
+- The fit reference may show a real person: its top 22% (the head of a standing figure) is cut away before it is sent, and the prompt says to ignore the person (`cropFitReference`). It counts as a person reference against the provider's limit of 5.
+- New reference roles control only `styling` (other garment, shoes, accessories) or `fit`; the product's packshots stay first and remain the authority for the product. Accessories come last and are the first to be dropped at the limit of 11 references; the prompt only calls an image "attached" when it is really sent.
+- A production without a look compiles exactly as before (the prompt snapshots are unchanged).
+- Shoe, bag and fit files in a folder are recognised by name (`shoes`, `sko`, `bag`, `taske`, `fit`, `pasform`, ...) and can be re-typed in the import.
+- Not yet verified with paid images; until then this stays off `main` (which deploys to production).
+
 ## Hand fix (tried, not in the app)
 
 The provider's stock "model hand" survived every prompt change (`docs/realism-audit.md`). A local fix was built: the reviewer clicks on the hand, only a square around the point (24% of the short side) is sent to Nano Banana Pro with an edit prompt, and the answer is colour-matched and blended back so that no pixel outside the square changes (pixel-tested in `packages/core/test/handfix.test.ts`).

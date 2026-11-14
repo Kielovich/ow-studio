@@ -4,7 +4,7 @@ import { join } from "node:path";
 import sharp from "sharp";
 import { beforeAll, describe, expect, it } from "vitest";
 import { GEMINI_PRO_PROFILE, GeminiProvider } from "@ow-studio/core";
-import { importIssues, packshotsBySku, parseFile, type ImportFile } from "../lib/import";
+import { importIssues, lookAssets, lookOfSku, packshotsBySku, parseFile, type ImportFile } from "../lib/import";
 import { productionMetrics, statusView } from "../lib/outcome";
 
 // Isolated data directory: the real production history is never touched. No network: the provider is simulated.
@@ -73,7 +73,7 @@ describe("folder import", () => {
     expect(r.map((x) => [x.set, x.sku, x.role, x.kind])).toEqual([
       ["Look-07", "AB123-045", "front", "garment"],
       ["Look-07", "AB123-045", "back", "garment"],
-      ["Look-07", "SH456-010", null, "accessory"],
+      ["Look-07", "SH456-010", null, "footwear"],
       ["Look-08", "CD789-001", "front", "garment"],
       ["Look-08", "CD789-001", "front", "garment"],
       ["Look-08", null, null, "garment"],
@@ -271,5 +271,73 @@ describe("unknown outcome", () => {
     ]);
     expect(m).toMatchObject({ approved: 2, approvedFirstTry: 1, attempts: 4 });
     expect(m.costPerApprovedUsd).toBeCloseTo(0.32);
+  });
+});
+
+describe("a look: top, bottom, shoes, accessories and fit reference", () => {
+  it("reads shoes, accessories and fit references from file names", () => {
+    expect(["Look-1/shoes.jpg", "Look-1/sko.jpg", "Look-1/bag.jpg", "Look-1/oreringe.jpg", "Look-1/fit.jpg", "Look-1/pasform-ref.jpg", "Look-1/AB123_front.jpg"]
+      .map((p) => parseFile(p).kind)).toEqual(["footwear", "footwear", "accessory", "accessory", "fit", "fit", "garment"]);
+  });
+
+  it("groups the rest of each look by set, and finds each product's look", () => {
+    const f = (path: string, hash: string, extra: Partial<ImportFile> = {}): ImportFile => ({ ...parseFile(path), key: hash, hash: "sha256:" + hash.padEnd(64, "0"), ...extra });
+    const files = [
+      f("Look-1/AB123_front.jpg", "a1"), f("Look-1/CD456_front.jpg", "b1"), f("Look-1/shoes.jpg", "c1"),
+      f("Look-1/bag.jpg", "d1"), f("Look-1/belt.jpg", "d2"), f("Look-1/fit.jpg", "e1"), f("Look-1/fit2-fit.jpg", "e2"),
+      f("Look-2/EF789_front.jpg", "f1"), f("Look-2/shoes.jpg", "c2", { ignored: true }),
+    ];
+    const looks = lookAssets(files);
+    expect(looks["Look-1"]).toEqual({ footwear: "sha256:c1".padEnd(71, "0"), accessories: ["sha256:d1".padEnd(71, "0"), "sha256:d2".padEnd(71, "0")], fit: "sha256:e1".padEnd(71, "0") });
+    expect(looks["Look-2"]).toBeUndefined(); // the ignored shoe image does not count
+    expect(Object.fromEntries(lookOfSku(files))).toEqual({ AB123: "Look-1", CD456: "Look-1", EF789: "Look-2" });
+  });
+
+  it("styles each product of a look with the other garment, the shoes and a headless fit reference", async () => {
+    const h = async (shade: number, w = 300, hgt = 300) => repo.assets.putBytes(await png(w, hgt, shade));
+    const fitOriginal = await h(150, 400, 1000);
+    const lookDraft = {
+      ...draft,
+      sessionAnchor: false,
+      presets: ["full_body", "styled_full"] as typeof draft.presets,
+      products: [
+        { sku: "LK-TOP-1", name: "Top", category: "top" as const, color: "black", description: "", flags: [], packshots: { front: await h(40), back: await h(41) }, look: "Look-9" },
+        { sku: "LK-PNT-1", name: "Trousers", category: "trousers" as const, color: "black", description: "", flags: [], packshots: { front: await h(50), back: await h(51) }, look: "Look-9" },
+      ],
+      looks: { "Look-9": { footwear: await h(60), accessories: [await h(70)], fit: fitOriginal } },
+    };
+    const id = await created(lookDraft);
+    const imgs = repo.getProduction(id)!.images;
+    const pantsFull = imgs.find((i) => i.sku === "LK-PNT-1" && i.preset === "full_body")!;
+    const topStyled = imgs.find((i) => i.sku === "LK-TOP-1" && i.preset === "styled_full")!;
+    const roles = (i: typeof pantsFull) => i.refs.map((r) => r.role);
+    expect(roles(pantsFull)).toEqual(expect.arrayContaining(["garment_front", "look_garment_front", "footwear", "fit_reference"]));
+    expect(pantsFull.refs.find((r) => r.role === "look_garment_front")!.asset).toBe(lookDraft.products[0]!.packshots.front);
+    expect(roles(topStyled)).toContain("accessory");
+    expect(pantsFull.prompt).toContain("top: the top in the attached look packshot");
+    // The fit reference is sent with its top (the head) removed, never the original upload.
+    const fitSent = pantsFull.refs.find((r) => r.role === "fit_reference")!.asset;
+    expect(fitSent).not.toBe(fitOriginal);
+    const m = await sharp((await repo.assets.resolve(fitSent)).bytes).metadata();
+    expect(m.width).toBe(400);
+    expect(m.height).toBe(780);
+  });
+
+  it("only combines garments that are worn together: three dresses in one folder are not one look", async () => {
+    expect(repo.wornTogether("top", "trousers")).toBe(true);
+    expect(repo.wornTogether("dress", "coat")).toBe(true);
+    expect(repo.wornTogether("dress", "dress")).toBe(false);
+    expect(repo.wornTogether("dress", "trousers")).toBe(false);
+    expect(repo.wornTogether("top", "knit")).toBe(false);
+    const h = async (shade: number) => repo.assets.putBytes(await png(300, 300, shade));
+    const dress = async (sku: string, shade: number) => ({ sku, name: sku, category: "dress" as const, color: "black", description: "", flags: [], packshots: { front: await h(shade) }, look: "Drop-1" });
+    const id = await created({ ...draft, sessionAnchor: false, presets: ["full_body"], products: [await dress("DR-A", 20), await dress("DR-B", 30), await dress("DR-C", 40)] });
+    for (const i of repo.getProduction(id)!.images) expect(i.refs.map((r) => r.role)).not.toContain("look_garment_front");
+  });
+
+  it("leaves a production without a look exactly as before", async () => {
+    const id = await created({ ...draft, sessionAnchor: false, presets: ["full_body"] });
+    const roles = repo.getProduction(id)!.images.flatMap((i) => i.refs.map((r) => r.role));
+    for (const r of ["look_garment_front", "look_garment_back", "footwear", "accessory", "fit_reference"]) expect(roles).not.toContain(r);
   });
 });

@@ -2,7 +2,7 @@ import { garmentConstraintLines } from "./garmentConstraints";
 import { silhouetteText } from "./silhouette";
 import { getExpression, getPose } from "./poses";
 import { brandFraming, PRESETS } from "./presets";
-import { BOTTOM_CATEGORIES, OUTERWEAR_CATEGORIES, type ImageSpec, type InstructionBlock, type PoseAssignment } from "./schemas";
+import { BOTTOM_CATEGORIES, OUTERWEAR_CATEGORIES, type ImageSpec, type InstructionBlock, type PoseAssignment, type RefSlot } from "./schemas";
 
 /** Bump when any wording below changes. Part of every compileHash. */
 export const TEMPLATE_VERSION = "tpl-2026.11.14e";
@@ -35,7 +35,11 @@ export function asymmetryText(side: "wearer_right" | "wearer_left", view: "front
   return `Measured hem orientation: the hem is longest on the wearer's ${wearer} side; ${where}. Never mirror the garment.`;
 }
 
-export function buildBlocks(spec: ImageSpec, a: PoseAssignment): InstructionBlock[] {
+/**
+ * `sent` is the reference selection for this image. Styling lines only say "attached" for images that are really sent
+ * (the provider limit can trim the look's images); otherwise they fall back to the styling text.
+ */
+export function buildBlocks(spec: ImageSpec, a: PoseAssignment, sent: RefSlot[] = []): InstructionBlock[] {
   const { product: p, model: m, styling: st, style, preset } = spec;
   const def = PRESETS[preset];
   const face = def.faceVisible(p.category);
@@ -117,12 +121,46 @@ export function buildBlocks(spec: ImageSpec, a: PoseAssignment): InstructionBloc
   if (expr && face && def.expressionApplies) add("expression", `Expression: ${expr.text}`);
 
   const styling: string[] = [];
-  if (OUTERWEAR_CATEGORIES.includes(p.category) && st.innerTop) styling.push(`worn over: ${st.innerTop}`);
-  if (BOTTOM_CATEGORIES.includes(p.category) && st.top) styling.push(`top: ${st.top}`);
-  if (!BOTTOM_CATEGORIES.includes(p.category) && p.category !== "dress" && st.bottoms) styling.push(`bottoms: ${st.bottoms}`);
-  if (def.feetVisible(p.category) && st.footwear) styling.push(`footwear: ${st.footwear}`);
+  // The rest of the look as images (manual or folder import): other garments, shoes, accessories. Without a look this
+  // produces exactly the text-only styling lines it always did.
+  const sentAssets = new Set(sent.map((r) => r.asset));
+  const lookGarments = p.look?.garments ?? [];
+  const used = new Set<string>();
+  const piece = (g: (typeof lookGarments)[number]) =>
+    sentAssets.has(g.front) || (g.back && sentAssets.has(g.back)) ? `the ${g.category} in the attached look packshot` : `the ${g.category} of this look`;
+  const take = (pick: (g: (typeof lookGarments)[number]) => boolean) => {
+    const gs = lookGarments.filter((g) => !used.has(g.sku) && pick(g));
+    gs.forEach((g) => used.add(g.sku));
+    return gs.map(piece).join(" and ");
+  };
+  const isBottom = (c: string) => (BOTTOM_CATEGORIES as readonly string[]).includes(c);
+  const isOuter = (c: string) => (OUTERWEAR_CATEGORIES as readonly string[]).includes(c);
+  if (OUTERWEAR_CATEGORIES.includes(p.category)) {
+    const t = take((g) => !isBottom(g.category) && !isOuter(g.category));
+    if (t) styling.push(`worn over: ${t}`);
+    else if (st.innerTop) styling.push(`worn over: ${st.innerTop}`);
+  }
+  if (BOTTOM_CATEGORIES.includes(p.category)) {
+    const t = take((g) => !isBottom(g.category));
+    if (t) styling.push(`top: ${t}`);
+    else if (st.top) styling.push(`top: ${st.top}`);
+  }
+  if (!BOTTOM_CATEGORIES.includes(p.category) && p.category !== "dress") {
+    const t = take((g) => isBottom(g.category));
+    if (t) styling.push(`bottoms: ${t}`);
+    else if (st.bottoms) styling.push(`bottoms: ${st.bottoms}`);
+  }
+  const rest = take(() => true);
+  if (rest) styling.push(`worn with: ${rest}`);
+  if (def.feetVisible(p.category)) {
+    if (sent.some((r) => r.role === "footwear")) styling.push("footwear: the shoes in the attached shoe image");
+    else if (st.footwear) styling.push(`footwear: ${st.footwear}`);
+  }
   if (def.feetVisible(p.category) && st.legwear) styling.push(`legwear: ${st.legwear}`);
-  if (preset === "styled_full" && st.accessories.length) styling.push(`accessories: ${st.accessories.join(", ")}`);
+  if (preset === "styled_full") {
+    const acc = [...(sent.some((r) => r.role === "accessory") ? ["the pieces in the attached accessory images"] : []), ...st.accessories];
+    if (acc.length) styling.push(`accessories: ${acc.join(", ")}`);
+  }
   if (styling.length) add("styling", `Styling (secondary, must not draw attention from the garment): ${styling.join("; ")}.`);
 
   return blocks.sort((x, y) => x.priority - y.priority);
