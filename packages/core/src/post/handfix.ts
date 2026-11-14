@@ -5,12 +5,15 @@ import sharp from "sharp";
  * feathered edge. Every pixel outside the square is copied unchanged (lossless output), so the garment elsewhere,
  * the face and the background cannot change. Deterministic apart from the provider call.
  */
+// v2 (2026-11-14): v1 only said "edit only the hand" and "keep everything exactly"; Nano Banana returned the crop
+// unchanged (docs/review-and-import.md). v2 asks for a change of pose and describes the target, never the current gesture.
 export const HAND_FIX_PROMPT = [
-  "This is a crop from a studio fashion photograph. Edit only the hand and fingers in it.",
-  "Make the hand look like a real person's relaxed hand: fingers loosely together with a gentle natural curve, the thumb resting alongside the index finger, " +
-  "natural knuckles, creases and short natural nails, correct anatomy with five fingers.",
-  "Keep everything else in the crop exactly as it is: the garment, its fabric, folds, seams and colour, the skin tone, the background, the light direction and the framing. " +
-  "Return the same crop at the same framing, nothing added or removed, no text.",
+  "This is a crop from a studio fashion photograph. The hand in it looks posed, like a model's hand. Change its pose.",
+  "Redraw the hand as a real person's hand hanging loosely at her side: the fingers relaxed and slightly apart, each finger bent a little differently, " +
+  "the index finger straighter than the others, the thumb resting against the side of the index finger and not touching any other fingertip. " +
+  "Visible knuckles, fine skin creases, short natural nails, five fingers, correct anatomy.",
+  "The wrist and the sleeve stay exactly where they are. Keep everything else unchanged: the garment with its fabric, mesh, folds, seams and colour, " +
+  "the skin tone, the background, the light and the framing. No text.",
 ].join("\n");
 
 export type CropBox = { left: number; top: number; size: number };

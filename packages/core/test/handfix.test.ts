@@ -1,6 +1,6 @@
 import sharp from "sharp";
 import { describe, expect, it } from "vitest";
-import { compositeFix, cropForFix, handBox } from "../src/post/handfix";
+import { compositeFix, cropForFix, HAND_FIX_PROMPT, handBox } from "../src/post/handfix";
 
 const W = 400, H = 400;
 /** Grey studio frame with a dark garment block and a warm "hand" patch. */
@@ -43,5 +43,11 @@ describe("hand fix composite", () => {
     // At the box edge the result equals the original (feathered to zero).
     const e = 3 * (box.top * W + box.left + 5);
     expect(out[e]).toBe(before[e]);
+  });
+
+  it("asks for a change of pose and describes the target, not the current gesture", () => {
+    expect(HAND_FIX_PROMPT).toMatch(/Change its pose\./);
+    expect(HAND_FIX_PROMPT).toMatch(/wrist and the sleeve stay exactly where they are/);
+    expect(HAND_FIX_PROMPT).not.toMatch(/middle finger/);
   });
 });
