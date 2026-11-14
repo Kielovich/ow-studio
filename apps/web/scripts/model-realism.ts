@@ -83,9 +83,12 @@ async function main() {
   const hair = hairForPrompt(current.data.look.hair);
   if (stage === "portrait") {
     console.log(`1 image (portrait of ${current.data.displayName} v${current.version}), est. $${GEMINI_PRO_PROFILE.estimatedCostUsd.toFixed(2)}`);
-    if (!confirm) return console.log("Dry run. Add --confirm.\n\n" + portraitPrompt(hair));
-    state.portrait = await generate(portraitPrompt(hair), [current.data.refs.primaryPortrait], "1:1");
-    state.portraitPrompt = portraitPrompt(hair);
+    // --note "..." adds one correction after a rejected attempt (the rejected hash is kept).
+    const note = process.argv.includes("--note") ? `\nCorrection: ${process.argv[process.argv.indexOf("--note") + 1]}` : "";
+    if (!confirm) return console.log("Dry run. Add --confirm.\n\n" + portraitPrompt(hair) + note);
+    if (state.portrait) state[`rejected_portrait_${Date.now()}`] = state.portrait;
+    state.portrait = await generate(portraitPrompt(hair) + note, [current.data.refs.primaryPortrait], "1:1");
+    state.portraitPrompt = portraitPrompt(hair) + note;
     save();
     console.log("portrait ->", state.portrait);
   } else if (stage === "refs") {

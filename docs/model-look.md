@@ -54,3 +54,23 @@ Active models: Sable v3, Mei, Lucía, Liv, Nadia, Noa and Kaia. Each has portrai
 The production hair and makeup fields are now empty by default, meaning each model's own signature look from her portrait. A filled field is a production-wide override. Previously a default hair value forced one style onto every model.
 
 Reference-prompt bug fixed: references used the base hair description instead of the styled hair, so Sable's angles and Liv's back body had loose hair. Those three images were rejected and regenerated.
+
+## Realism refresh (2026-11-14)
+
+All seven models have a new version made with `apps/web/scripts/model-realism.ts` (realism audit, lever 2). Same face, hairstyle and framing; changed:
+- real hair edges (flyaways, baby hairs) instead of a solid helmet;
+- satin or matte nude lips instead of gloss; contour softly blended; highlight only as a faint sheen;
+- real skin (pores, slight unevenness), no oily or dewy shine;
+- a five-panel character sheet (face close-up, full body front, back, two profiles) instead of five to seven small head views. Fewer, larger panels keep each view sharp after the model downsizes the reference.
+
+| Model | New version | Notes |
+|---|---|---|
+| Noa | v3 (v2 = first refresh with a 7-panel sheet) | benchmark model |
+| Liv | v2 | oily forehead and waxy look gone |
+| Kaia | v2 | one 503 from the provider mid-batch; rerun |
+| Sable | v4 | |
+| Mei | v2 | first portrait changed her high ponytail into two front tails; rejected and redone with a correction |
+| Nadia | v2 | |
+| Lucía | v2 | portrait and angles kept (most realistic in the audit); only the character sheet renewed |
+
+Older versions are archived, never changed; their productions keep them. The look texts of the new versions no longer contain "no loose strands" or "crisp hairline", which contradicted the realism text (the compiler also strips these phrases from older versions via `hairForPrompt`). Known weakness: in several sheets both profiles face the same way instead of left and right.

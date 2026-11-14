@@ -76,7 +76,7 @@ Run from the repository root:
 npm test --workspaces --if-present
 ```
 
-Today: 107 tests in `packages/core` and 24 in `apps/web` (folder import, idempotent creation, attempts, ZIP, metrics, unknown outcome, session anchor, access control, colour check, realism language). All must pass on the new data layer.
+Today: 110 tests in `packages/core` and 24 in `apps/web` (folder import, idempotent creation, attempts, ZIP, metrics, unknown outcome, session anchor, access control, colour check, realism language). All must pass on the new data layer.
 
 End to end (run it before and after the port; it starts its own isolated server and simulated worker, no paid calls):
 
@@ -98,7 +98,8 @@ A fresh deployment needs only the seed (`apps/web/seed/`, imported automatically
 
 ## 8. State at handover (2026-11-13)
 
-- Realism work is in progress: a 12-defect audit (`docs/realism-audit.md`) and the realism block v2 in the compiler (template `tpl-2026.11.14b`). The owner is judging the first blind A/B round; further rounds (new reference images per model) may change model versions, never the code paths.
+- Realism work is done for now (`docs/realism-audit.md`, results section): compiler template `tpl-2026.11.14e`, and all seven models refreshed to new versions with five-panel character sheets (`docs/model-look.md`). The seed (`apps/web/seed/`) holds these new versions.
+- Known open items: the stock "model hand" in relaxed poses (provider default), and the trousers three-quarter shot framing the head since `tpl-2026.11.14c`. Both are caught in review.
 - Known open item: one end-to-end run had an image stuck in "submitting" until its lease expired; not reproduced in five runs since, cause not identified. The worker now releases the lease on any crash and logs the stack. Watch for `crashed:` in the worker log.
 - Railway is the tested fallback host (`Dockerfile`, `docs/deploy.md`).
 

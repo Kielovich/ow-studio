@@ -80,3 +80,26 @@ Google's own pages could not be read from this environment (`blog.google` and `d
 Proposed after round 3 (not yet tested, so not in the compiler): drop the description of the stock gesture from the hand text and the exclusions, and put a concrete, positive hand description into the relaxed-arm pose texts.
 
 Sources: [Google: 7 tips for Nano Banana Pro](https://blog.google/products/gemini/prompting-tips-nano-banana-pro/), [Google Developers: prompting Gemini 2.5 Flash Image](https://developers.googleblog.com/en/how-to-prompt-gemini-2-5-flash-image-generation-for-the-best-results/), [Imagen prompt guide](https://ai.google.dev/gemini-api/docs/imagen-prompt-guide), [Oakgen: fix plastic skin](https://oakgen.ai/blog/fix-plastic-skin-ai-portraits), [Upsampler: make AI images look real](https://upsampler.com/blog/make-ai-images-look-real), [Cloudinary: make AI images look real](https://cloudinary.com/guides/image-generation/how-to-make-ai-images-look-real), [Beauty editorial close-ups](https://imagegpt-web.pages.dev/learn/guides/beauty-editorial-closeups) (the Google pages were known only from search snippets).
+
+## Results (2026-11-13 to 2026-11-14)
+
+Benchmark: Noa, coated trousers, mesh dress, fur jacket, 5 shots each. Scores are one non-blind rater (Claude); the owner did not give a blind verdict and approved merging v3.
+
+| Run | Change | Score (15 images) | Same 14 images | Notes |
+|---|---|---|---|---|
+| Baseline `2fedce` | | 96 | 90 | |
+| Round 1 `26fac2` | realism block v2 | 80 | | gathers added to the mesh dress ("show its folds"), fixed |
+| Round 2 `ce6081` | Noa v2 references | 64 | | softbox drawn in frame; head in the trousers back view; both fixed |
+| Round 3 `1d0745` | tpl 14c | (one failed image) | 53 | one stochastic failure: different woman and dress |
+| v3 `52887c` | tpl 14d, 5-panel sheet | 56 | 54 | no failures, no garment errors; merged |
+
+Conclusion: prompt and reference work removed about 40% of the defect points, mostly hair, lips, legs, light artefacts. It plateaued at round 3: v3 is equal to round 3 on the same images. What remains is mostly provider behaviour:
+- the stock "model hand" in relaxed poses, unchanged by any wording;
+- square-on symmetric front faces, partly the brand's frontal grammar;
+- the coated finish reading glossier than the packshot.
+
+Open issue: since tpl-2026.11.14c the trousers three-quarter shot frames the head (one image per run; cause not identified). Caught in review.
+
+Next levers, not built: a local "fix hands" edit (re-generate only a crop of the hand with Nano Banana and composite it back), and a blind owner review of real productions to replace the single-rater score.
+
+Spend for the realism work: $14.08 of the $17 budget (benchmark runs, Noa and the six other models' references, one possibly billed 503).
