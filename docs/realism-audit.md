@@ -102,4 +102,4 @@ Open issue: since tpl-2026.11.14c the trousers three-quarter shot frames the hea
 
 Next levers, not built: a local "fix hands" edit (re-generate only a crop of the hand with Nano Banana and composite it back), and a blind owner review of real productions to replace the single-rater score.
 
-Spend for the realism work: $14.08 of the $17 budget (benchmark runs, Noa and the six other models' references, one possibly billed 503).
+Spend for the realism work: $14.08 of the $17 budget for generated images (benchmark runs, Noa and the six other models' references), plus one 503 response that may have been billed ($0.16): at most $14.24. Three 402 responses (credits depleted) were not billed.
