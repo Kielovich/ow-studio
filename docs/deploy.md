@@ -35,7 +35,11 @@ The `Dockerfile` has no `VOLUME` instruction on purpose: Railway rejects it. The
 5. Settings: health check path `/api/health`; keep the service at one replica.
 6. Networking: generate a domain (or attach your own). Open it and sign in.
 
-Every push to `main` deploys again. Note that Railway's `railway.json` config file is deprecated for new services, so these settings live in the dashboard.
+Every push to `main` deploys again.
+
+**Trap when Railway creates the service itself:** on connecting the repository, Railway detected the npm workspaces and proposed a Railpack build with `npm run build --workspace=web`, start command `npm run start --workspace=web` and watch path `/apps/web/**`. That runs only `next start`: no worker, no prestart (migrations, seed), and changes in `packages/core` would not deploy. The service must build the root `Dockerfile` with no build or start command override and no watch paths.
+
+Live since 2026-11-14: project `genuine-enthusiasm`, service `web`, region EU West (Amsterdam), one replica, volume `web-volume` at `/data`, health check `/api/health`, domain `web-production-21c1e5a1.up.railway.app`. First start: 7 models seeded, backup written, worker up with `gemini-3-pro-image`. Note that Railway's `railway.json` config file is deprecated for new services, so these settings live in the dashboard.
 
 ## Verified locally (2026-11-13)
 
