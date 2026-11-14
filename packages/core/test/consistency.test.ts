@@ -139,7 +139,9 @@ describe("locks in the payload", () => {
 
   it("skin lock: texture and tone tied to the portrait, photographic skin in the style block", () => {
     expect(block(r.full_body!, "identity")).toMatch(/skin tone, skin texture, freckles and hair colour identical to the identity portrait/);
-    for (const i of Object.values(r)) expect(block(i, "style")).toMatch(/pores visible on the nose, cheeks and forehead/);
+    // Photographic skin in every shot (style block); facial pore detail wherever a face is in frame (identity block).
+    for (const i of Object.values(r)) expect(block(i, "style")).toMatch(/true photographic skin/);
+    for (const i of [r.full_body!, r.three_quarter_full!, r.styled_full!]) expect(block(i, "identity")).toMatch(/pores visible on the nose, cheeks and forehead/);
   });
 });
 
@@ -171,7 +173,8 @@ describe("realism language (docs/realism-audit.md)", () => {
     // Round 1 lesson: asking the light to "show the garment's folds" added gathers to a smooth dress.
     expect(block(s.full_body!, "style")).not.toMatch(/shows its folds/);
     expect(block(s.full_body!, "style")).toMatch(/never adds folds, gathers or creases/);
-    for (const i of Object.values(s)) expect(i!.exclusions).toEqual(expect.arrayContaining(["helmet-like hair without a single loose strand", "CGI or 3D-render look, beauty-filter skin"]));
+    for (const i of Object.values(s)) expect(i!.exclusions).toContain("CGI or 3D-render look, beauty-filter skin");
+    expect(s.full_body!.exclusions).toContain("helmet-like hair without a single loose strand");
   });
   it("never asks for studio equipment in frame, and keeps the head out of back views of bottoms (rounds 1-2)", () => {
     for (const i of Object.values(s)) {
@@ -182,6 +185,21 @@ describe("realism language (docs/realism-audit.md)", () => {
     expect(block(t.back_full!, "identity")).toMatch(/head and hair are outside the frame/);
     expect(block(t.back_full!, "identity")).not.toMatch(/flyaways/);
     expect(block(s.back_full!, "identity")).toMatch(/flyaways/); // a dress back view still shows the hair
+  });
+
+  it("never contradicts a pose or mentions face features in a crop without a face (double check of v3)", () => {
+    // Styled pose holds a bag: the hand text must not tell every hand to hang.
+    expect(block(s.styled_full!, "style")).toMatch(/Any hand that is not holding or touching something hangs loosely/);
+    expect(block(s.styled_full!, "style")).not.toMatch(/arms hang naturally/);
+    const t = byPreset(compileProduction(brandSet({ products: [{ ...PRODUCT_SUIT_PANTS }] } as any), profile).images);
+    for (const preset of ["full_body", "back_full", "detail"] as const) {
+      const i = t[preset]!;
+      expect(block(i, "style")).not.toMatch(/\b(chin|nose|cheeks|forehead|face|lips|hair)\b/);
+      expect(i.exclusions.join(" ")).not.toMatch(/lips|hair/);
+    }
+    expect(block(t.full_body!, "identity")).toMatch(/the head is outside the frame/);
+    expect(s.full_body!.exclusions).toEqual(expect.arrayContaining(["glossy or wet-looking lips", "helmet-like hair without a single loose strand"]));
+    expect(s.back_full!.exclusions).toContain("helmet-like hair without a single loose strand");
   });
 
   it("keeps the production's own hair override when one is set", () => {

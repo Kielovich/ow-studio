@@ -69,7 +69,8 @@ export function buildBlocks(spec: ImageSpec, a: PoseAssignment): InstructionBloc
       `Keep her exactly as she is, with her natural facial asymmetry and real proportions; do not beautify, idealise, slim or correct symmetry. ` +
       (st.hairState ? `Hair styled for this production: ${st.hairState}.` : `Hair: her own hairstyle as in the identity portrait.`) +
       ` ${REAL_HAIR}` +
-      (st.makeup ? ` Makeup for this production: ${st.makeup}` : ` Makeup: as in the identity portrait, with the lips in a satin or matte finish showing natural lip lines, never glossy or wet-looking.`));
+      (st.makeup ? ` Makeup for this production: ${st.makeup}` : ` Makeup: as in the identity portrait, with the lips in a satin or matte finish showing natural lip lines, never glossy or wet-looking.`) +
+      ` ${REAL_FACE}`);
   } else if (def.view === "back" && brandFraming(p.category) === "lower") {
     // Bottoms are framed from below the chest: describing hair here pulled the head into the frame (realism round 1-2).
     add("identity", `Back view of the lower body; the head and hair are outside the frame. Skin tone: ${m.look.skinTone}.`);
@@ -80,7 +81,7 @@ export function buildBlocks(spec: ImageSpec, a: PoseAssignment): InstructionBloc
   } else if (def.view === "detail") {
     add("identity", `Skin, where visible: ${m.look.skinTone}, with natural texture. No face in frame.`);
   } else {
-    add("identity", `Skin tone: ${m.look.skinTone}. Body as in the full-body reference; the face may be outside the frame.`);
+    add("identity", `Skin tone: ${m.look.skinTone}. Body as in the full-body reference; the head is outside the frame.`);
   }
 
   if (preset !== "detail") {
@@ -95,13 +96,14 @@ export function buildBlocks(spec: ImageSpec, a: PoseAssignment): InstructionBloc
   add("style",
     `Background: seamless flat neutral grey, RGB ${r},${g},${b}, no gradient, no vignette, no props. ` +
     `Lighting: a large soft key light high and slightly to one side of the camera, bright and even enough for e-commerce, with gentle fall-off across the body ` +
-    `so the face, arms and legs keep soft natural modelling; the light never adds folds, gathers or creases that the garment does not have; ` +
-    `fill ratio about 1:4, a soft natural shadow under the chin and soft contact shadows where the garment meets the body, neutral daylight around 5200 K; ` +
+    // The style block stays byte-identical across a session's shots and names no face features: describing hair or face
+    // features pulled the head into crops that must not show it (rounds 1-2). Facial detail lives in the identity block.
+    `so the body keeps soft natural modelling; the light never adds folds, gathers or creases that the garment does not have; ` +
+    `fill ratio about 1:4, soft contact shadows where the garment meets the body, neutral daylight around 5200 K; ` +
     `the light sources themselves are never in the picture (no softboxes, lamps, stands or studio equipment in frame); soft natural shadows` +
     (def.feetVisible(p.category) ? `, a soft contact shadow under the feet` : ``) + `. ` +
     `Colour: neutral, true to the garment; blacks keep detail. ` +
-    `Skin and retouching: true photographic skin as from a full-frame camera, natural micro-contrast and very subtle grain; pores visible on the nose, cheeks and forehead, ` +
-    `fine peach fuzz, small natural asymmetries; natural sheen only on the high points of the face; skin luminance comes from the light alone, with no beauty-filter effect; raw, unretouched-looking skin of a real person. ` +
+    `Skin and retouching: true photographic skin as from a full-frame camera, natural micro-contrast and very subtle grain; skin luminance comes from the light alone, with no beauty-filter effect; raw, unretouched-looking skin of a real person. ` +
     `Body skin is real too: knees, elbows and knuckles with natural creases and slightly different tone, faint veins where skin is thin, subtle unevenness, no airbrushed or evenly tanned limbs. ` +
     `${REAL_HANDS} ${REAL_BODY}` +
     (spec.anchorAsset
@@ -128,8 +130,10 @@ export function buildBlocks(spec: ImageSpec, a: PoseAssignment): InstructionBloc
 
 /** Realism language from the realism audit (docs/realism-audit.md): the defects AI models fall into by default. */
 export const REAL_HAIR = "Real hair, not a helmet: keep the style, but with a few fine flyaways and baby hairs along the hairline and crown, individual strands visible at the edges, and natural variation in shine.";
-export const REAL_HANDS = "Hands as a real person's at rest: hanging loosely, fingers relaxed and slightly apart with a gentle natural curve, the thumb resting alongside the index finger, each hand slightly different, natural short nails.";
-export const REAL_BODY = "The body carries real weight: shoulders and arms hang naturally, the posture is relaxed rather than mannequin-straight.";
+export const REAL_FACE = "Facial skin: pores visible on the nose, cheeks and forehead, fine peach fuzz, small natural asymmetries, natural sheen only on the high points of the face; a soft natural shadow under the chin.";
+// Worded so it never contradicts a pose: a hand holding a bag or touching the hem keeps doing that.
+export const REAL_HANDS = "Any hand that is not holding or touching something hangs loosely: fingers relaxed and slightly apart with a gentle natural curve, the thumb resting alongside the index finger, each hand slightly different, natural short nails.";
+export const REAL_BODY = "The body carries real weight: shoulders relaxed, the posture natural rather than mannequin-straight.";
 
 export function buildExclusions(spec: ImageSpec): string[] {
   const def = PRESETS[spec.preset];
@@ -138,13 +142,16 @@ export function buildExclusions(spec: ImageSpec): string[] {
     "any change to garment colour, length, neckline, closures or transparency",
     "extra garments or layers covering the product",
     "smoothed, waxy or plastic-looking skin, airbrushed legs or arms",
-    "helmet-like hair without a single loose strand",
-    "glossy or wet-looking lips",
     "CGI or 3D-render look, beauty-filter skin",
     "extra, missing or fused fingers; distorted hands or limbs",
     "props, furniture or background texture",
     "softboxes, lamps, light stands or any studio equipment in frame",
   ];
-  if (!def.faceVisible(spec.product.category)) ex.push("a face visible to the camera");
+  const face = def.faceVisible(spec.product.category);
+  // Hair and lip exclusions only where hair or lips can be in frame, so they never invite a head into a crop without one.
+  const hairInFrame = face || (def.view === "back" && brandFraming(spec.product.category) !== "lower");
+  if (hairInFrame) ex.splice(4, 0, "helmet-like hair without a single loose strand");
+  if (face) ex.splice(5, 0, "glossy or wet-looking lips");
+  if (!face) ex.push("a face visible to the camera");
   return ex;
 }

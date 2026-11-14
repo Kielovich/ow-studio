@@ -44,7 +44,9 @@ const portraitPrompt = (hair: string) => [
 
 const fromPortrait = (kind: "threeQuarter" | "profile" | "characterSheet", hair: string) => {
   const same = "exactly the same original fictional adult woman as in the attached identity portrait: identical face, bone structure, skin, hair colour, hairstyle and makeup. She is not a real or identifiable person.";
-  const finish = `Hair: ${hair}; ${REAL.hair}. Makeup: ${REAL.makeup}. Skin: ${REAL.skin}. Light: ${REAL.light}. Camera: ${REAL.camera}.`;
+  const finish = `Hair: ${hair}; ${REAL.hair}. Makeup: ${REAL.makeup}. Skin: ${REAL.skin}.` +
+    // A reference sheet wants even light (no directional modelling that differs per panel).
+    (kind === "characterSheet" ? ` Camera: ${REAL.camera}.` : ` Light: ${REAL.light}. Camera: ${REAL.camera}.`);
   if (kind === "threeQuarter") return `Identity reference, three-quarter view, of ${same}\n\nHead and shoulders, head and body turned about 40 degrees to the side, eyes following the head, calm expression, lips closed. Plain fitted black tank top.\n\n${finish}`;
   if (kind === "profile") return `Identity reference, side profile, of ${same}\n\nHead and shoulders in exact side profile (90 degrees), calm expression, lips closed. Plain fitted black tank top.\n\n${finish}`;
   // Simple beats overloaded: exactly five large panels, one neutral pose, even light, no text (each extra panel steals
