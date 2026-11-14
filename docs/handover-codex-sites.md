@@ -1,5 +1,7 @@
 # Handover: deploy OW Studio on ChatGPT Sites
 
+> **Outcome (2026-11-14):** Codex checked the Sites documentation against section 4: no-go. Sites has no long-running worker for the generation queue and cannot run `sharp`. OW Studio goes live on Railway instead (`docs/deploy.md`). The invariants and acceptance checks below still apply to any host.
+
 You are taking over a working, tested application and moving it to ChatGPT Sites. The goal is the **same behaviour on a new runtime**, not a redesign. Read this file completely before changing code.
 
 ## 1. What the app does

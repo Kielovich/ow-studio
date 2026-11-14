@@ -17,7 +17,8 @@ RUN npm run build
 ENV NODE_ENV=production \
     OW_DATA_DIR=/data \
     PORT=3000
-VOLUME ["/data"]
+# /data must be a persistent volume. It is attached by the platform, not declared here: Railway rejects the VOLUME
+# instruction ("docker VOLUME ... is not supported, use Railway Volumes"). Elsewhere: docker run -v ow-data:/data ...
 EXPOSE 3000
 
 WORKDIR /app/apps/web
