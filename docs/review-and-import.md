@@ -16,7 +16,7 @@ The provider's stock "model hand" survived every prompt change (`docs/realism-au
 - The result is a new attempt of the image (`note: "hand fix of attempt k"`), unreviewed, shown beside the original. The original keeps its review; approving the fix moves the approval.
 - A lost answer is "unknown outcome, may have been billed": no attempt is added, the cost counts against the budget, nothing is retried on its own.
 - While a fix is queued or running, the image cannot get a new attempt and the production cannot be deleted.
-- Not yet measured on real images. The first real fix needs the owner's approval.
+- First real test (2026-11-14, Noa mesh dress front from `prod_20261114_52887c`, image-left hand, 1 call, $0.16): **no effect.** Nano Banana returned the crop almost unchanged; the same posed hand, 0.9% of the square changed by more than 12 levels, mostly resampled edges. The garment stayed intact (0.7% of dark garment pixels changed, no visible change in mesh or seams) and no seam shows at the square's edge. The edit prompt asks too much for "keep everything exactly"; it needs an explicit instruction to change the pose before the button is worth a paid click.
 
 ## Unknown outcome
 - `awaiting_approval` with `timeout_after_accept`, `uncertain_submission` or `unknown` is shown as **Unknown outcome**: the provider may have produced and billed the image without us receiving it. The action is "New attempt (may cost again)".
