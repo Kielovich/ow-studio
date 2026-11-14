@@ -4,7 +4,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
 [
   {
     "expr": "calm_camera",
-    "hash": "cmp_b5b4682537ec81b64906b6ef1be648020561a5eda4fae494aa36e17f503b921b",
+    "hash": "cmp_74ccddd1a2418acb0c854a85322cd8649ae19c40b5b39b90cce90975008667ed",
     "id": "img_38b2c4f56e954dd700f97492",
     "pose": "front_soft_knee",
     "preset": "front_crop",
@@ -19,7 +19,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_away",
-    "hash": "cmp_47c06532e6656d93d4fd1eed038cb9ac21c5d05d70bc6bbb20e2f3d1e34d1a20",
+    "hash": "cmp_7c99416b9264be6470abfcf8dacfbbccf87239a919bb134124a65d8333fa2fae",
     "id": "img_8b4c8075854ecee8bb1a96cf",
     "pose": "tq_away_left",
     "preset": "three_quarter",
@@ -34,7 +34,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_2c2c4627659c2c44dfe1900530922729fe68ba20b982e267c20b69df6fa2f9a7",
+    "hash": "cmp_11b62aa6d94d2ba542008793d6531f277354b0bb5c672a91b8810f6094d63423",
     "id": "img_0106a25df8ef1d2c0f3b3f30",
     "pose": "back_neutral",
     "preset": "back",
@@ -47,7 +47,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_camera",
-    "hash": "cmp_1f3dcb74ab387b73541fb7e0480b7d637f8609deb68dc6bff58badc5551b8846",
+    "hash": "cmp_233742e409405874909f32175f4877028c155bac2bfbd051827636bca6a40de8",
     "id": "img_896fe5fd0087a21d258eee72",
     "pose": "front_neutral",
     "preset": "full_body",
@@ -62,7 +62,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_7f73258939911a3d9398d8409c26432035692511c686fc6cead677d18cc44414",
+    "hash": "cmp_448917c81f44f856468f0f234d6e5c1d23957d40ac3c47c1524ee468872f95eb",
     "id": "img_826ff3934934b4ef2ffef43e",
     "pose": "detail_still",
     "preset": "detail",
@@ -74,7 +74,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "calm_camera",
-    "hash": "cmp_6f6cb836bdea13d151b82a00845dd338faebfdf3e439b07c25cda741fc48b45c",
+    "hash": "cmp_cd07f5d8cb27dc6ef9968fe73222e189025b6ac024a466bf753002296d4818cf",
     "id": "img_d8bc1d1d8fa3f2047e2b2131",
     "pose": "front_soft_knee",
     "preset": "front_crop",
@@ -86,7 +86,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_away",
-    "hash": "cmp_501c73dbc88b2fb2ba7606656827b6b143e5afcf42ea4b8c1139bdf5b18eea80",
+    "hash": "cmp_1a9e42af5466c4a468b732e699c755683e533b5b3f782bf5874f012e69b7adf1",
     "id": "img_e6a8c6724abc90e1c9f6a121",
     "pose": "tq_away_left",
     "preset": "three_quarter",
@@ -98,7 +98,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_702dfeaa5482055be42607ccef2673cbd64a7796a9313017a5bba87518eff585",
+    "hash": "cmp_1e58911cf1df1b08d12669a9d02a87877929f380ef01b6571d4434292036a6ed",
     "id": "img_288f6f3948289ca53fe1a7ac",
     "pose": "back_neutral",
     "preset": "back",
@@ -111,7 +111,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_camera",
-    "hash": "cmp_75bf8be465e652cc9af607c0f1f9e0742848ba4c23e2efa0d2105b664e4172f1",
+    "hash": "cmp_91fcf7048dec398bba4a2ec121c7f3f85c914d8526de40f5da57c32625eaf1cf",
     "id": "img_0e7c51aeb079c6fbeb232c76",
     "pose": "front_neutral",
     "preset": "full_body",
@@ -124,7 +124,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_fa82bffb9adddea357c0667d5b16288e1feb1c2030217327b80174c97a88f18f",
+    "hash": "cmp_4b2441e5b43b3fcdf8d17906104a1d9f9b929f614fe222cdaa616fdbec0541ca",
     "id": "img_af7a26ae45a683a877547b11",
     "pose": "detail_still",
     "preset": "detail",
@@ -136,7 +136,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "calm_camera",
-    "hash": "cmp_f817cdb68bd640b9556cd112c6abf7bc14de42a2042a65eab2bb8b1924f3490f",
+    "hash": "cmp_992a2e13eb38c9bf495ab5a01949a8c07e3680e709e40375e98695d345bc8ae2",
     "id": "img_c8adf68633ea53fbb87601ea",
     "pose": "front_soft_knee",
     "preset": "front_crop",
@@ -151,7 +151,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_away",
-    "hash": "cmp_0f539522c28e06a7fe44a8d0fc1f6c2cf40ca236f32c5adbee6634ce99598572",
+    "hash": "cmp_b3fe28cf111fd138ee1be8503632014ab080acc997a0eed50c664963ddba5a22",
     "id": "img_5a611cae61a4e9cd138a2c6c",
     "pose": "tq_away_left",
     "preset": "three_quarter",
@@ -166,7 +166,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_d8e410168d094a50b75340fdf0cdb77b17d0f3d99214d04246e503e7acdc13bc",
+    "hash": "cmp_0fd24a40c3d51920810804c3fa95aec7c89b0304d24a09f4e587750ba8755d0c",
     "id": "img_abae3cc68572abc234ff18b0",
     "pose": "back_neutral",
     "preset": "back",
@@ -179,7 +179,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "neutral_camera",
-    "hash": "cmp_6655b2afe190448bf26d84de688179f78eddba39f40d4d56a987aa798ca0ed03",
+    "hash": "cmp_8cca6c49236bada7153e928ea81e05797380f953a5cddb5eacb1a12ec3cd646b",
     "id": "img_a701e44c5b29e401cf7030ce",
     "pose": "front_neutral",
     "preset": "full_body",
@@ -194,7 +194,7 @@ exports[`compiler determinism > matches the golden output 1`] = `
   },
   {
     "expr": "none",
-    "hash": "cmp_f1a16af910ec61fbf84f82d6014493c2c184399463f717d4b622bca047bb48b5",
+    "hash": "cmp_6e8ba07f491aaa55e6dc2e1c312214ee48300ec3057ad486df1d7df5aa3af849",
     "id": "img_adb689893d05356b8ccf9559",
     "pose": "detail_still",
     "preset": "detail",
@@ -226,7 +226,7 @@ Body: 178 cm tall, EU size 36, proportions exactly as in the full-body reference
 
 Straight-on front view, camera at chest height, short telephoto look (about 85 mm full-frame equivalent), no perspective distortion. Crop from just above the head to mid-thigh. The entire front of the garment is visible and unobstructed.
 
-Background: seamless flat neutral grey, RGB 241,241,241, no gradient, no vignette, no props. Lighting: a large soft key light high and slightly to one side of the camera, bright and even enough for e-commerce, with gentle fall-off across the body so the face, arms and legs keep soft natural modelling; the light never adds folds, gathers or creases that the garment does not have; soft natural shadows. Colour: neutral, true to the garment; blacks keep detail. Skin and retouching: true photographic skin as from a full-frame camera, natural micro-contrast and very subtle grain; pores visible on the nose, cheeks and forehead, fine peach fuzz, small natural asymmetries; natural sheen only on the high points of the face instead of an even glow; clean but untouched-looking retouching. Body skin is real too: knees, elbows and knuckles with natural creases and slightly different tone, faint veins where skin is thin, subtle unevenness, no airbrushed or evenly tanned limbs. Hands as a real person's at rest: fingers loosely together and gently bent, each hand slightly different, natural short nails; not the stylised model hand with the thumb touching the middle finger. The body carries real weight: shoulders and arms hang naturally, the posture is relaxed rather than mannequin-straight.
+Background: seamless flat neutral grey, RGB 241,241,241, no gradient, no vignette, no props. Lighting: a large soft key light high and slightly to one side of the camera, bright and even enough for e-commerce, with gentle fall-off across the body so the face, arms and legs keep soft natural modelling; the light never adds folds, gathers or creases that the garment does not have; the light sources themselves are never in the picture (no softboxes, lamps, stands or studio equipment in frame); soft natural shadows. Colour: neutral, true to the garment; blacks keep detail. Skin and retouching: true photographic skin as from a full-frame camera, natural micro-contrast and very subtle grain; pores visible on the nose, cheeks and forehead, fine peach fuzz, small natural asymmetries; natural sheen only on the high points of the face instead of an even glow; clean but untouched-looking retouching. Body skin is real too: knees, elbows and knuckles with natural creases and slightly different tone, faint veins where skin is thin, subtle unevenness, no airbrushed or evenly tanned limbs. Hands as a real person's at rest: fingers loosely together and gently bent, the thumb resting alongside the index finger, each hand slightly different, natural short nails; not the stylised model hand with the thumb touching the middle finger. The body carries real weight: shoulders and arms hang naturally, the posture is relaxed rather than mannequin-straight.
 
 Pose: Standing facing the camera, weight almost even with one knee softly relaxed, feet close together a few centimetres apart, arms hanging naturally close to the body, shoulders down and level, chin neutral. The legs continue naturally below the frame; the feet are not in the picture.
 
@@ -234,5 +234,5 @@ Expression: Calm, composed expression, lips closed, relaxed brow, steady gaze in
 
 Styling (secondary, must not draw attention from the garment): bottoms: straight light-blue jeans.
 
-Avoid: text, logos, watermarks or brand marks not present on the garment; any change to garment colour, length, neckline, closures or transparency; extra garments or layers covering the product; smoothed, waxy or plastic-looking skin, airbrushed legs or arms; helmet-like hair without a single loose strand; glossy or wet-looking lips; the stylised model hand with the thumb touching the middle finger; extra, missing or fused fingers; distorted hands or limbs; props, furniture or background texture."
+Avoid: text, logos, watermarks or brand marks not present on the garment; any change to garment colour, length, neckline, closures or transparency; extra garments or layers covering the product; smoothed, waxy or plastic-looking skin, airbrushed legs or arms; helmet-like hair without a single loose strand; glossy or wet-looking lips; the stylised model hand with the thumb touching the middle finger; extra, missing or fused fingers; distorted hands or limbs; props, furniture or background texture; softboxes, lamps, light stands or any studio equipment in frame."
 `;

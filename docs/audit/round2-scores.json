@@ -1,0 +1,27 @@
+{
+  "production": "prod_20261114_ce6081",
+  "change": "Noa v2 references (real hair edges, matte lips, softer glam; scripts/model-realism.ts) + prompt tpl-2026.11.14b (folds wording removed)",
+  "rater": "Claude, not blind. The owner's blind A/B judgement is the acceptance test.",
+  "garmentRegressions": [],
+  "otherRegressions": [
+    "MESH-DRESS-01 full_body and back_full: a studio softbox drawn into the top-right corner (raw output; the session anchor carried it to the back view). Cause: the new lighting text named the key light's position. Fixed in tpl-2026.11.14c.",
+    "COATED-TROUSERS-01 back_full (also in round 1, missed then): framed with the head in, against the brand's chest-to-feet framing for bottoms. Cause: hair text in the back-view identity block. Fixed in tpl-2026.11.14c."
+  ],
+  "images": [
+    ["trousers full_body", {"D5":2,"D8":1,"D10":2,"D12":1}],
+    ["trousers three_q",   {"D8":1,"D10":2}],
+    ["trousers back",      {"D5":2,"D8":1,"D10":2,"D12":1}],
+    ["trousers styled",    {"D2":2,"D3":1,"D5":1,"D8":1,"D10":2,"D12":1}],
+    ["trousers detail",    {"D5":2,"D10":2}],
+    ["fur full_body",      {"D2":2,"D3":1,"D5":2,"D8":1,"D12":1}],
+    ["fur three_q",        {"D3":1,"D8":1}],
+    ["fur back",           {"D3":1,"D5":1,"D8":1,"D12":1}],
+    ["fur styled",         {"D2":2,"D3":1,"D8":1,"D12":1}],
+    ["fur detail",         {}],
+    ["mesh full_body",     {"D2":1,"D3":1,"D7":1,"D8":1,"D9":2}],
+    ["mesh three_q",       {"D3":1,"D7":1,"D8":1}],
+    ["mesh back",          {"D3":1,"D7":1,"D8":1,"D9":2}],
+    ["mesh styled",        {"D2":2,"D3":1,"D7":1,"D8":1}],
+    ["mesh detail",        {}]
+  ]
+}

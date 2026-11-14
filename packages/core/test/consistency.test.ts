@@ -169,6 +169,17 @@ describe("realism language (docs/realism-audit.md)", () => {
     expect(block(s.full_body!, "style")).toMatch(/never adds folds, gathers or creases/);
     for (const i of Object.values(s)) expect(i!.exclusions).toEqual(expect.arrayContaining(["helmet-like hair without a single loose strand", "the stylised model hand with the thumb touching the middle finger"]));
   });
+  it("never asks for studio equipment in frame, and keeps the head out of back views of bottoms (rounds 1-2)", () => {
+    for (const i of Object.values(s)) {
+      expect(i!.exclusions).toContain("softboxes, lamps, light stands or any studio equipment in frame");
+      expect(block(i!, "style")).toMatch(/light sources themselves are never in the picture/);
+    }
+    const t = byPreset(compileProduction(brandSet({ products: [{ ...PRODUCT_SUIT_PANTS }] } as any), profile).images);
+    expect(block(t.back_full!, "identity")).toMatch(/head and hair are outside the frame/);
+    expect(block(t.back_full!, "identity")).not.toMatch(/flyaways/);
+    expect(block(s.back_full!, "identity")).toMatch(/flyaways/); // a dress back view still shows the hair
+  });
+
   it("keeps the production's own hair override when one is set", () => {
     const o = byPreset(compileProduction(brandSet({ styling: { hairState: "low bun", accessories: [] } }), profile).images);
     expect(block(o.full_body!, "identity")).toMatch(/Hair styled for this production: low bun\. Real hair/);

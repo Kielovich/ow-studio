@@ -1,11 +1,11 @@
 import { garmentConstraintLines } from "./garmentConstraints";
 import { silhouetteText } from "./silhouette";
 import { getExpression, getPose } from "./poses";
-import { PRESETS } from "./presets";
+import { brandFraming, PRESETS } from "./presets";
 import { BOTTOM_CATEGORIES, OUTERWEAR_CATEGORIES, type ImageSpec, type InstructionBlock, type PoseAssignment } from "./schemas";
 
 /** Bump when any wording below changes. Part of every compileHash. */
-export const TEMPLATE_VERSION = "tpl-2026.11.14b";
+export const TEMPLATE_VERSION = "tpl-2026.11.14c";
 
 /** Instruction priorities. Lower number wins when instructions conflict. */
 export const PRIORITY = {
@@ -69,6 +69,9 @@ export function buildBlocks(spec: ImageSpec, a: PoseAssignment): InstructionBloc
       (st.hairState ? `Hair styled for this production: ${st.hairState}.` : `Hair: her own hairstyle as in the identity portrait.`) +
       ` ${REAL_HAIR}` +
       (st.makeup ? ` Makeup for this production: ${st.makeup}` : ` Makeup: as in the identity portrait, with the lips in a satin or matte finish showing natural lip lines, never glossy or wet-looking.`));
+  } else if (def.view === "back" && brandFraming(p.category) === "lower") {
+    // Bottoms are framed from below the chest: describing hair here pulled the head into the frame (realism round 1-2).
+    add("identity", `Back view of the lower body; the head and hair are outside the frame. Skin tone: ${m.look.skinTone}.`);
   } else if (def.view === "back") {
     add("identity",
       `Back view: hair as in the character sheet (${m.look.hair})${st.hairState ? `, styled for this production: ${st.hairState}` : ""}. ` +
@@ -91,7 +94,8 @@ export function buildBlocks(spec: ImageSpec, a: PoseAssignment): InstructionBloc
   add("style",
     `Background: seamless flat neutral grey, RGB ${r},${g},${b}, no gradient, no vignette, no props. ` +
     `Lighting: a large soft key light high and slightly to one side of the camera, bright and even enough for e-commerce, with gentle fall-off across the body ` +
-    `so the face, arms and legs keep soft natural modelling; the light never adds folds, gathers or creases that the garment does not have; soft natural shadows` +
+    `so the face, arms and legs keep soft natural modelling; the light never adds folds, gathers or creases that the garment does not have; ` +
+    `the light sources themselves are never in the picture (no softboxes, lamps, stands or studio equipment in frame); soft natural shadows` +
     (def.feetVisible(p.category) ? `, a soft contact shadow under the feet` : ``) + `. ` +
     `Colour: neutral, true to the garment; blacks keep detail. ` +
     `Skin and retouching: true photographic skin as from a full-frame camera, natural micro-contrast and very subtle grain; pores visible on the nose, cheeks and forehead, ` +
@@ -122,7 +126,7 @@ export function buildBlocks(spec: ImageSpec, a: PoseAssignment): InstructionBloc
 
 /** Realism language from the realism audit (docs/realism-audit.md): the defects AI models fall into by default. */
 export const REAL_HAIR = "Real hair, not a helmet: keep the style, but with a few fine flyaways and baby hairs along the hairline and crown, individual strands visible at the edges, and natural variation in shine.";
-export const REAL_HANDS = "Hands as a real person's at rest: fingers loosely together and gently bent, each hand slightly different, natural short nails; not the stylised model hand with the thumb touching the middle finger.";
+export const REAL_HANDS = "Hands as a real person's at rest: fingers loosely together and gently bent, the thumb resting alongside the index finger, each hand slightly different, natural short nails; not the stylised model hand with the thumb touching the middle finger.";
 export const REAL_BODY = "The body carries real weight: shoulders and arms hang naturally, the posture is relaxed rather than mannequin-straight.";
 
 export function buildExclusions(spec: ImageSpec): string[] {
@@ -137,6 +141,7 @@ export function buildExclusions(spec: ImageSpec): string[] {
     "the stylised model hand with the thumb touching the middle finger",
     "extra, missing or fused fingers; distorted hands or limbs",
     "props, furniture or background texture",
+    "softboxes, lamps, light stands or any studio equipment in frame",
   ];
   if (!def.faceVisible(spec.product.category)) ex.push("a face visible to the camera");
   return ex;
