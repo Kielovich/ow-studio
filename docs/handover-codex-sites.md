@@ -74,6 +74,7 @@ Run from the repository root:
 
 ```bash
 npm test --workspaces --if-present
+npm run typecheck -w web
 ```
 
 Today: 113 tests in `packages/core` and 24 in `apps/web` (folder import, idempotent creation, attempts, ZIP, metrics, unknown outcome, session anchor, access control, colour check, realism language). All must pass on the new data layer.
