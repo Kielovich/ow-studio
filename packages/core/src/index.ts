@@ -14,4 +14,5 @@ export * from "./assets";
 export * from "./silhouette";
 export * from "./post/background";
 export * from "./post/export";
+export * from "./post/handfix";
 export * from "./secrets";

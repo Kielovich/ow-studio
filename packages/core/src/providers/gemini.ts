@@ -156,10 +156,8 @@ export class GeminiProvider implements ProviderAdapter {
     this.fetchImpl = opts.fetch ?? (globalThis.fetch as unknown as FetchLike);
   }
 
-  async submit(request: CompiledRequest, { idempotencyKey }: { idempotencyKey: string }): Promise<{ providerJobId: string }> {
-    const images = await Promise.all(request.refs.map((r) => this.opts.resolveAsset(r.asset)));
-    const body = JSON.stringify(buildGeminiBody(request, this.profile.id, images, this.opts.thinkingLevel));
-
+  /** One synchronous call. Throws ProviderError with the same billing semantics for generation and edits. */
+  private async post(body: string): Promise<string> {
     let res: Awaited<ReturnType<FetchLike>>;
     try {
       res = await this.fetchImpl(GEMINI_ENDPOINT, {
@@ -180,6 +178,12 @@ export class GeminiProvider implements ProviderAdapter {
 
     const text = await res.text();
     if (!res.ok) throw classifyHttpStatus(res.status, text);
+    return text;
+  }
+
+  async submit(request: CompiledRequest, { idempotencyKey }: { idempotencyKey: string }): Promise<{ providerJobId: string }> {
+    const images = await Promise.all(request.refs.map((r) => this.opts.resolveAsset(r.asset)));
+    const text = await this.post(JSON.stringify(buildGeminiBody(request, this.profile.id, images, this.opts.thinkingLevel)));
 
     const providerJobId = `gemini_${++this.seq}_${idempotencyKey.slice(5, 17)}`;
     let json: unknown;
@@ -196,6 +200,23 @@ export class GeminiProvider implements ProviderAdapter {
     });
     this.results.set(providerJobId, { state: "succeeded", assets, costUsd: this.profile.estimatedCostUsd, usage: (json as { usage?: unknown })?.usage });
     return { providerJobId };
+  }
+
+  /**
+   * Image edit: a text instruction plus input images, one image back (2K tier, square). Used for local fixes such as a
+   * hand. No image in a 200 answer is a content-policy outcome that may have been billed.
+   */
+  async edit(prompt: string, images: { bytes: Uint8Array; mime: string }[]): Promise<{ bytes: Uint8Array; costUsd: number }> {
+    const text = await this.post(JSON.stringify({
+      model: this.profile.id,
+      input: [{ type: "text", text: prompt }, ...images.map((i) => ({ type: "image", mime_type: i.mime, data: Buffer.from(i.bytes).toString("base64") }))],
+      response_format: { type: "image", aspect_ratio: "1:1", image_size: OUTPUT_IMAGE_SIZE },
+    }));
+    let json: unknown;
+    try { json = JSON.parse(text); } catch { json = null; }
+    const block = json ? extractImages(json)[0] : undefined;
+    if (!block) throw new ProviderError("content_policy", `no image returned: ${text.slice(0, 300)}`);
+    return { bytes: new Uint8Array(Buffer.from(block.data, "base64")), costUsd: this.profile.estimatedCostUsd };
   }
 
   async poll(providerJobId: string): Promise<ProviderStatus> {

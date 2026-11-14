@@ -14,6 +14,7 @@ type Img = {
   id: string; sku: string; preset: PresetId; slotIndex: number; state: string; finalAsset: string | null; rawAsset: string | null; dependsOn: string | null;
   prompt: string; refs: { role: string; asset: string }[];
   attempts: Attempt[]; approvedAttempt: number | null; status: StatusView;
+  edits?: { id: string; baseAttempt: number; state: string; resultAttempt: number | null; error: string | null }[];
   job: { attempt: number; costUsd: number; lastError?: { kind: string; message: string }; awaitingReason?: string; validation?: { ok: boolean; reasons: string[] }; events: { state: string; note?: string }[] };
 };
 type Prod = { id: string; name: string; createdAt: string; estCost: number; provider: string; images: Img[]; metrics: Metrics; spec: { model: { displayName: string; version: number } } };
@@ -29,6 +30,17 @@ const REF_NAMES: Record<string, string> = {
 
 const OUTCOME_LABEL: Record<Attempt["outcome"], string> = { succeeded: "Finished", needs_review: "Size check", failed: "Failed", unknown: "Unknown outcome" };
 
+const fixPending = (img: Img) => (img.edits ?? []).find((e) => e.state === "queued" || e.state === "running");
+const randomKey = () => "fx_" + crypto.randomUUID().replace(/-/g, "").slice(0, 16);
+
+/** The square a hand fix sends and replaces, in % of the image: the same box as handBox() on the server. */
+function fixBox(pt: { x: number; y: number }, d: { w: number; h: number }) {
+  const s = 0.24 * Math.min(d.w, d.h);
+  const l = Math.min(Math.max(pt.x * d.w - s / 2, 0), d.w - s);
+  const t = Math.min(Math.max(pt.y * d.h - s / 2, 0), d.h - s);
+  return { left: `${(l / d.w) * 100}%`, top: `${(t / d.h) * 100}%`, width: `${(s / d.w) * 100}%`, height: `${(s / d.h) * 100}%` };
+}
+
 /** The attempt a tile shows: the latest one, if it belongs to the current job attempt. */
 const current = (img: Img) => { const a = img.attempts.at(-1); return a && a.attempt === img.job.attempt ? a : undefined; };
 
@@ -43,6 +55,11 @@ export function ProductionView() {
   const [busy, setBusy] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  // Hand fix: pick a point on the shown attempt, confirm, then follow the edit until its new attempt appears.
+  const [fixMode, setFixMode] = useState(false);
+  const [fix, setFix] = useState<{ x: number; y: number; key: string } | null>(null);
+  const [dims, setDims] = useState<{ w: number; h: number } | null>(null);
+  const [awaitFix, setAwaitFix] = useState<string | null>(null);
 
   const [missing, setMissing] = useState(false);
   const [offline, setOffline] = useState(false);
@@ -62,6 +79,13 @@ export function ProductionView() {
     for (const list of m.values()) list.sort((a, b) => order(a.preset) - order(b.preset));
     return [...m.entries()];
   }, [p]);
+
+  useEffect(() => {
+    if (!awaitFix || !p) return;
+    const e = p.images.flatMap((i) => i.edits ?? []).find((e) => e.id === awaitFix);
+    if (e?.state === "succeeded" && e.resultAttempt) { setViewAttempt(e.resultAttempt); setCompare(true); setAwaitFix(null); }
+    else if (e && e.state !== "queued" && e.state !== "running") setAwaitFix(null);
+  }, [p, awaitFix]);
 
   if (missing) return (
     <div className="pt-24 max-w-lg">
@@ -97,7 +121,18 @@ export function ProductionView() {
     if (r.ok) router.push("/productions");
     else setDeleteError(r.error);
   };
-  const openImage = (img: Img) => { setShowRaw(false); setCompare(false); setViewAttempt(current(img)?.attempt ?? img.attempts.at(-1)?.attempt ?? null); setOpenId(img.id); };
+  const requestFix = async (img: Img, attempt: number) => {
+    if (!fix) return;
+    setBusy(`${img.id}:fix`);
+    setActionError(null);
+    const r = await fetch(`/api/images/${img.id}/edits`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ attempt, x: fix.x, y: fix.y, createKey: fix.key }) })
+      .then((r) => r.json()).catch(() => ({ error: "Network error" }));
+    setBusy(null);
+    if (r.error) setActionError(r.error);
+    else { setAwaitFix(r.id); setFixMode(false); setFix(null); }
+    void load();
+  };
+  const openImage = (img: Img) => { setFixMode(false); setFix(null); setShowRaw(false); setCompare(false); setViewAttempt(current(img)?.attempt ?? img.attempts.at(-1)?.attempt ?? null); setOpenId(img.id); };
 
   return (
     <>
@@ -138,7 +173,7 @@ export function ProductionView() {
             {m.unknownAttempts > 0 && <dd className="text-xs text-warning mt-1">+ {m.unknownAttempts} unknown {m.unknownAttempts === 1 ? "outcome" : "outcomes"}, may have been billed</dd>}</div>
           <div><dt className="ow-eyebrow mb-1">Per approved image</dt><dd className="ow-display text-2xl">{m.costPerApprovedUsd === null ? "–" : usd(m.costPerApprovedUsd)}</dd></div>
         </dl>
-        {actionError && <p className="text-danger text-sm" role="alert">{actionError}</p>}
+        {actionError && !open && <p className="text-danger text-sm" role="alert">{actionError}</p>}
         {offline && <p className="text-warning text-sm" role="status">Connection lost. Showing the last known state; retrying.</p>}
       </div>
 
@@ -150,12 +185,13 @@ export function ProductionView() {
               {imgs.map((img) => {
                 const st = img.status;
                 const cur = current(img);
+                const fixing = !!fixPending(img);
                 const reviewable = !!cur?.finalAsset && (img.state === "succeeded" || img.state === "needs_review");
                 return (
                   <div key={img.id}>
                     <button className="block w-full text-left" onClick={() => openImage(img)} disabled={!img.attempts.length && !img.job.lastError}>
                       <Tile src={assetUrl(img.finalAsset, 800)} alt={`${sku} ${img.preset}`} className={st.key === "approved" ? "outline outline-1 outline-ink -outline-offset-1" : ""}>
-                        {ACTIVE_STATES.has(img.state) && <span className="absolute inset-0 grid place-items-center bg-white/40"><Spinner /></span>}
+                        {(ACTIVE_STATES.has(img.state) || fixing) && <span className="absolute inset-0 grid place-items-center bg-white/40"><Spinner /></span>}
                         {img.attempts.length > 1 && <span className="absolute top-1.5 left-1.5 bg-white/90 text-[10px] px-1.5 py-0.5 uppercase tracking-wide">{img.attempts.length} attempts</span>}
                       </Tile>
                     </button>
@@ -163,7 +199,8 @@ export function ProductionView() {
                       <span className="ow-eyebrow">{PRESET_LABELS[img.preset]}</span>
                       <Chip size="sm" color={st.color}>{st.label}</Chip>
                     </div>
-                    {st.hint && <p className="text-xs text-black/60 mt-2 line-clamp-3">{st.hint}</p>}
+                    {fixing ? <p className="text-xs text-black/60 mt-2">Fixing a hand (paid). The result arrives as a new attempt.</p>
+                      : st.hint && <p className="text-xs text-black/60 mt-2 line-clamp-3">{st.hint}</p>}
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       {reviewable && st.key !== "approved" && (
                         <Button size="sm" isPending={busy === `${img.id}:${cur!.attempt}:approved`} onPress={() => review(img, cur!.attempt, "approved")}>Approve</Button>
@@ -195,13 +232,30 @@ export function ProductionView() {
             {open && (() => {
               const shown = open.attempts.find((a) => a.attempt === viewAttempt) ?? open.attempts.at(-1);
               const other = compare ? [...open.attempts].reverse().find((a) => a.finalAsset && a.attempt !== shown?.attempt) : undefined;
+              const picking = fixMode && !showRaw;
               const pane = (a: Attempt | undefined, label?: string) => {
                 const src = a ? (showRaw ? a.rawAsset : a.finalAsset) : null;
+                const pick = picking && a?.attempt === shown?.attempt;
                 return (
-                  <div className="bg-canvas relative">
-                    {label && <div className="absolute top-2 left-2 bg-white/90 text-xs px-2 py-1 ow-eyebrow">{label}</div>}
-                    {src ? <img src={assetUrl(src)} alt="" className="w-full h-auto max-h-[78vh] object-contain mx-auto" />
-                      : <div className="aspect-square grid place-items-center text-black/50 text-sm px-6 text-center">{a?.outcome === "unknown" ? "Unknown outcome: no image came back. It may have been billed." : a?.error ?? "No image"}</div>}
+                  <div className="bg-canvas relative flex justify-center">
+                    {label && <div className="absolute top-2 left-2 z-10 bg-white/90 text-xs px-2 py-1 ow-eyebrow">{label}</div>}
+                    {src ? (
+                      <div className="relative inline-block max-w-full">
+                        <img src={assetUrl(src)} alt="" className="block max-w-full w-auto h-auto max-h-[78vh]"
+                          onLoad={(e) => setDims({ w: e.currentTarget.naturalWidth, h: e.currentTarget.naturalHeight })} />
+                        {pick && (
+                          <button type="button" aria-label="Click on the hand to fix" className="absolute inset-0 cursor-crosshair"
+                            onClick={(e) => {
+                              if (!e.detail) return; // keyboard activation has no point to pick
+                              const r = e.currentTarget.getBoundingClientRect();
+                              setFix({ x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height, key: randomKey() });
+                            }} />
+                        )}
+                        {pick && fix && dims && (
+                          <span data-testid="fix-box" className="absolute pointer-events-none border-2 border-white outline outline-1 outline-ink" style={fixBox(fix, dims)} />
+                        )}
+                      </div>
+                    ) : <div className="aspect-square grid place-items-center text-black/50 text-sm px-6 text-center">{a?.outcome === "unknown" ? "Unknown outcome: no image came back. It may have been billed." : a?.error ?? "No image"}</div>}
                   </div>
                 );
               };
@@ -226,7 +280,7 @@ export function ProductionView() {
                                   <Tile src={assetUrl(a.finalAsset, 240)} alt={`Attempt ${a.attempt}`} className={a.attempt === shown?.attempt ? "outline outline-1 outline-ink outline-offset-2" : ""} />
                                   <div className="text-[10px] mt-1 leading-tight">
                                     #{a.attempt} · {a.review === "approved" ? "approved" : a.review === "rejected" ? "rejected" : OUTCOME_LABEL[a.outcome].toLowerCase()}
-                                    <br /><span className="text-black/50">{usd(a.costUsd)}</span>
+                                    <br /><span className="text-black/50">{usd(a.costUsd)}{a.note?.startsWith("hand fix") ? " · hand fix" : ""}</span>
                                   </div>
                                 </button>
                               ))}
@@ -249,6 +303,36 @@ export function ProductionView() {
                             )}
                           </div>
                         )}
+                        {shown?.finalAsset && (open.state === "succeeded" || open.state === "needs_review") && (() => {
+                          const pending = fixPending(open);
+                          const last = (open.edits ?? []).at(-1);
+                          return (
+                            <div>
+                              <div className="ow-eyebrow mb-2">Hand fix</div>
+                              {pending ? (
+                                <p role="status" className="flex items-center gap-2 text-black/70"><Spinner size="sm" /> Fixing the hand in #{pending.baseAttempt} (paid). The result arrives as a new attempt.</p>
+                              ) : !fixMode ? (
+                                <>
+                                  <Button size="sm" variant="secondary" onPress={() => { setFixMode(true); setFix(null); setShowRaw(false); setCompare(false); }}>Fix a hand in #{shown.attempt}</Button>
+                                  <p className="text-xs text-black/50 mt-2">Regenerates only a small square around the hand. Everything else stays as it is.</p>
+                                </>
+                              ) : (
+                                <>
+                                  <p className="text-black/70 mb-2" role="status">{fix ? "Only the marked square is sent and changed." : "Click on the hand in the image."}</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    <Button size="sm" isDisabled={!fix} isPending={busy === `${open.id}:fix`} onPress={() => requestFix(open, shown.attempt)}>
+                                      Fix this hand · paid ~{usd(p.estCost / Math.max(1, total))}
+                                    </Button>
+                                    <Button size="sm" variant="ghost" onPress={() => { setFixMode(false); setFix(null); }}>Cancel</Button>
+                                  </div>
+                                </>
+                              )}
+                              {!pending && last?.state === "unknown" && <p className="text-warning text-xs mt-2">Last fix: unknown outcome, it may have been billed. No image was added.</p>}
+                              {!pending && last?.state === "failed" && <p className="text-danger text-xs mt-2">Last fix failed: {last.error}</p>}
+                            </div>
+                          );
+                        })()}
+                        {actionError && <p className="text-danger text-sm" role="alert">{actionError}</p>}
                         <div className="flex flex-wrap gap-2">
                           <Button size="sm" variant={showRaw ? "secondary" : "primary"} onPress={() => setShowRaw(false)}>Final</Button>
                           <Button size="sm" variant={showRaw ? "primary" : "secondary"} onPress={() => setShowRaw(true)} isDisabled={!shown?.rawAsset}>Raw output</Button>

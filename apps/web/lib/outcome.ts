@@ -15,6 +15,8 @@ export type Attempt = {
   finalAsset: string | null;
   costUsd: number;
   error: string | null;
+  /** Origin when not a plain generation, e.g. "hand fix of attempt 1". */
+  note?: string | null;
   review: Review;
   createdAt: string;
   /** Automatic checks on this attempt's image. Only checks that can be trusted when they fire (see measureColourDrift). */
