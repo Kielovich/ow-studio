@@ -5,7 +5,7 @@ import sharp from "sharp";
 import { describe, expect, it } from "vitest";
 import { LocalAssetStore } from "../src/assets";
 
-const image = async () => new Uint8Array(await sharp({ create: { width: 1000, height: 1000, channels: 3, noise: { type: "gaussian", mean: 128, sigma: 40 } } }).png().toBuffer());
+const image = async () => new Uint8Array(await sharp({ create: { width: 1000, height: 1000, channels: 3, background: { r: 128, g: 128, b: 128 }, noise: { type: "gaussian", mean: 128, sigma: 40 } } }).png().toBuffer());
 
 describe("local asset store", () => {
   it("never lets a reader see a half-written file when the same asset is stored concurrently", async () => {

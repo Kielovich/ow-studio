@@ -106,7 +106,7 @@ function productionConflicts(spec: ProductionSpec, profile: ProviderProfile): Co
 
 export function compileImage(spec: ImageSpec, assignment: PoseAssignment, profile: ProviderProfile, ctx: CompileContext = DEFAULT_CONTEXT): { request: CompiledRequest; conflicts: Conflict[] } {
   const { refs, conflicts } = selectReferences(spec, assignment, profile);
-  const instructionBlocks = buildBlocks(spec, assignment);
+  const instructionBlocks = buildBlocks(spec, assignment, refs);
   const exclusions = buildExclusions(spec);
   const legend = refs.length
     ? `Reference images, in the order attached:\n${refs.map((r, i) => `${i + 1}. ${ROLE_LABELS[r.role]}`).join("\n")}`

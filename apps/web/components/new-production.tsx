@@ -5,10 +5,11 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { InfoTip, TipBox } from "@/components/help";
+import { ManualLook } from "@/components/manual-look";
 import { PageTitle } from "@/components/page-title";
 import { Tile } from "@/components/tile";
 import {
-  DEFAULT_SKU_PATTERN, importIssues, packshotsBySku, parseFile, ROLES, usable,
+  DEFAULT_SKU_PATTERN, importIssues, KIND_LABELS, lookAssets, lookOfSku, packshotsBySku, parseFile, ROLES, usable, type FileKind,
   type ImportFile, type ImportIssue, type Role, type Source,
 } from "@/lib/import";
 import {
@@ -194,7 +195,7 @@ export function NewProduction() {
   }, [session, loaded, draftId, files.length, router, save]);
 
   // ---------- Upload ----------
-  const upload = useCallback(async (list: { file: File; path: string }[]) => {
+  const upload = useCallback(async (list: { file: File; path: string; override?: Partial<ImportFile> }[]) => {
     const arr = list.filter((x) => /\.(png|jpe?g|webp|tiff?)$/i.test(x.file.name) && !x.path.split("/").some((p) => p.startsWith(".")));
     if (!arr.length) return;
     setUploading((n) => n + arr.length);
@@ -209,7 +210,7 @@ export function NewProduction() {
           const path = chunk[j]!.path;
           const dup = f.hash ? next.find((x) => x.hash === f.hash && !x.duplicateOf) : undefined;
           next.push({
-            ...parseFile(path, skuPattern), key: randomId("f_"),
+            ...parseFile(path, skuPattern), ...(chunk[j]!.override ?? {}), key: randomId("f_"),
             ...(f.hash ? { hash: f.hash } : {}), ...(f.error ? { error: f.error } : {}), ...(dup ? { duplicateOf: dup.path } : {}),
           });
         });
@@ -220,6 +221,8 @@ export function NewProduction() {
   }, [skuPattern]);
 
   const issues = useMemo(() => importIssues(files), [files]);
+  const lookOf = useMemo(() => lookOfSku(files), [files]);
+  const looks = useMemo(() => lookAssets(files), [files]);
   const packshots = useMemo(() => packshotsBySku(files), [files]);
   const skus = useMemo(() => [...new Set(files.filter(usable).map((f) => f.sku).filter((s): s is string => !!s))].sort(), [files]);
   const sets = useMemo(() => {
@@ -259,14 +262,14 @@ export function NewProduction() {
       .map((sku) => {
         const i = info[sku];
         const p = packshots.get(sku);
-        return i && p?.front ? { sku, ...i, name: i.name || sku, packshots: p } : null;
+        return i && p?.front ? { sku, ...i, name: i.name || sku, packshots: p, look: lookOf.get(sku) ?? "" } : null;
       })
       .filter((p): p is NonNullable<typeof p> => !!p);
     if (!products.length || !presets.length) return null;
     const setNames = [...new Set(files.filter(usable).map((f) => f.set).filter(Boolean))];
     return {
       name: name || (setNames.length ? setNames.join(", ") : products.map((p) => p.sku).join(", ")).slice(0, 80),
-      products, modelId: modelId!, modelVersion: Number(version), presets, sessionAnchor,
+      products, modelId: modelId!, modelVersion: Number(version), presets, sessionAnchor, looks,
       styling: {
         ...(styling.hairState.trim() ? { hairState: styling.hairState } : {}),
         ...(styling.makeup.trim() ? { makeup: styling.makeup } : {}),
@@ -275,7 +278,7 @@ export function NewProduction() {
         accessories: styling.accessories.split(",").map((s) => s.trim()).filter(Boolean),
       },
     };
-  }, [model, issues.length, skus, info, packshots, presets, files, name, sessionAnchor, styling]);
+  }, [model, issues.length, skus, info, packshots, presets, files, name, sessionAnchor, styling, lookOf, looks]);
 
   useEffect(() => {
     if (!draft) { setPreview(null); return; }
@@ -313,7 +316,10 @@ export function NewProduction() {
 
   const newRunFromImport = () => { setCreateKey(null); setProductionId(null); };
 
-  const extras = files.filter((f) => !usable(f) || f.ignored);
+  const setLabel = (f: ImportFile) => f.set ?? "Loose files";
+  const isLookFile = (f: ImportFile) => f.kind !== "garment" && !!f.hash && !f.duplicateOf && !f.ignored && !f.error;
+  const lookFilesOf = (set: string) => files.filter((f) => isLookFile(f) && setLabel(f) === set);
+  const extras = files.filter((f) => (!usable(f) && !(isLookFile(f) && sets.some(([s]) => s === setLabel(f)))) || f.ignored);
   const errors = preview?.conflicts.filter((c) => c.severity === "error") ?? [];
   const warnings = preview?.conflicts.filter((c) => c.severity === "warning" && c.code !== "PROFILE_UNVERIFIED") ?? [];
   const overBudget = preview ? preview.estCostUsd > preview.budgetRemainingUsd : false;
@@ -372,7 +378,7 @@ export function NewProduction() {
         {savedAt && <span className="text-xs text-black/60 self-center">Import saved {new Date(savedAt + "Z").toLocaleTimeString()}</span>}
       </PageTitle>
       <TipBox id="new-production" title="Before you start" steps={[
-        <>Use one folder per look. The folder name becomes the name of the set.</>,
+        <>Use one folder per look, or press <b>Add a look by hand</b> and put each image in its place: top, bottom, shoes, accessories and fit reference.</>,
         <>Name files with style number and angle, e.g. <span className="font-mono text-[13px]">AB123-045_front.jpg</span> and <span className="font-mono text-[13px]">AB123-045_back.jpg</span>. Every product needs a front packshot.</>,
         <>A box marked <b>Blocks run</b> needs a decision from you, e.g. two files for the same angle.</>,
         <>Your import is saved as you go. Nothing is paid until you press Run.</>,
@@ -429,6 +435,8 @@ export function NewProduction() {
             onChange={(e) => { if (e.target.files) void upload(Array.from(e.target.files).map((file) => ({ file, path: file.webkitRelativePath || file.name }))); e.target.value = ""; }} />
         </div>
 
+
+        <ManualLook onAdd={(items) => upload(items)} lookCount={sets.length} busy={uploading > 0} />
 
         {issues.length > 0 && (
           <div className="mt-8 border border-ink p-5">
@@ -524,6 +532,25 @@ export function NewProduction() {
                     );
                   })}
                 </div>
+                {lookFilesOf(set).length > 0 && (
+                  <div className="mt-8" data-testid="rest-of-look">
+                    <div className="ow-eyebrow mb-3 flex items-center gap-2">Rest of the look
+                      <InfoTip title="Rest of the look">These images style the look: shoes appear where the feet are in the picture, accessories only in the styled shot, and the fit reference shows how the look should sit (its top, with the head, is cut away). The products of this look are also worn together.</InfoTip>
+                    </div>
+                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+                      {lookFilesOf(set).map((f) => (
+                        <div key={f.key}>
+                          <Tile src={assetUrl(f.hash, 240)} alt={f.filename} />
+                          <select aria-label={`Type of ${f.filename}`} value={f.kind} onChange={(e) => update(f.key, { kind: e.target.value as FileKind })}
+                            className="mt-2 w-full border border-line bg-white h-9 px-1 text-xs">
+                            {(Object.keys(KIND_LABELS) as FileKind[]).map((k) => <option key={k} value={k}>{KIND_LABELS[k]}</option>)}
+                          </select>
+                          <button type="button" className="text-xs text-black/60 underline mt-1" onClick={() => remove(f.key)}>Remove</button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -539,12 +566,12 @@ export function NewProduction() {
                   <div className="text-sm min-w-0">
                     <div className="truncate">{f.path}</div>
                     <div className="text-black/60">
-                      {f.error ?? (f.duplicateOf ? `Same image as ${f.duplicateOf}` : f.ignored ? "Ignored" : f.kind === "accessory" ? `Accessory${f.sku ? ` ${f.sku}` : ""}: kept, not sent. Describe it under Styling.` : "")}
+                      {f.error ?? (f.duplicateOf ? `Same image as ${f.duplicateOf}` : f.ignored ? "Ignored" : f.kind !== "garment" ? `${KIND_LABELS[f.kind]}: there is no product in this look to wear it with.` : "")}
                     </div>
                   </div>
                   <div className="flex gap-2">
                     {f.ignored && <Button size="sm" variant="secondary" onPress={() => update(f.key, { ignored: false })}>Use again</Button>}
-                    {!f.ignored && f.kind === "accessory" && f.hash && <Button size="sm" variant="secondary" onPress={() => update(f.key, { kind: "garment" })}>It is a garment</Button>}
+                    {!f.ignored && f.kind !== "garment" && f.hash && <Button size="sm" variant="secondary" onPress={() => update(f.key, { kind: "garment" })}>It is a garment</Button>}
                     <Button size="sm" variant="ghost" onPress={() => remove(f.key)}>Remove</Button>
                   </div>
                 </div>

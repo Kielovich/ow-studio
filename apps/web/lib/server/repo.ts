@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import {
-  BOTTOM_CATEGORIES, compileProduction, cropFabric, DEFAULT_CONTEXT, GEMINI_PRO_PROFILE, hashOf, LocalAssetStore, measureBottomsSilhouette, measureGarmentColour, measureHemAsymmetry, ModelVersion, newJob,
+  BOTTOM_CATEGORIES, compileProduction, cropFabric, cropFitReference, DEFAULT_CONTEXT, GEMINI_PRO_PROFILE, hashOf, LocalAssetStore, measureBottomsSilhouette, measureGarmentColour, measureHemAsymmetry, ModelVersion, newJob,
   type Category, type CompiledRequest, type Conflict, type GarmentFlag, type JobRecord, type PresetId, type ProductionSpecInput,
   type ProviderProfile, type Styling, approveRetry, OW_SET,
 } from "@ow-studio/core";
@@ -55,6 +55,8 @@ export type DraftProduct = {
   description: string;
   flags: GarmentFlag[];
   packshots: { front?: string; back?: string; detail?: string; side?: string };
+  /** The look (set) this product belongs to: products of one look are styled with each other's packshots. */
+  look?: string;
 };
 
 export type ProductionDraft = {
@@ -67,7 +69,42 @@ export type ProductionDraft = {
   providerProfileId?: string;
   /** Generate each SKU's front shot first and use it as the session reference for the other shots. Default true. */
   sessionAnchor?: boolean;
+  /** Shoes, accessories and fit reference per look (asset hashes). */
+  looks?: Record<string, { footwear?: string; accessories?: string[]; fit?: string }>;
 };
+
+/** Garment groups that can be worn together in one look. A folder of three dresses is not a look of three dresses. */
+const GROUP: Record<Category, "top" | "bottom" | "outer" | "dress"> = {
+  top: "top", bodysuit: "top", knit: "top", trousers: "bottom", skirt: "bottom", shorts: "bottom", jacket: "outer", coat: "outer", dress: "dress",
+};
+const WORN_WITH: Record<"top" | "bottom" | "outer" | "dress", readonly string[]> = {
+  top: ["bottom", "outer"], bottom: ["top", "outer"], outer: ["top", "bottom", "dress"], dress: ["outer"],
+};
+export const wornTogether = (a: Category, b: Category) => WORN_WITH[GROUP[a]].includes(GROUP[b]);
+
+/**
+ * The rest of a product's look: the other garments of the same look (their packshots), shoes, accessories and the fit
+ * reference with the head cropped away. Undefined when the product has no look or the look has nothing else.
+ */
+async function lookFor(draft: ProductionDraft, p: DraftProduct, fitCrops: Map<string, string>) {
+  if (p.look === undefined) return undefined;
+  const garments = draft.products
+    .filter((o) => o.sku !== p.sku && o.look === p.look && o.packshots.front && wornTogether(p.category, o.category))
+    .slice(0, 2)
+    .map((o) => ({ sku: o.sku, category: o.category, front: o.packshots.front!, ...(o.packshots.back ? { back: o.packshots.back } : {}) }));
+  const a = draft.looks?.[p.look];
+  let fit: string | undefined;
+  if (a?.fit) {
+    fit = fitCrops.get(a.fit);
+    if (!fit) {
+      fit = await assets.putBytes(await cropFitReference((await assets.resolve(a.fit)).bytes));
+      fitCrops.set(a.fit, fit);
+    }
+  }
+  const accessories = (a?.accessories ?? []).slice(0, 3);
+  if (!garments.length && !a?.footwear && !accessories.length && !fit) return undefined;
+  return { garments, ...(a?.footwear ? { footwear: a.footwear } : {}), accessories, ...(fit ? { fit } : {}) };
+}
 
 async function buildSpec(draft: ProductionDraft, productionId: string): Promise<{ spec: ProductionSpecInput; profile: ProviderProfile }> {
   const model = getModel(draft.modelId, draft.modelVersion);
@@ -76,6 +113,7 @@ async function buildSpec(draft: ProductionDraft, productionId: string): Promise<
   if (modelStatus(draft.modelId, draft.modelVersion) !== "active") throw new Error(`Model ${draft.modelId} v${draft.modelVersion} is not active`);
   const profile = PROFILES[draft.providerProfileId ?? DEFAULT_PROFILE.id] ?? DEFAULT_PROFILE;
   const products = [];
+  const fitCrops = new Map<string, string>();
   for (const p of draft.products) {
     const packshots = Object.fromEntries(Object.entries(p.packshots).filter(([, v]) => v));
     let silhouette, asymmetry;
@@ -90,7 +128,9 @@ async function buildSpec(draft: ProductionDraft, productionId: string): Promise<
     // Plain-fabric crop from the front packshot, sent as a surface-only reference (sheen, weave, pile, colour).
     const crop = p.packshots.front ? await cropFabric((await assets.resolve(p.packshots.front)).bytes) : null;
     const fabricCrop = crop ? await assets.putBytes(crop.bytes) : undefined;
-    products.push({ ...p, packshots, ...(silhouette ? { silhouette } : {}), ...(asymmetry ? { asymmetry } : {}), ...(colorHex ? { colorHex } : {}), ...(fabricCrop ? { fabricCrop } : {}) });
+    const { look: _lookKey, ...rest } = p;
+    const look = await lookFor(draft, p, fitCrops);
+    products.push({ ...rest, packshots, ...(silhouette ? { silhouette } : {}), ...(asymmetry ? { asymmetry } : {}), ...(colorHex ? { colorHex } : {}), ...(fabricCrop ? { fabricCrop } : {}), ...(look ? { look } : {}) });
   }
   return {
     profile,

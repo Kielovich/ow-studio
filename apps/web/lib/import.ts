@@ -21,8 +21,10 @@ const ROLE_WORDS: Record<string, Role> = {
 /** One-letter roles only count as the last word of the name ("AB123_f"), never in the middle. */
 const SHORT_ROLES: Record<string, Role> = { f: "front", b: "back", d: "detail", s: "side" };
 
-/** Product words. Accessories are not garments: their files are kept but not sent (styling is text for now). */
-const ACCESSORY_WORDS = new Set(["shoe", "shoes", "sko", "heels", "pumps", "boots", "sandals", "bag", "bags", "taske", "belt", "baelte", "jewellery", "jewelry", "smykke", "smykker", "earrings", "necklace", "accessory", "accessories", "tilbehoer"]);
+/** Words that mark the rest of a look: shoes, accessories and a fit reference. Their images style the look's products. */
+const FOOTWEAR_WORDS = new Set(["shoe", "shoes", "sko", "heels", "pumps", "boots", "stoevler", "sandals", "sandaler", "sneakers", "loafers", "footwear"]);
+const ACCESSORY_WORDS = new Set(["bag", "bags", "taske", "belt", "baelte", "jewellery", "jewelry", "smykke", "smykker", "earrings", "oreringe", "necklace", "halskaede", "accessory", "accessories", "tilbehoer", "hat", "scarf", "toerklaede", "sunglasses", "solbriller"]);
+const FIT_WORDS = new Set(["fit", "fitref", "fitting", "pasform"]);
 const CATEGORY_WORDS: Record<string, Category> = {
   dress: "dress", kjole: "dress", top: "top", shirt: "top", blouse: "top", bluse: "top", body: "bodysuit", bodysuit: "bodysuit",
   trousers: "trousers", pants: "trousers", bukser: "trousers", jeans: "trousers", skirt: "skirt", nederdel: "skirt", shorts: "shorts",
@@ -40,9 +42,13 @@ export type ParsedFile = {
   skuSource: Source | null;
   role: Role | null;
   roleSource: Source | null;
-  kind: "garment" | "accessory";
+  kind: FileKind;
   category: Category | null;
 };
+
+/** garment: a packshot of a product. The others are the rest of the look and are sent as styling images. */
+export type FileKind = "garment" | "footwear" | "accessory" | "fit";
+export const KIND_LABELS: Record<FileKind, string> = { garment: "Garment", footwear: "Shoes", accessory: "Accessory", fit: "Fit reference" };
 
 function skuRegex(pattern: string): RegExp | null {
   try {
@@ -97,7 +103,7 @@ export function parseFile(path: string, pattern = DEFAULT_SKU_PATTERN): ParsedFi
     }
   }
 
-  const kind = w.some((x) => ACCESSORY_WORDS.has(x)) ? "accessory" : "garment";
+  const kind: FileKind = w.some((x) => FIT_WORDS.has(x)) ? "fit" : w.some((x) => FOOTWEAR_WORDS.has(x)) ? "footwear" : w.some((x) => ACCESSORY_WORDS.has(x)) ? "accessory" : "garment";
   const category = w.map((x) => CATEGORY_WORDS[x]).find(Boolean) ?? null;
   // The set is the folder nearest the file that is not itself a role folder ("Look-07/Back/x.jpg" → Look-07).
   const set = [...folders].reverse().find((f) => !(words(f).length === 1 && ROLE_WORDS[words(f)[0]!])) ?? null;
@@ -134,6 +140,34 @@ export function importIssues(files: ImportFile[]): ImportIssue[] {
   }
   for (const sku of skus) if (!groups.has(`${sku}\u0000front`)) issues.push({ code: "NO_FRONT", sku });
   return issues;
+}
+
+/** Uploaded, not a duplicate, not ignored: counts for the look whatever its kind. */
+const present = (f: ImportFile) => !!f.hash && !f.duplicateOf && !f.ignored && !f.error;
+
+export type LookAssets = { footwear?: string; accessories: string[]; fit?: string };
+
+/**
+ * The rest of each look, by set (folder or manual look name; "" for loose files): the first shoe image, up to three
+ * accessories and the first fit reference.
+ */
+export function lookAssets(files: ImportFile[]): Record<string, LookAssets> {
+  const out: Record<string, LookAssets> = {};
+  for (const f of files.filter(present)) {
+    if (f.kind === "garment") continue;
+    const look = (out[f.set ?? ""] ??= { accessories: [] });
+    if (f.kind === "footwear") look.footwear ??= f.hash;
+    if (f.kind === "fit") look.fit ??= f.hash;
+    if (f.kind === "accessory" && look.accessories.length < 3 && !look.accessories.includes(f.hash!)) look.accessories.push(f.hash!);
+  }
+  return out;
+}
+
+/** The look (set) of each SKU: the set of its front packshot. */
+export function lookOfSku(files: ImportFile[]): Map<string, string> {
+  const out = new Map<string, string>();
+  for (const f of files.filter(usable)) if (f.sku && f.role === "front" && !out.has(f.sku)) out.set(f.sku, f.set ?? "");
+  return out;
 }
 
 /** SKU → role → asset hash, from files without issues. */

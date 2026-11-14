@@ -46,6 +46,11 @@ async function makeFixtures() {
     mkdirSync(join(fixtures, "catalog", p, ".."), { recursive: true });
     await sharp(await shot(shade)).toFile(join(fixtures, "catalog", p));
   }
+  // Loose images for a look uploaded by hand (names say nothing about style number or angle).
+  mkdirSync(join(fixtures, "manual"), { recursive: true });
+  for (const [p, shade] of Object.entries({ "IMG_0101.jpg": 30, "IMG_0102.jpg": 35, "IMG_0103.jpg": 90, "IMG_0104.jpg": 15, "IMG_0105.jpg": 110, "IMG_0106.jpg": 140 })) {
+    await sharp(await shot(shade)).toFile(join(fixtures, "manual", p));
+  }
 }
 
 async function up() {
@@ -133,7 +138,8 @@ async function main() {
     check(await appears(page.getByText("2 files for front")), "two fronts for one SKU are detected");
     check(await appears(page.getByText("Blocks run")), "conflicts block the run");
     check(await appears(page.getByText("Look-07", { exact: true })) && await appears(page.getByText("Look-08", { exact: true })), "folders become sets");
-    check(await appears(page.getByText(/Accessory SH456-010/)), "shoe file is kept aside as an accessory");
+    check(await appears(page.getByTestId("rest-of-look").getByRole("combobox", { name: /SH456-010/ })), "a shoe file in a look folder becomes the look's shoes");
+    check(await page.getByTestId("rest-of-look").getByRole("combobox", { name: /SH456-010/ }).inputValue() === "footwear", "it is marked as shoes");
     await page.getByText(/uploading/).waitFor({ state: "detached", timeout: 30000 }).catch(() => {});
     await shot(page, "desk-import-conflicts");
     await page.getByRole("button", { name: "Use this" }).first().click();
@@ -253,6 +259,36 @@ async function main() {
     await page.goto(`${BASE}/productions/prod_missing_000000`);
     await page.getByText("Not found").waitFor({ timeout: 15000 });
     check(true, "a missing production shows a clear not-found state");
+  });
+
+  await stage("A look uploaded by hand", async () => {
+    await page.goto(`${BASE}/productions/new`);
+    await page.getByRole("button", { name: "Add a look by hand" }).click();
+    const panel = page.getByTestId("manual-look");
+    await panel.getByRole("textbox", { name: "Look name" }).fill("Manual-01");
+    const put = (slot, file) => page.getByTestId(slot).locator("xpath=..").locator("input[type=file]").setInputFiles(join(fixtures, "manual", file));
+    await put("slot-top-front", "IMG_0101.jpg");
+    await put("slot-top-back", "IMG_0102.jpg");
+    await put("slot-bottom-front", "IMG_0103.jpg");
+    await put("slot-shoes", "IMG_0104.jpg");
+    await put("slot-accessory-0", "IMG_0105.jpg");
+    await put("slot-fit", "IMG_0106.jpg");
+    check(await page.getByRole("img", { name: "Fit" }).isVisible(), "a chosen image shows in its slot before upload");
+    const compiled = page.waitForResponse(async (r) => r.url().endsWith("/api/compile") && (await r.json().catch(() => null))?.images?.length === 10, { timeout: 60000 });
+    await panel.getByRole("button", { name: "Add look" }).click();
+    await page.getByText("Manual-01", { exact: true }).waitFor({ timeout: 30000 });
+    check(await page.getByText("Manual-01-TOP").first().isVisible() && await page.getByText("Manual-01-BOTTOM").first().isVisible(), "a look added by hand becomes a top and a bottom product");
+    const rest = page.getByTestId("rest-of-look");
+    await rest.locator("select").nth(2).waitFor({ timeout: 30000 });
+    const kinds = (await rest.locator("select").evaluateAll((els) => els.map((e) => e.value))).sort();
+    check(JSON.stringify(kinds) === JSON.stringify(["accessory", "fit", "footwear"]), `shoes, accessory and fit reference belong to the look (${kinds})`);
+    const preview = await (await compiled).json();
+    const roles = (sku, preset) => preview.images.find((i) => i.sku === sku && i.preset === preset)?.refs ?? [];
+    check(roles("Manual-01-BOTTOM", "full_body").includes("look_garment_front") && roles("Manual-01-BOTTOM", "full_body").includes("footwear") && roles("Manual-01-BOTTOM", "full_body").includes("fit_reference"),
+      `the trousers are shot with the top, the shoes and the fit reference (${roles("Manual-01-BOTTOM", "full_body")})`);
+    check(roles("Manual-01-TOP", "styled_full").includes("accessory"), "the accessory is used in the styled shot");
+    check(!roles("Manual-01-TOP", "detail").some((r) => ["look_garment_front", "footwear", "accessory", "fit_reference"].includes(r)), "the close-up stays on the product alone");
+    await shot(page, "desk-manual-look");
   });
 
   await stage("Mobile (iPhone 13, 390 px)", async () => {

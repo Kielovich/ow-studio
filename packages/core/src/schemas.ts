@@ -56,6 +56,20 @@ export const Product = z.object({
       side: AssetHash.optional(),
     })
     .strict(),
+  /**
+   * The rest of the look this product is photographed in, as images: the other garments of the same look (their own
+   * packshots), the shoes, accessories and a fit reference. Absent: the look is described by the production's styling text.
+   */
+  look: z
+    .object({
+      garments: z.array(z.object({ sku: z.string().min(1), category: Category, front: AssetHash, back: AssetHash.optional() }).strict()).max(2).default([]),
+      footwear: AssetHash.optional(),
+      accessories: z.array(AssetHash).max(3).default([]),
+      /** Head removed at ingest: it only shows how the garments sit on a body. */
+      fit: AssetHash.optional(),
+    })
+    .strict()
+    .optional(),
 });
 export type Product = z.infer<typeof Product>;
 
@@ -199,7 +213,7 @@ export type Conflict = {
   imageSpecId?: string;
 };
 
-export const Attribute = z.enum(["garment", "fit", "identity", "facial_detail", "hair", "body", "expression", "pose", "session", "orientation", "texture"]);
+export const Attribute = z.enum(["garment", "fit", "identity", "facial_detail", "hair", "body", "expression", "pose", "session", "orientation", "texture", "styling"]);
 export type Attribute = z.infer<typeof Attribute>;
 
 export const RefRole = z.enum([
@@ -207,6 +221,7 @@ export const RefRole = z.enum([
   "identity_primary", "identity_angle", "character_sheet", "facial_detail",
   "body_front", "body_back", "expression_sheet", "pose",
   "session_anchor", "garment_orientation", "garment_texture",
+  "look_garment_front", "look_garment_back", "footwear", "accessory", "fit_reference",
 ]);
 export type RefRole = z.infer<typeof RefRole>;
 
