@@ -88,7 +88,7 @@ npx playwright install --with-deps chromium
 npm run e2e -w web
 ```
 
-It checks 36 things in a real browser: login and logout, folder import with conflicts, the import session after a reload, idempotent Run, simulated generation, approve/reject/new attempt/compare, the approved ZIP and 2000 px downloads, every page at 1440 and 390 px without horizontal scroll or console errors, keyboard focus, the not-found state, the health check and the daily backup. On Sites, run the same flows against the deployed site with `OW_PROVIDER=simulated` on a staging copy if the runtime allows it; otherwise by hand. Then check by hand on the deployed site, without paid calls:
+It checks 43 things in a real browser: login and logout, folder import with conflicts, the import session after a reload, idempotent Run, simulated generation, approve/reject/new attempt/compare, the approved ZIP and 2000 px downloads, the model library (overview of portraits and names, a model page with her reference images and a large view), every page at 1440 and 390 px without horizontal scroll or console errors, the compact mobile menu, keyboard focus, the not-found state, the health check and the daily backup. On Sites, run the same flows against the deployed site with `OW_PROVIDER=simulated` on a staging copy if the runtime allows it; otherwise by hand. Then check by hand on the deployed site, without paid calls:
 
 1. Unauthenticated: pages redirect to the login, APIs answer 401.
 2. After login: the 7 models are listed (seeded).

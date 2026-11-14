@@ -42,8 +42,8 @@ export default function ProductionsPage() {
             p ? (
               <Link key={p.id} href={`/productions/${p.id}`} className="group">
                 <Tile src={assetUrl(p.cover, 480)} alt={p.name} className="mb-3 group-hover:opacity-90 transition-opacity" />
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="ow-nav truncate">{p.name}</span>
+                <div className="flex items-start gap-2 mb-1">
+                  <span className="ow-nav line-clamp-2 min-w-0">{p.name}</span>
                   {p.active > 0 && <Chip size="sm" color="accent">Running</Chip>}
                   {p.attention > 0 && <Chip size="sm" color="warning">{p.attention} to check</Chip>}
                 </div>

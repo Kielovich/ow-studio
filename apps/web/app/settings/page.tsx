@@ -21,9 +21,9 @@ async function SettingsRows() {
   return (
     <dl className="border-t border-line max-w-3xl">
       {rows.map(([k, v]) => (
-        <div key={k} className="grid grid-cols-[240px_1fr] py-4 border-b border-line">
+        <div key={k} className="grid grid-cols-1 gap-1 sm:grid-cols-[240px_1fr] sm:gap-0 py-4 border-b border-line">
           <dt className="ow-eyebrow pt-0.5">{k}</dt>
-          <dd>{v}</dd>
+          <dd className="min-w-0 break-words">{v}</dd>
         </div>
       ))}
     </dl>

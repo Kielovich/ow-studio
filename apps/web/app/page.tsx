@@ -79,7 +79,7 @@ export default function StudioPage() {
               p ? (
                 <Link key={p.id} href={`/productions/${p.id}`} className="group">
                   <Tile src={assetUrl(p.cover, 480)} alt={p.name} className="mb-3 group-hover:opacity-90 transition-opacity" />
-                  <div className="ow-nav truncate">{p.name}</div>
+                  <div className="ow-nav line-clamp-2">{p.name}</div>
                   <div className="text-sm text-black/60">
                     {p.approved}/{p.total} approved{p.to_review ? ` · ${p.to_review} to review` : ""}{p.active ? ` · ${p.active} running` : ""}
                   </div>
