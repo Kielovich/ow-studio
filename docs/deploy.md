@@ -22,9 +22,9 @@ One container runs the web app and the generation worker (`apps/web/scripts/serv
 
 Without `OW_PASSWORD` and `OW_SESSION_SECRET` the production app refuses every request (503) instead of running open.
 
-## Railway (the host)
+## Railway (fallback host)
 
-ChatGPT Sites was assessed on 2026-11-14 (Codex, against the Sites documentation): no-go. Its runtime has no long-running worker for the generation queue and cannot run the native image library `sharp`; both are core to the app. Railway runs the existing container unchanged.
+The target is ChatGPT Sites (`docs/handover-codex-sites.md`). Railway is the fallback if the Sites spike fails: it runs the existing container unchanged.
 
 The `Dockerfile` has no `VOLUME` instruction on purpose: Railway rejects it. The volume is attached in step 3.
 

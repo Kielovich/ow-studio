@@ -1,6 +1,6 @@
 # Handover: deploy OW Studio on ChatGPT Sites
 
-> **Outcome (2026-11-14):** Codex checked the Sites documentation against section 4: no-go. Sites has no long-running worker for the generation queue and cannot run `sharp`. OW Studio goes live on Railway instead (`docs/deploy.md`). The invariants and acceptance checks below still apply to any host.
+> **Status (2026-11-14):** the target stays ChatGPT Sites. Codex's documentation check found two blockers for a straight port: no long-running worker process, and no native `sharp`. Next is a small spike on the real Sites runtime that proves (or rules out) a scheduled worker and WASM image processing, before any port code. Railway (`docs/deploy.md`) is only the fallback. The invariants and acceptance checks below apply on any host.
 
 You are taking over a working, tested application and moving it to ChatGPT Sites. The goal is the **same behaviour on a new runtime**, not a redesign. Read this file completely before changing code.
 
