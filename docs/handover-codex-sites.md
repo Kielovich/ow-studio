@@ -53,7 +53,7 @@ Check each against the Sites runtime documentation before you start, and write d
 | Current | Requirement | If Sites cannot do it as is |
 |---|---|---|
 | SQLite file via `node:sqlite` | Transactions, a unique index, conditional updates for job leases | Use the persistent store Sites provides. Keep `repo.ts` as the only data-access layer and keep its function signatures, so the tests still apply. |
-| Content-addressed image files on disk (`LocalAssetStore`, `sha256:<hex>` ids) | Persistent binary storage, about 5–10 MB per generated image | Use Sites' file/blob storage behind the same `put`/`putBytes`/`resolve` interface. Keep the hash as the id. |
+| Content-addressed image files on disk (`LocalAssetStore`, `sha256:<hex>` ids) | Persistent binary storage, about 5–10 MB per generated image; writes atomic, so a reader never sees a partial file (`test/assets.test.ts`) | Use Sites' file/blob storage behind the same `put`/`putBytes`/`resolve` interface. Keep the hash as the id. Storing an asset that already exists must not rewrite it in place. |
 | Long-running worker process | Claim queued images, run each for 20–60 s per provider call, keep going when no browser is open | Use Sites' background/scheduled jobs. Keep the lease logic: a crashed step must be picked up again, never run twice in parallel. |
 | `sharp` (native image library) | Background normalisation, fabric crop, measurements, 2000 px export | If unavailable, report it: these steps are part of the output quality. Do not drop them silently. |
 | Environment secrets | `GEMINI_API_KEY`, `OW_PASSWORD`, `OW_SESSION_SECRET`, optional `OW_BUDGET_USD` | Use Sites' secret storage. Never hard-code or log them. |
@@ -77,7 +77,7 @@ npm test --workspaces --if-present
 npm run typecheck -w web
 ```
 
-Today: 113 tests in `packages/core` and 24 in `apps/web` (folder import, idempotent creation, attempts, ZIP, metrics, unknown outcome, session anchor, access control, colour check, realism language). All must pass on the new data layer.
+Today: 115 tests in `packages/core` and 24 in `apps/web` (folder import, idempotent creation, attempts, ZIP, metrics, unknown outcome, session anchor, access control, colour check, realism language). All must pass on the new data layer.
 
 End to end (run it before and after the port; it starts its own isolated server and simulated worker, no paid calls). Node 22.13 or newer (`node:sqlite`). Install the browser once:
 
@@ -102,7 +102,8 @@ A fresh deployment needs only the seed (`apps/web/seed/`, imported automatically
 
 - Realism work is done for now (`docs/realism-audit.md`, results section): compiler template `tpl-2026.11.14e`, and all seven models refreshed to new versions with five-panel character sheets (`docs/model-look.md`). The seed (`apps/web/seed/`) holds these new versions.
 - Known open items: the stock "model hand" in relaxed poses (provider default), and the trousers three-quarter shot framing the head since `tpl-2026.11.14c`. Both are caught in review. A local "fix a hand" edit was built and tried once on a real image; it left the hand unchanged and was taken out of the app before handover (`docs/review-and-import.md`, Hand fix).
-- Known open item: one end-to-end run had an image stuck in "submitting" until its lease expired; not reproduced in five runs since, cause not identified. The worker now releases the lease on any crash and logs the stack. Watch for `crashed:` in the worker log.
+- Fixed 2026-11-14: images stuck in "submitting" or crashing with "asset ... is corrupted". Cause: the asset store rewrote an existing file in place, so a worker reading a shared asset (fabric crop, session anchor) while another stored it saw a half-written file. Writes are now atomic (temporary file, then rename) and an intact file is never rewritten; a race test reproduces the old failure. Watch for `crashed:` in the worker log anyway.
+- Dependencies (2026-11-14): `sharp` upgraded to 0.35.5 for libvips/libheif security fixes (all output tests pass). Open: `zod` 3 has a high-severity memory-exhaustion advisory (fix is zod 4, a breaking upgrade), and the `vitest` 2 tool chain has advisories that apply only while a Vitest UI or API server runs (fix is a major upgrade). Neither ships a fix without breaking changes; plan them as separate tasks.
 - Railway is the tested fallback host (`Dockerfile`, `docs/deploy.md`).
 
 ## 9. Report back
