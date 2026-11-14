@@ -5,7 +5,7 @@ import { brandFraming, PRESETS } from "./presets";
 import { BOTTOM_CATEGORIES, OUTERWEAR_CATEGORIES, type ImageSpec, type InstructionBlock, type PoseAssignment } from "./schemas";
 
 /** Bump when any wording below changes. Part of every compileHash. */
-export const TEMPLATE_VERSION = "tpl-2026.11.14d";
+export const TEMPLATE_VERSION = "tpl-2026.11.14e";
 
 /** Instruction priorities. Lower number wins when instructions conflict. */
 export const PRIORITY = {
@@ -63,7 +63,7 @@ export function buildBlocks(spec: ImageSpec, a: PoseAssignment): InstructionBloc
 
   if (face) {
     add("identity",
-      `Identity: the same woman as in the identity reference images. ${capitalize(m.look.features)}; ${m.look.eyes}; ${m.look.skinTone} skin; ${m.look.hair}. ` +
+      `Identity: the same woman as in the identity reference images. ${capitalize(m.look.features)}; ${m.look.eyes}; ${m.look.skinTone} skin; ${hairForPrompt(m.look.hair)}. ` +
       `Keep bone structure, face shape, nose, lip shape, eye shape, skin tone, skin texture, freckles and hair colour identical to the identity portrait in every shot of this session; ` +
       `pose, head angle and expression may change only gaze, eyelids and mouth, never the facial structure. ` +
       `Keep her exactly as she is, with her natural facial asymmetry and real proportions; do not beautify, idealise, slim or correct symmetry. ` +
@@ -76,7 +76,7 @@ export function buildBlocks(spec: ImageSpec, a: PoseAssignment): InstructionBloc
     add("identity", `Back view of the lower body; the head and hair are outside the frame. Skin tone: ${m.look.skinTone}.`);
   } else if (def.view === "back") {
     add("identity",
-      `Back view: hair as in the character sheet (${m.look.hair})${st.hairState ? `, styled for this production: ${st.hairState}` : ""}. ` +
+      `Back view: hair as in the character sheet (${hairForPrompt(m.look.hair)})${st.hairState ? `, styled for this production: ${st.hairState}` : ""}. ` +
       `${REAL_HAIR} The face is not visible. Hair must not cover the back of the garment or any closure.`);
   } else if (def.view === "detail") {
     add("identity", `Skin, where visible: ${m.look.skinTone}, with natural texture. No face in frame.`);
@@ -126,6 +126,19 @@ export function buildBlocks(spec: ImageSpec, a: PoseAssignment): InstructionBloc
   if (styling.length) add("styling", `Styling (secondary, must not draw attention from the garment): ${styling.join("; ")}.`);
 
   return blocks.sort((x, y) => x.priority - y.priority);
+}
+
+/**
+ * Model hair descriptions from the first model library ask for "no loose strands" or "a crisp hairline", which contradicts
+ * REAL_HAIR in every prompt. Those phrases are removed when the description is used; the style itself is kept.
+ */
+export function hairForPrompt(hair: string): string {
+  return hair
+    .replace(/,?\s*no loose strands/gi, "")
+    .replace(/\s*with a crisp hairline/gi, "")
+    .replace(/\s{2,}/g, " ")
+    .replace(/,\s*$/, "")
+    .trim();
 }
 
 /** Realism language from the realism audit (docs/realism-audit.md): the defects AI models fall into by default. */

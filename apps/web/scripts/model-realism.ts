@@ -9,7 +9,7 @@
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { extractImages, GEMINI_API_REVISION, GEMINI_ENDPOINT, GEMINI_PRO_PROFILE, loadLocalSecrets } from "@ow-studio/core";
+import { extractImages, GEMINI_API_REVISION, GEMINI_ENDPOINT, GEMINI_PRO_PROFILE, hairForPrompt, loadLocalSecrets } from "@ow-studio/core";
 import { DATA_DIR } from "../lib/server/db";
 import { assets, insertModelVersion, listModels, setModelStatus } from "../lib/server/repo";
 
@@ -79,7 +79,8 @@ async function generate(prompt: string, refs: string[], aspect: "1:1" | "16:9"):
 async function main() {
   const current = listModels().find((m) => m.modelId === modelId && m.status === "active");
   if (!current) throw new Error(`${modelId} has no active version`);
-  const hair = current.data.look.hair;
+  // "no loose strands" / "crisp hairline" in older look texts contradict real hair: dropped here and in the new version.
+  const hair = hairForPrompt(current.data.look.hair);
   if (stage === "portrait") {
     console.log(`1 image (portrait of ${current.data.displayName} v${current.version}), est. $${GEMINI_PRO_PROFILE.estimatedCostUsd.toFixed(2)}`);
     if (!confirm) return console.log("Dry run. Add --confirm.\n\n" + portraitPrompt(hair));
@@ -103,7 +104,7 @@ async function main() {
   } else if (stage === "register") {
     for (const k of ["portrait", "threeQuarter", "profile", "characterSheet"]) if (!state[k]) throw new Error(`missing ${k}`);
     const version = Math.max(...listModels().filter((m) => m.modelId === modelId).map((m) => m.version)) + 1;
-    insertModelVersion({ ...current.data, version, refs: {
+    insertModelVersion({ ...current.data, look: { ...current.data.look, hair }, version, refs: {
       ...current.data.refs, primaryPortrait: state.portrait!, identityAngles: [state.threeQuarter!, state.profile!],
       characterSheet: state.characterSheet!, facialDetailSheet: state.portrait!,
     } }, "active");
@@ -113,4 +114,4 @@ async function main() {
     throw new Error("stage must be portrait | refs | register");
   }
 }
-main().catch((e) => { console.error(e.message); process.exit(1); });
+main().catch((e) => { console.error("FAILED:", e.message); process.exit(1); });

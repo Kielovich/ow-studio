@@ -202,6 +202,14 @@ describe("realism language (docs/realism-audit.md)", () => {
     expect(s.back_full!.exclusions).toContain("helmet-like hair without a single loose strand");
   });
 
+  it("removes hair phrases that contradict real hair, keeping the style", async () => {
+    const { hairForPrompt } = await import("../src/templates");
+    expect(hairForPrompt("very light blonde hair, usually styled as: slicked-back low bun with a clean centre part, sleek, no loose strands")).toBe("very light blonde hair, usually styled as: slicked-back low bun with a clean centre part, sleek");
+    expect(hairForPrompt("black hair, usually styled as: sleek slicked-back high bun, smooth with a crisp hairline")).toBe("black hair, usually styled as: sleek slicked-back high bun, smooth");
+    const liv = byPreset(compileProduction(brandSet({ model: { ...(brandSet().model as any), look: { ...(brandSet().model as any).look, hair: "blonde, low bun, no loose strands" } } } as any), profile).images);
+    expect(liv.full_body!.prompt).not.toMatch(/no loose strands/);
+  });
+
   it("keeps the production's own hair override when one is set", () => {
     const o = byPreset(compileProduction(brandSet({ styling: { hairState: "low bun", accessories: [] } }), profile).images);
     expect(block(o.full_body!, "identity")).toMatch(/Hair styled for this production: low bun\. Real hair/);
