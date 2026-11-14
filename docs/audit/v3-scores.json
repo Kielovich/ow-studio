@@ -1,0 +1,28 @@
+{
+  "production": "prod_20261114_52887c",
+  "change": "Noa v3 (5-panel character sheet) + tpl-2026.11.14d (realism v3 after the double check)",
+  "rater": "Claude, not blind. The owner's blind A/B judgement is the acceptance test.",
+  "failedImages": [],
+  "garmentRegressions": [],
+  "openIssues": [
+    "COATED-TROUSERS-01 three_quarter_full shows the lower face/head at the top of the frame in round 3 and in v3, but not in the baseline, round 1 or round 2 (all chest to feet). Introduced with tpl-2026.11.14c; cause not identified from one image per round.",
+    "Stock 'model hand' (thumb to middle finger) still in the relaxed front, back and detail shots: unchanged by positive-only wording. Treated as a provider default."
+  ],
+  "images": [
+    ["trousers full_body", {"D5":2,"D8":1,"D10":2,"D12":1}],
+    ["trousers three_q",   {"D5":1,"D10":2}],
+    ["trousers back",      {"D5":2,"D10":2,"D12":1}],
+    ["trousers styled",    {"D2":2,"D3":1,"D5":1,"D8":1,"D10":2,"D12":1}],
+    ["trousers detail",    {"D5":2,"D10":2}],
+    ["fur full_body",      {"D2":2,"D3":1,"D5":2,"D12":1}],
+    ["fur three_q",        {"D3":1}],
+    ["fur back",           {"D3":1,"D5":2,"D12":1}],
+    ["fur styled",         {"D2":2,"D3":1,"D12":1}],
+    ["fur detail",         {"D5":2}],
+    ["mesh full_body",     {"D2":1,"D3":1,"D7":1,"D12":1}],
+    ["mesh three_q",       {"D3":1,"D7":1}],
+    ["mesh back",          {"D3":1,"D7":1,"D12":1}],
+    ["mesh styled",        {"D2":2,"D3":1,"D7":1}],
+    ["mesh detail",        {}]
+  ]
+}
