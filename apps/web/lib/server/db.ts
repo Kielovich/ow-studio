@@ -64,8 +64,6 @@ function migrate(d: DatabaseSync) {
   const acols = new Set((d.prepare("PRAGMA table_info(attempts)").all() as { name: string }[]).map((c) => c.name));
   // Automatic checks on an attempt's image (JSON), e.g. { colour: { measuredHex, distance, drift, sharePct, targetHex } }.
   if (acols.size && !acols.has("checks")) d.exec("ALTER TABLE attempts ADD COLUMN checks TEXT");
-  // Where an attempt came from when it is not a plain generation, e.g. "hand fix of attempt 1".
-  if (acols.size && !acols.has("note")) d.exec("ALTER TABLE attempts ADD COLUMN note TEXT");
   const hadAttempts = !!d.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'attempts'").get();
   d.exec(`
     -- Every finished provider attempt of an image, with its own files. A retry never overwrites an earlier attempt.
@@ -79,28 +77,8 @@ function migrate(d: DatabaseSync) {
       error TEXT,
       review TEXT,                                -- NULL (not reviewed) | approved | rejected; at most one approved per image
       checks TEXT,                                -- automatic checks JSON (colour drift)
-      note TEXT,                                  -- origin when not a plain generation, e.g. "hand fix of attempt 1"
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       PRIMARY KEY (image_id, attempt)
-    );
-    -- Local edits of a finished attempt (e.g. a hand fix). Each one is a paid call made on an explicit click; a success
-    -- becomes a new attempt of the image. create_key makes the click idempotent.
-    CREATE TABLE IF NOT EXISTS edits (
-      id TEXT PRIMARY KEY,
-      image_id TEXT NOT NULL REFERENCES images(id),
-      base_attempt INTEGER NOT NULL,
-      kind TEXT NOT NULL,                         -- hands
-      x REAL NOT NULL,
-      y REAL NOT NULL,
-      state TEXT NOT NULL DEFAULT 'queued',       -- queued | running | succeeded | failed | unknown
-      result_attempt INTEGER,
-      cost_usd REAL NOT NULL DEFAULT 0,
-      error TEXT,
-      create_key TEXT UNIQUE,
-      claimed_by TEXT,
-      claimed_until TEXT,
-      created_at TEXT NOT NULL DEFAULT (datetime('now')),
-      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
     -- Import sessions: the new-production form, saved server-side so corrections survive a closed tab.
     CREATE TABLE IF NOT EXISTS drafts (

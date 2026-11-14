@@ -10,11 +10,11 @@ Internal tool for a fashion e-commerce team. A user imports garment packshots (f
 
 | Path | What |
 |---|---|
-| `packages/core/src/` | Pure domain logic, no I/O except image processing: prompt compiler (`compiler.ts`, `templates.ts`, `references.ts`, `presets.ts`, `poses.ts`, `garmentConstraints.ts`), job state machine (`jobs.ts`), provider adapter (`providers/gemini.ts`), measurements from packshots (`silhouette.ts`: colour, hem side, leg shape, fabric crop), post-processing (`post/background.ts`, `post/export.ts`, `post/handfix.ts`). **Port unchanged.** |
+| `packages/core/src/` | Pure domain logic, no I/O except image processing: prompt compiler (`compiler.ts`, `templates.ts`, `references.ts`, `presets.ts`, `poses.ts`, `garmentConstraints.ts`), job state machine (`jobs.ts`), provider adapter (`providers/gemini.ts`), measurements from packshots (`silhouette.ts`: colour, hem side, leg shape, fabric crop), post-processing (`post/background.ts`, `post/export.ts`). `post/handfix.ts` and `GeminiProvider.edit` are a tested building block that the app does not use (see `docs/review-and-import.md`, Hand fix). **Port unchanged.** |
 | `apps/web/lib/server/db.ts` | SQLite (Node's built-in `node:sqlite`), schema and additive migrations |
 | `apps/web/lib/server/repo.ts` | All data access: models, productions, images, attempts, review, drafts, ZIP entries, budget |
-| `apps/web/lib/server/pipeline.ts` | One worker step for one image (freeze session anchor, run job, store output as a new attempt); `processEdit` for one hand fix |
-| `apps/web/worker/index.ts` | Long-running worker: claims queued images and queued hand fixes with leases, runs `processImage` / `processEdit`, daily DB backup |
+| `apps/web/lib/server/pipeline.ts` | One worker step for one image (freeze session anchor, run job, store output as a new attempt) |
+| `apps/web/worker/index.ts` | Long-running worker: claims queued images with leases, runs `processImage`, daily DB backup |
 | `apps/web/lib/server/seed.ts`, `apps/web/seed/` | 7 registered models and their 42 reference images, imported on an empty database |
 | `apps/web/lib/auth.ts`, `apps/web/proxy.ts` | Shared-password login, signed session cookie, guard on paid and writing routes |
 | `apps/web/app/` | Next.js 16 App Router (Cache Components on), HeroUI v3 UI, API route handlers |
@@ -45,7 +45,6 @@ These are product rules, each covered by tests. If the new runtime makes one imp
 12. **Realism language stays in the compiler** (`REAL_HAIR`, `REAL_HANDS`, `REAL_BODY`, the body-skin and lighting text in `templates.ts`, and the exclusions). It is covered by tests. Lesson from the benchmark: never ask the light to "show the garment's folds"; it added gathers to a smooth dress.
 13. **A paid output is never lost.** The provider output is stored before post-processing; if background normalisation or the colour check fails, the raw output becomes the final.
 14. **Automatic checks only flag what they can be trusted on.** The colour-drift check compares the image cluster nearest the packshot colour; it never blocks, it labels the image "Check colour" for review.
-15. **A hand fix is local, explicit and kept apart.** Only the square around the clicked point is sent; nothing outside it changes (pixel-tested). One confirmed click is one paid call (`createKey`, unique index on `edits.create_key`); a lost answer is "unknown" and counts against the budget; the result is a new attempt, never an overwrite. No new attempt or delete while a fix is pending. (`post/handfix.ts`, `repo.requestEdit`, `pipeline.processEdit`)
 
 ## 4. What probably has to change for Sites
 
@@ -55,7 +54,7 @@ Check each against the Sites runtime documentation before you start, and write d
 |---|---|---|
 | SQLite file via `node:sqlite` | Transactions, a unique index, conditional updates for job leases | Use the persistent store Sites provides. Keep `repo.ts` as the only data-access layer and keep its function signatures, so the tests still apply. |
 | Content-addressed image files on disk (`LocalAssetStore`, `sha256:<hex>` ids) | Persistent binary storage, about 5–10 MB per generated image | Use Sites' file/blob storage behind the same `put`/`putBytes`/`resolve` interface. Keep the hash as the id. |
-| Long-running worker process | Claim queued images and queued hand fixes (`edits` table), run each for 20–60 s per provider call, keep going when no browser is open | Use Sites' background/scheduled jobs. Keep the lease logic: a crashed step must be picked up again, never run twice in parallel. |
+| Long-running worker process | Claim queued images, run each for 20–60 s per provider call, keep going when no browser is open | Use Sites' background/scheduled jobs. Keep the lease logic: a crashed step must be picked up again, never run twice in parallel. |
 | `sharp` (native image library) | Background normalisation, fabric crop, measurements, 2000 px export | If unavailable, report it: these steps are part of the output quality. Do not drop them silently. |
 | Environment secrets | `GEMINI_API_KEY`, `OW_PASSWORD`, `OW_SESSION_SECRET`, optional `OW_BUDGET_USD` | Use Sites' secret storage. Never hard-code or log them. |
 | Request duration | Gemini calls take 20–60 s; ZIP export processes up to tens of images | If request time limits are shorter, the generation must stay in background jobs, not in a request. |
@@ -77,7 +76,7 @@ Run from the repository root:
 npm test --workspaces --if-present
 ```
 
-Today: 112 tests in `packages/core` and 27 in `apps/web` (folder import, idempotent creation, attempts, ZIP, metrics, unknown outcome, session anchor, access control, colour check, realism language, hand fix). All must pass on the new data layer.
+Today: 113 tests in `packages/core` and 24 in `apps/web` (folder import, idempotent creation, attempts, ZIP, metrics, unknown outcome, session anchor, access control, colour check, realism language). All must pass on the new data layer.
 
 End to end (run it before and after the port; it starts its own isolated server and simulated worker, no paid calls):
 
@@ -85,7 +84,7 @@ End to end (run it before and after the port; it starts its own isolated server 
 npm run e2e -w web
 ```
 
-It checks 39 things in a real browser: login and logout, folder import with conflicts, the import session after a reload, idempotent Run, simulated generation, approve/reject/new attempt/compare, a hand fix (marked square, one fix per double click, new attempt beside the original), the approved ZIP and 2000 px downloads, every page at 1440 and 390 px without horizontal scroll or console errors, keyboard focus, the not-found state, the health check and the daily backup. On Sites, run the same flows against the deployed site with `OW_PROVIDER=simulated` on a staging copy if the runtime allows it; otherwise by hand. Then check by hand on the deployed site, without paid calls:
+It checks 36 things in a real browser: login and logout, folder import with conflicts, the import session after a reload, idempotent Run, simulated generation, approve/reject/new attempt/compare, the approved ZIP and 2000 px downloads, every page at 1440 and 390 px without horizontal scroll or console errors, keyboard focus, the not-found state, the health check and the daily backup. On Sites, run the same flows against the deployed site with `OW_PROVIDER=simulated` on a staging copy if the runtime allows it; otherwise by hand. Then check by hand on the deployed site, without paid calls:
 
 1. Unauthenticated: pages redirect to the login, APIs answer 401.
 2. After login: the 7 models are listed (seeded).
@@ -100,7 +99,7 @@ A fresh deployment needs only the seed (`apps/web/seed/`, imported automatically
 ## 8. State at handover (2026-11-13)
 
 - Realism work is done for now (`docs/realism-audit.md`, results section): compiler template `tpl-2026.11.14e`, and all seven models refreshed to new versions with five-panel character sheets (`docs/model-look.md`). The seed (`apps/web/seed/`) holds these new versions.
-- Known open items: the stock "model hand" in relaxed poses (provider default), and the trousers three-quarter shot framing the head since `tpl-2026.11.14c`. Both are caught in review. For the hand there is now a local "Fix a hand" edit in the lightbox (`docs/review-and-import.md`, Hand fix); it is tested with the simulated provider only until the owner approves a real test.
+- Known open items: the stock "model hand" in relaxed poses (provider default), and the trousers three-quarter shot framing the head since `tpl-2026.11.14c`. Both are caught in review. A local "fix a hand" edit was built and tried once on a real image; it left the hand unchanged and was taken out of the app before handover (`docs/review-and-import.md`, Hand fix).
 - Known open item: one end-to-end run had an image stuck in "submitting" until its lease expired; not reproduced in five runs since, cause not identified. The worker now releases the lease on any crash and logs the stack. Watch for `crashed:` in the worker log.
 - Railway is the tested fallback host (`Dockerfile`, `docs/deploy.md`).
 

@@ -8,15 +8,13 @@
 - Metrics per production: approved, approved on the first recorded attempt, attempts, spent, spent per approved image, and attempts with an unknown outcome (not counted in spent, may have been billed).
 - Migration: images finished before this change get one backfilled attempt (not reviewed). Verified on a copy of the real database: 20 images → 20 attempts, idempotent on reopen.
 
-## Hand fix
+## Hand fix (tried, not in the app)
 
-The provider's stock "model hand" survived every prompt change (`docs/realism-audit.md`), so a finished attempt can get a local fix instead of a whole new image. In the lightbox: "Fix a hand", click on the hand, check the marked square, confirm. Only that square (24% of the short side, around the click) is sent to Nano Banana Pro with a fixed edit prompt (`HAND_FIX_PROMPT` in `packages/core/src/post/handfix.ts`). The answer is scaled back into the square, colour-matched to its edge and blended with a soft edge; every pixel outside the square stays identical (tested).
+The provider's stock "model hand" survived every prompt change (`docs/realism-audit.md`). A local fix was built: the reviewer clicks on the hand, only a square around the point (24% of the short side) is sent to Nano Banana Pro with an edit prompt, and the answer is colour-matched and blended back so that no pixel outside the square changes (pixel-tested in `packages/core/test/handfix.test.ts`).
 
-- One confirmed click is one paid call (about $0.16). The click carries a `createKey`, so a double click or a resent request gives the same fix.
-- The result is a new attempt of the image (`note: "hand fix of attempt k"`), unreviewed, shown beside the original. The original keeps its review; approving the fix moves the approval.
-- A lost answer is "unknown outcome, may have been billed": no attempt is added, the cost counts against the budget, nothing is retried on its own.
-- While a fix is queued or running, the image cannot get a new attempt and the production cannot be deleted.
-- First real test (2026-11-14, Noa mesh dress front from `prod_20261114_52887c`, image-left hand, 1 call, $0.16): **no effect.** Nano Banana returned the crop almost unchanged; the same posed hand, 0.9% of the square changed by more than 12 levels, mostly resampled edges. The garment stayed intact (0.7% of dark garment pixels changed, no visible change in mesh or seams) and no seam shows at the square's edge. The edit prompt asks too much for "keep everything exactly"; it needs an explicit instruction to change the pose before the button is worth a paid click.
+First real test (2026-11-14, Noa mesh dress front from `prod_20261114_52887c`, image-left hand, 1 call, $0.16): **no effect.** Nano Banana returned the crop almost unchanged, with the same posed hand: 0.9% of the square changed by more than 12 levels, mostly resampled edges. The garment stayed intact (0.7% of dark garment pixels changed, no visible change in mesh or seams) and no seam showed at the square's edge. The result is attempt 2 of that image.
+
+A second prompt (v2, asks for a change of pose and locks wrist and sleeve) is in `post/handfix.ts` but was not tried. The owner chose to skip the test, so the button, the API route, the worker step and the `edits` table were taken out of the app (they are in git history, commit `ccc3909`). The core building block (`post/handfix.ts`, `GeminiProvider.edit`) stays, tested, for a later attempt.
 
 ## Unknown outcome
 - `awaiting_approval` with `timeout_after_accept`, `uncertain_submission` or `unknown` is shown as **Unknown outcome**: the provider may have produced and billed the image without us receiving it. The action is "New attempt (may cost again)".

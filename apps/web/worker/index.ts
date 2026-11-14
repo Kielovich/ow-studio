@@ -8,7 +8,7 @@ import { hostname } from "node:os";
 import { GeminiProvider, loadLocalSecrets } from "@ow-studio/core";
 import { backupDatabase, getDb } from "../lib/server/db";
 import { SqliteJobStore } from "../lib/server/jobstore";
-import { processEdit, processImage } from "../lib/server/pipeline";
+import { processImage } from "../lib/server/pipeline";
 import { simulatedProvider } from "../lib/server/simulated";
 import { assets, DEFAULT_PROFILE } from "../lib/server/repo";
 
@@ -33,27 +33,6 @@ function claim(): any | null {
         AND (i.depends_on IS NULL OR EXISTS (SELECT 1 FROM images a WHERE a.id = i.depends_on AND a.state = 'succeeded' AND a.final_asset IS NOT NULL))
       ORDER BY i.updated_at LIMIT 1)
     RETURNING *`).get(WORKER_ID) ?? null;
-}
-
-function claimEdit(): any | null {
-  return getDb().prepare(`
-    UPDATE edits SET claimed_by = ?, claimed_until = datetime('now', '+${LEASE_MINUTES} minutes')
-    WHERE id = (SELECT id FROM edits WHERE state = 'queued' AND (claimed_until IS NULL OR claimed_until < datetime('now')) ORDER BY created_at LIMIT 1)
-    RETURNING *`).get(WORKER_ID) ?? null;
-}
-
-/** Hand fixes run one at a time beside generation. A crash marks the fix "unknown": it may have been sent. */
-async function editLoop() {
-  for (;;) {
-    const e = claimEdit();
-    if (!e) { await sleep(2000); continue; }
-    try {
-      console.log(`[${new Date().toISOString()}] edit ${e.id} (${e.kind}) -> ${await processEdit(e, { adapter })}`);
-    } catch (err) {
-      console.error(`[edit] ${e.id} crashed:`, (err as Error).stack ?? (err as Error).message);
-      try { getDb().prepare("UPDATE edits SET state = 'unknown', error = ?, claimed_by = NULL, claimed_until = NULL WHERE id = ?").run(`crashed: ${(err as Error).message}. May have been billed.`, e.id); } catch {}
-    }
-  }
 }
 
 async function loop(n: number) {
@@ -88,4 +67,3 @@ if (simulated) console.log("[worker] SIMULATED provider: no real images, no cost
 else if (!process.env.GEMINI_API_KEY) console.error("[worker] GEMINI_API_KEY is not set: every generation will fail until it is.");
 console.log(`worker ${WORKER_ID} up: provider ${simulated ? "simulated" : profile.id}, concurrency ${profile.concurrency}`);
 for (let n = 0; n < profile.concurrency; n++) void loop(n);
-void editLoop();

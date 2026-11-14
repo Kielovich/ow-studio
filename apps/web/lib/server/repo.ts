@@ -193,12 +193,10 @@ export type ImageRow = {
   /** The attempt marked approved, if any. */
   approvedAttempt: number | null;
   status: StatusView;
-  /** Hand fixes of this image's attempts, oldest first (getProduction and getImage fill it). */
-  edits?: EditRow[];
 };
 
 const toAttempt = (a: any): Attempt => ({
-  attempt: a.attempt, outcome: a.outcome, rawAsset: a.raw_asset, finalAsset: a.final_asset, costUsd: a.cost_usd, error: a.error, note: a.note ?? null, review: a.review ?? null, createdAt: a.created_at,
+  attempt: a.attempt, outcome: a.outcome, rawAsset: a.raw_asset, finalAsset: a.final_asset, costUsd: a.cost_usd, error: a.error, review: a.review ?? null, createdAt: a.created_at,
   checks: a.checks ? JSON.parse(a.checks) : null,
 });
 
@@ -247,9 +245,7 @@ export function getProduction(id: string) {
     attempts.set(a.image_id, [...(attempts.get(a.image_id) ?? []), toAttempt(a)]);
   }
   const stateOf = new Map(rows.map((r) => [r.id, r.state as string]));
-  const edits = new Map<string, EditRow[]>();
-  for (const e of listEdits(id)) edits.set(e.imageId, [...(edits.get(e.imageId) ?? []), e]);
-  const images = rows.map((r) => ({ ...toImage(r, attempts.get(r.id) ?? [], r.depends_on ? stateOf.get(r.depends_on) : undefined), edits: edits.get(r.id) ?? [] }));
+  const images = rows.map((r) => toImage(r, attempts.get(r.id) ?? [], r.depends_on ? stateOf.get(r.depends_on) : undefined));
   return {
     id: p.id, name: p.name, provider: p.provider, estCost: p.est_cost, createdAt: p.created_at, spec: JSON.parse(p.spec), images,
     metrics: productionMetrics(images),
@@ -264,11 +260,7 @@ export function getImage(imageId: string): ImageRow | null {
 
 export function spentThisMonthUsd(): number {
   const rows = getDb().prepare("SELECT job FROM images WHERE updated_at >= date('now', 'start of month')").all() as any[];
-  const jobs = rows.reduce((s, r) => s + (JSON.parse(r.job).costUsd ?? 0), 0);
-  // Fixes that produced no attempt: a billed failure counts its cost; an unknown outcome counts as billed, to be safe.
-  const e: any = getDb().prepare(`SELECT COALESCE(SUM(CASE WHEN state = 'unknown' THEN ? ELSE cost_usd END), 0) AS s FROM edits
-    WHERE state IN ('failed', 'unknown') AND updated_at >= date('now', 'start of month')`).get(DEFAULT_PROFILE.estimatedCostUsd);
-  return jobs + e.s;
+  return rows.reduce((s, r) => s + (JSON.parse(r.job).costUsd ?? 0), 0);
 }
 
 export function budgetRemaining(): number {
@@ -280,8 +272,6 @@ export function deleteProduction(id: string): { ok: true } | { error: string } {
   const db = getDb();
   const active: any = db.prepare("SELECT COUNT(*) AS n FROM images WHERE production_id = ? AND state IN ('submitting', 'provider_running', 'validating')").get(id);
   if (active.n > 0) return { error: "Production has images in progress; wait until they finish." };
-  const fixing: any = db.prepare("SELECT COUNT(*) AS n FROM edits e JOIN images i ON i.id = e.image_id WHERE i.production_id = ? AND e.state IN ('queued', 'running')").get(id);
-  if (fixing.n > 0) return { error: "A hand fix is in progress; wait until it finishes." };
   db.prepare("UPDATE images SET state = 'cancelled' WHERE production_id = ? AND state = 'queued'").run(id);
   db.prepare("UPDATE productions SET deleted_at = datetime('now') WHERE id = ?").run(id);
   return { ok: true };
@@ -395,8 +385,6 @@ export async function retryImage(imageId: string): Promise<{ state: string } | {
   const db = getDb();
   const row: any = db.prepare("SELECT state, job FROM images WHERE id = ?").get(imageId);
   if (!row) return { error: "Image not found" };
-  // A fix writes the next attempt number when it finishes; a new generation at the same time would collide with it.
-  if (db.prepare("SELECT 1 FROM edits WHERE image_id = ? AND state IN ('queued', 'running')").get(imageId)) return { error: "Wait for the hand fix to finish" };
   const store = new (await import("./jobstore")).SqliteJobStore();
   if (row.state === "succeeded") {
     const job = JSON.parse(row.job) as JobRecord;
@@ -479,39 +467,4 @@ export function listDrafts(limit = 8) {
     const sets = Array.isArray(d.files) ? [...new Set(d.files.map((f: any) => f?.set).filter(Boolean))].slice(0, 4).join(", ") : "";
     return { id: r.id, name: d.name || sets || null, files: Array.isArray(d.files) ? d.files.length : 0, productionId: r.production_id ?? null, updatedAt: r.updated_at };
   });
-}
-
-// ---------- Local edits (hand fix) ----------
-
-export type EditRow = { id: string; imageId: string; baseAttempt: number; kind: string; x: number; y: number; state: string; resultAttempt: number | null; costUsd: number; error: string | null; createdAt: string };
-const toEdit = (r: any): EditRow => ({ id: r.id, imageId: r.image_id, baseAttempt: r.base_attempt, kind: r.kind, x: r.x, y: r.y, state: r.state, resultAttempt: r.result_attempt ?? null, costUsd: r.cost_usd, error: r.error ?? null, createdAt: r.created_at });
-
-export function listEdits(productionId: string): EditRow[] {
-  return (getDb().prepare("SELECT e.* FROM edits e JOIN images i ON i.id = e.image_id WHERE i.production_id = ? ORDER BY e.created_at DESC").all(productionId) as any[]).map(toEdit);
-}
-
-/**
- * Queue a hand fix of one attempt at a clicked point (0..1). A paid call, made only on an explicit click: the same
- * createKey always returns the same edit, and an image with an edit in flight or a generation in progress is refused.
- */
-export function requestEdit(imageId: string, req: { attempt: number; x: number; y: number; createKey?: string; kind?: "hands" }): { id: string; existing?: boolean } | { error: string } {
-  const db = getDb();
-  const key = req.createKey?.trim() || null;
-  if (key) {
-    const ex: any = db.prepare("SELECT id FROM edits WHERE create_key = ?").get(key);
-    if (ex) return { id: ex.id, existing: true };
-  }
-  if (!(req.x >= 0 && req.x <= 1 && req.y >= 0 && req.y <= 1)) return { error: "Point must be inside the image" };
-  const img: any = db.prepare("SELECT state FROM images WHERE id = ?").get(imageId);
-  if (!img) return { error: "Image not found" };
-  if (img.state !== "succeeded" && img.state !== "needs_review") return { error: "Only a finished image can be fixed" };
-  const a: any = db.prepare("SELECT final_asset FROM attempts WHERE image_id = ? AND attempt = ?").get(imageId, req.attempt);
-  if (!a?.final_asset) return { error: "That attempt has no image" };
-  const busy: any = db.prepare("SELECT 1 FROM edits WHERE image_id = ? AND state IN ('queued', 'running')").get(imageId);
-  if (busy) return { error: "A fix of this image is already in progress" };
-  if (budgetRemaining() < DEFAULT_PROFILE.estimatedCostUsd) return { error: "Monthly budget reached" };
-  const id = "edit_" + randomBytes(6).toString("hex");
-  db.prepare("INSERT INTO edits (id, image_id, base_attempt, kind, x, y, create_key) VALUES (?, ?, ?, ?, ?, ?, ?)")
-    .run(id, imageId, req.attempt, req.kind ?? "hands", req.x, req.y, key);
-  return { id };
 }

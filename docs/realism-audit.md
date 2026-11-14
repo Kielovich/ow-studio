@@ -100,6 +100,6 @@ Conclusion: prompt and reference work removed about 40% of the defect points, mo
 
 Open issue: since tpl-2026.11.14c the trousers three-quarter shot frames the head (one image per run; cause not identified). Caught in review.
 
-Next levers: a local "fix hands" edit (re-generate only a crop of the hand with Nano Banana and composite it back) is built, see `docs/review-and-import.md`, Hand fix; not yet tried on a real image. Not built: a blind owner review of real productions to replace the single-rater score.
+Next levers: a local "fix hands" edit (re-generate only a crop of the hand with Nano Banana and composite it back) was built and tried once ($0.16): the garment stayed intact but the hand came back unchanged, so it was taken out of the app (`docs/review-and-import.md`, Hand fix). Not built: a blind owner review of real productions to replace the single-rater score.
 
-Spend for the realism work: $14.08 of the $17 budget for generated images (benchmark runs, Noa and the six other models' references), plus one 503 response that may have been billed ($0.16): at most $14.24. Three 402 responses (credits depleted) were not billed.
+Spend for the realism work: $14.08 of the $17 budget for generated images (benchmark runs, Noa and the six other models' references), plus one 503 response that may have been billed ($0.16): at most $14.24. Three 402 responses (credits depleted) were not billed. The hand-fix test added $0.16: at most $14.40 in total.

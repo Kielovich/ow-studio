@@ -186,23 +186,6 @@ async function main() {
     await page.waitForTimeout(800); // let the open animation finish before the screenshot
     await shot(page, "desk-lightbox-compare");
     await page.keyboard.press("Escape");
-
-    // Hand fix: pick a point, confirm with a double click, exactly one paid edit, result as a new attempt beside the old.
-    await page.locator("section button.block").nth(2).click();
-    await page.getByRole("button", { name: /^Fix a hand in #1/ }).click();
-    const target = page.getByRole("button", { name: "Click on the hand to fix" });
-    const tb = await target.boundingBox();
-    await target.click({ position: { x: tb.width * 0.6, y: tb.height * 0.55 } });
-    check(await page.getByTestId("fix-box").waitFor({ timeout: 10000 }).then(() => true, () => false), "hand fix marks the square that will be sent");
-    await page.getByRole("button", { name: /^Fix this hand · paid/ }).dblclick();
-    await page.getByText("· hand fix").first().waitFor({ timeout: 120000 });
-    const fixed = await (await page.request.get(`${BASE}/api/productions/${prodUrl.split("/").pop()}`)).json();
-    const edits = fixed.images.flatMap((i) => i.edits ?? []);
-    check(edits.length === 1 && edits[0].state === "succeeded" && edits[0].resultAttempt === 2, `a double click makes one hand fix, stored as attempt 2 (${JSON.stringify(edits.map((e) => e.state))})`);
-    check(await page.getByText("Attempt 1").first().isVisible(), "the fixed attempt opens beside the original");
-    await page.waitForTimeout(800);
-    await shot(page, "desk-lightbox-handfix");
-    await page.keyboard.press("Escape");
   });
 
   await stage("Downloads", async () => {
