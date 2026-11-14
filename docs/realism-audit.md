@@ -63,3 +63,20 @@ Not proposed: 4K output (face resolution in full-body shots is the real ceiling 
 - Whether natural hand wording produces varied hands, or a different stock gesture.
 - How far "gentle fall-off" can go before it fights the brand's bright, even gallery light.
 - The scores come from a single rater. Your blind A/B judgement is the acceptance test, not these numbers.
+
+## Best-practice check (2026-11-14)
+
+Google's own pages could not be read from this environment (`blog.google` and `developers.googleblog.com` are outside the network allowlist), so this check rests on search results. Most of them are community and vendor guides, not official guidance.
+
+| Practice | Source strength | Our prompt |
+|---|---|---|
+| Photographic language: shot, lens, light, texture | Google (developer blog, Imagen guide, as quoted in search results) | Followed: camera, focal length, light set-up and skin texture are named per shot |
+| No quality intensifiers ("8k", "hyper-detailed", "ultra-realistic") and no "flawless"/"perfect" | Community, consistent across sources | Followed: none in the compiled prompt |
+| Side or soft directional key instead of flat front light | Community | Followed since tpl-2026.11.14, with an explicit rule that no equipment appears in frame |
+| Small deliberate imperfections (asymmetry, stray hair, slight discoloration) | Community | Followed (skin, body skin, real-hair text; Noa v2 references) |
+| Specify hand positions concretely | Community | Partly: the relaxed-arm poses only say "arms hanging naturally"; the hand detail sits in the style block |
+| Describe what you want instead of listing what to avoid | Attributed to Google by one site; not verified | **Not followed for hands:** the prompt describes the stock "model hand" (thumb touching the middle finger) twice, in the hand text and in the exclusions. Naming a pose precisely may make it more likely. Hypothesis only, untested |
+
+Proposed after round 3 (not yet tested, so not in the compiler): drop the description of the stock gesture from the hand text and the exclusions, and put a concrete, positive hand description into the relaxed-arm pose texts.
+
+Sources: [Google: 7 tips for Nano Banana Pro](https://blog.google/products/gemini/prompting-tips-nano-banana-pro/), [Google Developers: prompting Gemini 2.5 Flash Image](https://developers.googleblog.com/en/how-to-prompt-gemini-2-5-flash-image-generation-for-the-best-results/), [Imagen prompt guide](https://ai.google.dev/gemini-api/docs/imagen-prompt-guide), [Oakgen: fix plastic skin](https://oakgen.ai/blog/fix-plastic-skin-ai-portraits), [Upsampler: make AI images look real](https://upsampler.com/blog/make-ai-images-look-real), [Cloudinary: make AI images look real](https://cloudinary.com/guides/image-generation/how-to-make-ai-images-look-real), [Beauty editorial close-ups](https://imagegpt-web.pages.dev/learn/guides/beauty-editorial-closeups) (the Google pages were known only from search snippets).
