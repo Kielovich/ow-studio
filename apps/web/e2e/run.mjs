@@ -208,6 +208,24 @@ async function main() {
       check(await noOverflow(page), `${path} has no horizontal scroll at 1440 px`);
       await shot(page, `desk${path.replace(/\//g, "-") || "-home"}`);
     }
+    // Help: a tip box per page that can be dismissed (and stays dismissed), brought back from Settings, and (i) explanations.
+    await page.goto(`${BASE}/`);
+    const homeTip = page.getByTestId("tip-home");
+    check(await homeTip.waitFor({ timeout: 10000 }).then(() => true, () => false), "the overview shows a how-it-works tip");
+    await homeTip.getByRole("button", { name: "Got it" }).click();
+    await page.reload();
+    await page.getByText("Studio overview").waitFor();
+    await page.waitForTimeout(800);
+    check(!(await homeTip.isVisible()), "a dismissed tip stays away after a reload");
+    await page.goto(`${BASE}/settings`);
+    await page.getByRole("button", { name: "Show all tips again" }).click();
+    await page.goto(`${BASE}/`);
+    check(await homeTip.waitFor({ timeout: 10000 }).then(() => true, () => false), "Settings brings dismissed tips back");
+    await page.goto(`${BASE}/productions/new`);
+    await page.getByRole("button", { name: "About: One studio session" }).click();
+    check(await page.getByRole("dialog").getByText(/front image is made first/).waitFor({ timeout: 5000 }).then(() => true, () => false), "an (i) button opens its explanation");
+    await page.keyboard.press("Escape");
+
     // Model library: an overview of portraits and names; each model opens on all her reference images.
     await page.goto(`${BASE}/models`);
     await page.getByTestId("model-card").first().waitFor();

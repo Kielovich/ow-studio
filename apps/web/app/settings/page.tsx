@@ -1,22 +1,18 @@
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { PageTitle } from "@/components/page-title";
-import { DEFAULT_PROFILE, MONTHLY_BUDGET_USD } from "@/lib/server/repo";
+import { ResetTipsButton } from "@/components/help";
+import { DEFAULT_PROFILE, MONTHLY_BUDGET_USD, spentThisMonthUsd } from "@/lib/server/repo";
 
 /** Values come from the runtime environment (budget), so they are read per request, not frozen at build time. */
 async function SettingsRows() {
   await connection();
   const p = DEFAULT_PROFILE;
   const rows: [string, string][] = [
-    ["Provider", `${p.id} (Nano Banana Pro)`],
-    ["Profile version", `${p.version}${p.verified ? "" : " · not yet capability-tested"}`],
-    ["Reference images", `up to ${p.maxRefs}, of which ${p.maxIdentityRefs} of the person`],
-    ["Concurrent generations", String(p.concurrency)],
-    ["Estimated cost per image", `$${p.estimatedCostUsd.toFixed(2)}`],
-    ["Monthly budget", `$${MONTHLY_BUDGET_USD.toFixed(2)} (OW_BUDGET_USD)`],
-    ["Delivery", "2000 x 2000 px JPEG, sRGB, from the 2048 px 2K output"],
-    ["Background", "Normalised to RGB 241 after generation"],
-    ["Retries", "Automatic only for non-billable errors; paid retries need approval"],
+    ["Cost per image", `About $${p.estimatedCostUsd.toFixed(2)}. A new attempt of a rejected image costs the same.`],
+    ["Monthly budget", `$${MONTHLY_BUDGET_USD.toFixed(2)}, spent this month $${spentThisMonthUsd().toFixed(2)}. Runs that would go over the budget are stopped.`],
+    ["Delivery", "2000 x 2000 px JPEG (sRGB), approved images only, as a ZIP per production"],
+    ["Background", "Light grey studio background (RGB 241) on every image"],
   ];
   return (
     <dl className="border-t border-line max-w-3xl">
@@ -37,6 +33,10 @@ export default function SettingsPage() {
       <Suspense fallback={<div className="h-80" />}>
         <SettingsRows />
       </Suspense>
+      <div className="mt-10 flex flex-col sm:flex-row sm:items-center gap-3 max-w-3xl">
+        <p className="text-sm text-black/60 flex-1">Closed a tip box by mistake? Bring all the tips back.</p>
+        <ResetTipsButton />
+      </div>
     </>
   );
 }

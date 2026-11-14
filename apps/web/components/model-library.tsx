@@ -1,9 +1,10 @@
 "use client";
 
-import { Chip, Modal, Skeleton } from "@heroui/react";
+import { Modal, Skeleton } from "@heroui/react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { TipBox } from "@/components/help";
 import { LinkButton } from "@/components/link-button";
 import { PageTitle } from "@/components/page-title";
 import { Tile } from "@/components/tile";
@@ -63,6 +64,10 @@ export function ModelOverview() {
   return (
     <>
       <PageTitle eyebrow="Library" title="Models" />
+      <TipBox id="models" title="Models" steps={[
+        <>These are the models who can wear your products. Tap one to see all her reference images.</>,
+        <>You choose the model for each production in step 2 of <b>New production</b>.</>,
+      ]} />
       {offline && <p className="text-warning text-sm mb-6" role="status">Cannot reach the studio. Reload to try again.</p>}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-10">
         {!models
@@ -75,9 +80,6 @@ export function ModelOverview() {
             </Link>
           ))}
       </div>
-      <p className="text-sm text-black/60 mt-12 max-w-2xl">
-        Open a model to see all her reference images and earlier versions. Versions are immutable: productions always keep the version they were made with.
-      </p>
     </>
   );
 }
@@ -101,18 +103,13 @@ export function ModelDetail() {
   );
 
   const v = model.current;
-  const look = v.data.look;
-  const rows: [string, string | undefined][] = [
-    ["Age", String(v.data.ageYears)], ["Height", `${v.data.heightCm} cm`], ["EU size", String(v.data.euSize)],
-    ["Hair", look.hair], ["Eyes", look.eyes], ["Skin tone", look.skinTone], ["Features", look.features],
-  ];
-  const earlier = model.versions.filter((x) => x.version !== v.version);
+  const rows: [string, string][] = [["Age", String(v.data.ageYears)], ["Height", `${v.data.heightCm} cm`], ["EU size", String(v.data.euSize)]];
 
   return (
     <>
       <Link href="/models" className="ow-nav inline-block pt-8 text-black/60 hover:text-ink">← All models</Link>
-      <PageTitle eyebrow={`${model.id} · Version ${v.version}`} title={v.data.displayName}>
-        <Chip size="sm" color={v.status === "active" ? "success" : "default"}>{v.status}</Chip>
+      <PageTitle eyebrow="Model" title={v.data.displayName}>
+        <LinkButton href="/productions/new" variant="secondary">New production</LinkButton>
       </PageTitle>
 
       <div className="grid lg:grid-cols-[1fr_320px] gap-10">
@@ -125,7 +122,7 @@ export function ModelDetail() {
           ))}
         </div>
         <dl className="border-t border-line text-sm self-start">
-          {rows.filter(([, val]) => val).map(([k, val]) => (
+          {rows.map(([k, val]) => (
             <div key={k} className="py-3 border-b border-line grid grid-cols-[96px_1fr] gap-3">
               <dt className="ow-eyebrow pt-0.5">{k}</dt>
               <dd className="min-w-0 break-words">{val}</dd>
@@ -134,30 +131,6 @@ export function ModelDetail() {
         </dl>
       </div>
 
-      {earlier.length > 0 && (
-        <details className="mt-14 border-t border-line pt-6">
-          <summary className="ow-nav cursor-pointer">Earlier versions ({earlier.length})</summary>
-          <div className="flex flex-col gap-8 mt-6">
-            {earlier.map((e) => (
-              <div key={e.version}>
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="ow-nav">Version {e.version}</span>
-                  <Chip size="sm">{e.status}</Chip>
-                  <span className="text-sm text-black/50">{new Date(e.createdAt + "Z").toLocaleDateString()}</span>
-                </div>
-                <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
-                  {refsOf(e).map((r) => (
-                    <button key={r.key} type="button" onClick={() => setViewer({ hash: r.hash, label: `${r.label} · version ${e.version}` })}>
-                      <Tile src={assetUrl(r.hash, 240)} alt={r.label} fit={r.key === "characterSheet" ? "contain" : "cover"} />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-          <p className="text-sm text-black/60 mt-6 max-w-2xl">Versions are immutable. A new look or new references create a new version; productions keep the version they were made with.</p>
-        </details>
-      )}
 
       <Modal.Backdrop isOpen={!!viewer} onOpenChange={(o) => !o && setViewer(null)}>
         <Modal.Container size="full">

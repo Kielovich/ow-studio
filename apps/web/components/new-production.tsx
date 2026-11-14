@@ -4,10 +4,11 @@ import { Button, Chip, Input, Label, ListBox, Select, Spinner, TextArea, TextFie
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { InfoTip, TipBox } from "@/components/help";
 import { PageTitle } from "@/components/page-title";
 import { Tile } from "@/components/tile";
 import {
-  DEFAULT_SKU_PATTERN, importIssues, isValidPattern, packshotsBySku, parseFile, ROLES, usable,
+  DEFAULT_SKU_PATTERN, importIssues, packshotsBySku, parseFile, ROLES, usable,
   type ImportFile, type ImportIssue, type Role, type Source,
 } from "@/lib/import";
 import {
@@ -218,20 +219,6 @@ export function NewProduction() {
     }
   }, [skuPattern]);
 
-  /** Re-reads names with a new SKU pattern. Decisions made by hand are kept. */
-  const applyPattern = (pattern: string) => {
-    setSkuPattern(pattern);
-    if (!isValidPattern(pattern)) return;
-    setFiles((fs) => fs.map((f) => {
-      const p = parseFile(f.path, pattern);
-      return {
-        ...f,
-        ...(f.skuSource === "manual" ? {} : { sku: p.sku, skuSource: p.skuSource }),
-        ...(f.roleSource === "manual" ? {} : { role: p.role, roleSource: p.roleSource }),
-      };
-    }));
-  };
-
   const issues = useMemo(() => importIssues(files), [files]);
   const packshots = useMemo(() => packshotsBySku(files), [files]);
   const skus = useMemo(() => [...new Set(files.filter(usable).map((f) => f.sku).filter((s): s is string => !!s))].sort(), [files]);
@@ -384,6 +371,12 @@ export function NewProduction() {
       <PageTitle eyebrow="Create" title="New production">
         {savedAt && <span className="text-xs text-black/50 self-center">Import saved {new Date(savedAt + "Z").toLocaleTimeString()}</span>}
       </PageTitle>
+      <TipBox id="new-production" title="Before you start" steps={[
+        <>Use one folder per look. The folder name becomes the name of the set.</>,
+        <>Name files with style number and angle, e.g. <span className="font-mono text-[13px]">AB123-045_front.jpg</span> and <span className="font-mono text-[13px]">AB123-045_back.jpg</span>. Every product needs a front packshot.</>,
+        <>A box marked <b>Blocks run</b> needs a decision from you, e.g. two files for the same angle.</>,
+        <>Your import is saved as you go. Nothing is paid until you press Run.</>,
+      ]} />
 
       {productionId && (
         <div className="bg-meta p-5 mb-8 flex flex-wrap items-center gap-4 justify-between">
@@ -411,7 +404,7 @@ export function NewProduction() {
         </div>
       )}
 
-      <Section n={1} title="Packshots" hint="Drop a folder per look: the folder becomes the set. SKU and angle are read from names like AB123-045_top-front.jpg, and every guess shows where it came from.">
+      <Section n={1} title="Packshots" hint="Drop a folder per look. Style number and angle are read from the file names; you can correct them below.">
         <div
           onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
           onDragLeave={() => setDragOver(false)}
@@ -436,18 +429,6 @@ export function NewProduction() {
             onChange={(e) => { if (e.target.files) void upload(Array.from(e.target.files).map((file) => ({ file, path: file.webkitRelativePath || file.name }))); e.target.value = ""; }} />
         </div>
 
-        <details className="mt-4 text-sm">
-          <summary className="ow-eyebrow cursor-pointer">SKU pattern</summary>
-          <div className="mt-3 flex flex-wrap items-end gap-3">
-            <TextField value={skuPattern} onChange={applyPattern} className="w-80">
-              <Label className="ow-eyebrow">Regular expression</Label>
-              <Input className="font-mono" />
-            </TextField>
-            <Button size="sm" variant="ghost" onPress={() => applyPattern(DEFAULT_SKU_PATTERN)}>Reset</Button>
-            {!isValidPattern(skuPattern) && <span className="text-danger">Not a valid pattern</span>}
-          </div>
-          <p className="text-black/60 mt-2">Default matches style numbers like AB123 or AB123-045. Changing it re-reads every name; choices made by hand are kept.</p>
-        </details>
 
         {issues.length > 0 && (
           <div className="mt-8 border border-ink p-5">
@@ -516,11 +497,13 @@ export function NewProduction() {
                             <Field label="Colour" value={p.color} onChange={(v) => setProduct(sku, { color: v })} />
                             <div />
                             <TextField value={p.description} onChange={(v) => setProduct(sku, { description: v })} className="col-span-2">
-                              <Label className="ow-eyebrow">Construction (helps fidelity)</Label>
+                              <Label className="ow-eyebrow">Construction</Label>
                               <TextArea rows={2} placeholder="e.g. strapless A-line mini dress in black sequins, straight neckline, back zip" />
                             </TextField>
                             <div className="col-span-2">
-                              <div className="ow-eyebrow mb-2">Construction flags</div>
+                              <div className="ow-eyebrow mb-2 flex items-center gap-2">Special details
+                                <InfoTip title="Construction and special details">Describe how the garment is built (neckline, closures, length, fabric) and mark special details. This helps the images match the packshot exactly. Leave it empty if the packshot says it all.</InfoTip>
+                              </div>
                               <div className="flex flex-wrap gap-1.5">
                                 {FLAGS.map((f) => (
                                   <ToggleButton
@@ -571,7 +554,7 @@ export function NewProduction() {
         )}
       </Section>
 
-      <Section n={2} title="Model" hint="Only active model versions can be used. A production keeps the exact version it was created with.">
+      <Section n={2} title="Model" hint="Choose who wears the products. All images of the production use this model.">
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4">
           {models.map((m) => {
             const id = `${m.modelId}@${m.version}`;
@@ -579,7 +562,7 @@ export function NewProduction() {
             return (
               <button key={id} onClick={() => setModel(id)} className={`text-left ${selected ? "" : "opacity-60 hover:opacity-100"}`}>
                 <Tile src={assetUrl(m.data.refs.primaryPortrait, 480)} alt={m.data.displayName} className={selected ? "outline outline-1 outline-ink outline-offset-4" : ""} />
-                <div className="ow-nav mt-3">{m.data.displayName} <span className="text-black/50">v{m.version}</span></div>
+                <div className="ow-nav mt-3">{m.data.displayName}</div>
                 <div className="text-sm text-black/60">{m.data.heightCm} cm · EU {m.data.euSize}</div>
               </button>
             );
@@ -605,11 +588,11 @@ export function NewProduction() {
             {sessionAnchor && presets.includes("full_body") ? "On" : "Off"}
           </ToggleButton>
           <div>
-            <div className="ow-nav mb-1">One studio session</div>
+            <div className="ow-nav mb-1 flex items-center gap-2">One studio session
+              <InfoTip title="One studio session">Recommended. The front image is made first; the other shots then copy its light, hair and makeup, so the set looks like one shoot. If the front is rejected, the others wait.</InfoTip>
+            </div>
             <p className="text-sm text-black/60 leading-relaxed">
-              The front is generated first. Once it has passed, it is sent with the other shots as the session reference for light, hair,
-              makeup and how the garment sits, so the set reads as one shoot. The face still follows the identity portrait and every garment
-              detail still follows the packshots.{!presets.includes("full_body") ? " Needs the Front shot." : ""}
+              Makes the whole set look like one shoot: same light, hair and makeup in every image.{!presets.includes("full_body") ? " Needs the Front shot." : ""}
             </p>
           </div>
         </div>
@@ -631,7 +614,7 @@ export function NewProduction() {
         </div>
       </Section>
 
-      <Section n={5} title="Review" hint="Checked before anything is paid for. Blocking problems disable Run.">
+      <Section n={5} title="Review" hint="Checked before anything is paid for. Fix anything marked Blocks before you run.">
         {issues.length > 0 ? (
           <p className="text-danger">Resolve {issues.length} import {issues.length === 1 ? "decision" : "decisions"} in step 1 first.</p>
         ) : !draft ? (
@@ -644,7 +627,7 @@ export function NewProduction() {
           <div className="flex flex-col gap-6">
             <div className="grid grid-cols-3 border-y border-line">
               <div className="py-5"><div className="ow-eyebrow mb-1">Images</div><div className="ow-display text-3xl">{preview.images.length}</div></div>
-              <div className="py-5 border-l border-line pl-6"><div className="ow-eyebrow mb-1">Estimated cost</div><div className="ow-display text-3xl">{usd(preview.estCostUsd)}</div></div>
+              <div className="py-5 border-l border-line pl-6"><div className="ow-eyebrow mb-1 flex items-center gap-2">Estimated cost <InfoTip title="Estimated cost">About $0.16 per image. You pay again only when you ask for a new attempt of a rejected image.</InfoTip></div><div className="ow-display text-3xl">{usd(preview.estCostUsd)}</div></div>
               <div className="py-5 border-l border-line pl-6"><div className="ow-eyebrow mb-1">Budget left this month</div><div className={`ow-display text-3xl ${overBudget ? "text-danger" : ""}`}>{usd(preview.budgetRemainingUsd)}</div></div>
             </div>
             {[...errors, ...warnings].length > 0 && (

@@ -4,6 +4,7 @@ import { Skeleton } from "@heroui/react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { LinkButton } from "@/components/link-button";
+import { TipBox } from "@/components/help";
 import { PageTitle } from "@/components/page-title";
 import { Tile } from "@/components/tile";
 import { getJson, isNotFound } from "@/lib/client";
@@ -38,6 +39,12 @@ export default function StudioPage() {
       <PageTitle eyebrow="OW Studio" title="Studio overview">
         <LinkButton href="/productions/new">New production</LinkButton>
       </PageTitle>
+      <TipBox id="home" title="How OW Studio works" steps={[
+        <><b>New production:</b> drop a folder of packshots for each look. Nothing is paid until you press Run.</>,
+        <><b>Pick a model and the shots</b>, check the summary and press Run. The images arrive in a few minutes.</>,
+        <><b>Review:</b> approve the good images and reject the rest. A rejected image can be made again.</>,
+        <><b>Download</b> the approved images as a ZIP, ready for the webshop (2000 x 2000 px JPEG).</>,
+      ]} />
 
       {failed && <p className="text-danger text-sm mb-4" role="alert">Could not reach the studio. Retrying…</p>}
       <section className="grid grid-cols-2 md:grid-cols-4 border-y border-line">

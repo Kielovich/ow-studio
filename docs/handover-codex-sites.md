@@ -48,6 +48,10 @@ These are product rules, each covered by tests. If the new runtime makes one imp
 13. **A paid output is never lost.** The provider output is stored before post-processing; if background normalisation or the colour check fails, the raw output becomes the final.
 14. **Automatic checks only flag what they can be trusted on.** The colour-drift check compares the image cluster nearest the packshot colour; it never blocks, it labels the image "Check colour" for review.
 
+### End-user UI (2026-11-14)
+
+The UI shows only what a fashion team member acts on. Technical details (compiled prompt, references sent, raw provider output, job history, model versions and ids, provider profile, the file-name regex) were removed from the pages; the data is unchanged and still returned by the API (`/api/productions/[id]`). Help lives in `components/help.tsx`: a dismissible tip box per page (dismissal kept in browser storage, Settings brings tips back) and (i) popovers next to terms.
+
 ## 4. What probably has to change for Sites
 
 Check each against the Sites runtime documentation before you start, and write down what you found.
@@ -88,7 +92,7 @@ npx playwright install --with-deps chromium
 npm run e2e -w web
 ```
 
-It checks 43 things in a real browser: login and logout, folder import with conflicts, the import session after a reload, idempotent Run, simulated generation, approve/reject/new attempt/compare, the approved ZIP and 2000 px downloads, the model library (overview of portraits and names, a model page with her reference images and a large view), every page at 1440 and 390 px without horizontal scroll or console errors, the compact mobile menu, keyboard focus, the not-found state, the health check and the daily backup. On Sites, run the same flows against the deployed site with `OW_PROVIDER=simulated` on a staging copy if the runtime allows it; otherwise by hand. Then check by hand on the deployed site, without paid calls:
+It checks 47 things in a real browser: login and logout, folder import with conflicts, the import session after a reload, idempotent Run, simulated generation, approve/reject/new attempt/compare, the approved ZIP and 2000 px downloads, the model library (overview of portraits and names, a model page with her reference images and a large view), every page at 1440 and 390 px without horizontal scroll or console errors, the compact mobile menu, the tip boxes (dismiss, stay dismissed, bring back from Settings) and an (i) explanation, keyboard focus, the not-found state, the health check and the daily backup. On Sites, run the same flows against the deployed site with `OW_PROVIDER=simulated` on a staging copy if the runtime allows it; otherwise by hand. Then check by hand on the deployed site, without paid calls:
 
 1. Unauthenticated: pages redirect to the login, APIs answer 401.
 2. After login: the 7 models are listed (seeded).

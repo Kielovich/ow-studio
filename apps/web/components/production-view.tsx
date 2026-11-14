@@ -5,10 +5,11 @@ import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { LinkButton } from "@/components/link-button";
 import { getJson, isNotFound } from "@/lib/client";
+import { InfoTip, TipBox } from "@/components/help";
 import { PageTitle } from "@/components/page-title";
 import { Tile } from "@/components/tile";
 import type { Attempt, Metrics, StatusView } from "@/lib/outcome";
-import { ACTIVE_STATES, assetUrl, BRAND_SET, PRESET_LABELS, STATE_LABEL, usd, type PresetId } from "@/lib/types";
+import { ACTIVE_STATES, assetUrl, BRAND_SET, PRESET_LABELS, usd, type PresetId } from "@/lib/types";
 
 type Img = {
   id: string; sku: string; preset: PresetId; slotIndex: number; state: string; finalAsset: string | null; rawAsset: string | null; dependsOn: string | null;
@@ -20,12 +21,6 @@ type Prod = { id: string; name: string; createdAt: string; estCost: number; prov
 
 const order = (p: PresetId) => { const i = BRAND_SET.indexOf(p); return i < 0 ? 99 : i; };
 
-const REF_NAMES: Record<string, string> = {
-  garment_front: "packshot front", garment_back: "packshot back", garment_detail: "packshot detail", garment_side: "packshot side",
-  garment_orientation: "packshot front · orientation", identity_primary: "identity portrait", identity_angle: "identity angle",
-  character_sheet: "character sheet", facial_detail: "facial detail", body_front: "body front", body_back: "body back",
-  expression_sheet: "expression", pose: "pose", session_anchor: "session reference (front)", garment_texture: "fabric crop (surface only)",
-};
 
 const OUTCOME_LABEL: Record<Attempt["outcome"], string> = { succeeded: "Finished", needs_review: "Size check", failed: "Failed", unknown: "Unknown outcome" };
 
@@ -39,7 +34,6 @@ export function ProductionView() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [viewAttempt, setViewAttempt] = useState<number | null>(null);
   const [compare, setCompare] = useState(false);
-  const [showRaw, setShowRaw] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -97,11 +91,11 @@ export function ProductionView() {
     if (r.ok) router.push("/productions");
     else setDeleteError(r.error);
   };
-  const openImage = (img: Img) => { setShowRaw(false); setCompare(false); setViewAttempt(current(img)?.attempt ?? img.attempts.at(-1)?.attempt ?? null); setOpenId(img.id); };
+  const openImage = (img: Img) => { setCompare(false); setViewAttempt(current(img)?.attempt ?? img.attempts.at(-1)?.attempt ?? null); setOpenId(img.id); };
 
   return (
     <>
-      <PageTitle eyebrow={`${p.spec.model.displayName} v${p.spec.model.version} · ${new Date(p.createdAt + "Z").toLocaleString()}`} title={p.name}>
+      <PageTitle eyebrow={`${p.spec.model.displayName} · ${new Date(p.createdAt + "Z").toLocaleDateString()}`} title={p.name}>
         <LinkButton href={`/api/productions/${id}/zip`} disabled={m.approved === 0}>Download approved ({m.approved})</LinkButton>
         <LinkButton href={`/api/productions/${id}/zip?all=1`} variant="secondary" disabled={finished === 0}>All finished</LinkButton>
         <AlertDialog>
@@ -131,16 +125,23 @@ export function ProductionView() {
           </div>
           <ProgressBar.Track><ProgressBar.Fill /></ProgressBar.Track>
         </ProgressBar>
-        <dl className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-          <div><dt className="ow-eyebrow mb-1">Approved first try</dt><dd className="ow-display text-2xl">{m.approved ? `${m.approvedFirstTry} of ${m.approved}` : "–"}</dd></div>
-          <div><dt className="ow-eyebrow mb-1">Attempts</dt><dd className="ow-display text-2xl">{m.attempts}</dd></div>
-          <div><dt className="ow-eyebrow mb-1">Spent</dt><dd className="ow-display text-2xl">{usd(m.spentUsd)} <span className="text-sm text-black/50">est. {usd(p.estCost)}</span></dd>
+        <dl className="text-sm">
+          <div><dt className="ow-eyebrow mb-1 flex items-center gap-2">Spent on this production
+            <InfoTip title="Spent">What the images of this production have cost so far. A new attempt of a rejected image costs about $0.16.</InfoTip></dt>
+            <dd className="ow-display text-2xl">{usd(m.spentUsd)}</dd>
             {m.unknownAttempts > 0 && <dd className="text-xs text-warning mt-1">+ {m.unknownAttempts} unknown {m.unknownAttempts === 1 ? "outcome" : "outcomes"}, may have been billed</dd>}</div>
-          <div><dt className="ow-eyebrow mb-1">Per approved image</dt><dd className="ow-display text-2xl">{m.costPerApprovedUsd === null ? "–" : usd(m.costPerApprovedUsd)}</dd></div>
         </dl>
         {actionError && !open && <p className="text-danger text-sm" role="alert">{actionError}</p>}
         {offline && <p className="text-warning text-sm" role="status">Connection lost. Showing the last known state; retrying.</p>}
       </div>
+
+      <TipBox id="review" title="Review the images" steps={[
+        <>Tap an image to see it large and compare attempts.</>,
+        <><b>Approve</b> the images you want to use. Only approved images go into the download.</>,
+        <><b>Reject</b> an image that is not right, then <b>New attempt</b> to make it again (about $0.16).</>,
+        <><b>Check colour</b> means the colour may differ from the packshot. Compare before you approve.</>,
+        <>When you are done, press <b>Download approved</b> for a ZIP of 2000 x 2000 px JPEGs.</>,
+      ]} />
 
       <div className="flex flex-col gap-16">
         {bySku.map(([sku, imgs]) => (
@@ -196,7 +197,7 @@ export function ProductionView() {
               const shown = open.attempts.find((a) => a.attempt === viewAttempt) ?? open.attempts.at(-1);
               const other = compare ? [...open.attempts].reverse().find((a) => a.finalAsset && a.attempt !== shown?.attempt) : undefined;
               const pane = (a: Attempt | undefined, label?: string) => {
-                const src = a ? (showRaw ? a.rawAsset : a.finalAsset) : null;
+                const src = a?.finalAsset ?? null;
                 return (
                   <div className="bg-canvas relative">
                     {label && <div className="absolute top-2 left-2 bg-white/90 text-xs px-2 py-1 ow-eyebrow">{label}</div>}
@@ -251,27 +252,9 @@ export function ProductionView() {
                         )}
                         {actionError && <p className="text-danger text-sm" role="alert">{actionError}</p>}
                         <div className="flex flex-wrap gap-2">
-                          <Button size="sm" variant={showRaw ? "secondary" : "primary"} onPress={() => setShowRaw(false)}>Final</Button>
-                          <Button size="sm" variant={showRaw ? "primary" : "secondary"} onPress={() => setShowRaw(true)} isDisabled={!shown?.rawAsset}>Raw output</Button>
                           <Button size="sm" variant={compare ? "primary" : "secondary"} onPress={() => setCompare((c) => !c)} isDisabled={open.attempts.filter((a) => a.finalAsset).length < 2}>Compare</Button>
                           {shown?.finalAsset && <LinkButton href={`/api/images/${open.id}/download?attempt=${shown.attempt}`} size="sm" variant="ghost">Download 2000 px</LinkButton>}
                         </div>
-                        <div>
-                          <div className="ow-eyebrow mb-2">References sent</div>
-                          <div className="grid grid-cols-4 gap-2">
-                            {open.refs.map((r) => (
-                              <div key={r.role + r.asset}><Tile src={assetUrl(r.asset, 240)} alt={r.role} /><div className="text-[10px] mt-1 text-black/60">{REF_NAMES[r.role] ?? r.role.replace(/_/g, " ")}</div></div>
-                            ))}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="ow-eyebrow mb-2">History</div>
-                          <ol className="text-black/70">{open.job.events.map((e, i) => <li key={i}>{STATE_LABEL[e.state]?.label ?? e.state}{e.note ? ` – ${e.note}` : ""}</li>)}</ol>
-                        </div>
-                        <details>
-                          <summary className="ow-eyebrow cursor-pointer">Compiled prompt</summary>
-                          <pre className="whitespace-pre-wrap text-xs mt-3 text-black/70 max-h-80 overflow-auto">{open.prompt}</pre>
-                        </details>
                       </div>
                     </div>
                   </Modal.Body>

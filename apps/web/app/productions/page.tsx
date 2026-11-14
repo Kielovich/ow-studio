@@ -4,6 +4,7 @@ import { Chip, Skeleton } from "@heroui/react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { LinkButton } from "@/components/link-button";
+import { TipBox } from "@/components/help";
 import { PageTitle } from "@/components/page-title";
 import { Tile } from "@/components/tile";
 import { getJson, isNotFound } from "@/lib/client";
@@ -28,6 +29,10 @@ export default function ProductionsPage() {
       <PageTitle eyebrow="History" title="Productions">
         <LinkButton href="/productions/new">New production</LinkButton>
       </PageTitle>
+      <TipBox id="productions" title="Productions" steps={[
+        <>Every production you ran is here, newest first. Open one to review its images.</>,
+        <><b>To check</b> means an image needs your attention, e.g. a colour that may differ from the packshot.</>,
+      ]} />
       {failed && !rows ? (
         <p className="text-danger" role="alert">Could not load productions. Retrying…</p>
       ) : rows && rows.length === 0 ? (
