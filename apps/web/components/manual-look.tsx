@@ -14,7 +14,7 @@ type Garment = { sku: string; category: Category; front: File | null; back: File
 const slug = (s: string) => s.trim().replace(/\s+/g, "-").replace(/[^A-Za-z0-9._-]/g, "").slice(0, 40) || "LOOK";
 
 /** One square slot: tap to choose an image, shows it, can be cleared. */
-function Slot({ label, file, onPick, onClear, testId }: { label: string; file: File | null; onPick: (f: File) => void; onClear: () => void; testId: string }) {
+function Slot({ label, file, onPick, onClear, testId, hint }: { label: string; file: File | null; onPick: (f: File) => void; onClear: () => void; testId: string; hint?: string }) {
   const input = useRef<HTMLInputElement>(null);
   const url = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
   useEffect(() => () => { if (url) URL.revokeObjectURL(url); }, [url]);
@@ -23,12 +23,12 @@ function Slot({ label, file, onPick, onClear, testId }: { label: string; file: F
       <button type="button" data-testid={testId} onClick={() => input.current?.click()}
         className={`relative block w-full aspect-square overflow-hidden ${file ? "bg-canvas" : "border border-dashed border-[#aaaaaa] hover:border-ink"}`}>
         {url ? <img src={url} alt={label} className="absolute inset-0 w-full h-full object-cover" />
-          : <span className="absolute inset-0 flex flex-col items-center justify-center text-center px-1"><span className="text-xl leading-none">+</span><span className="ow-eyebrow mt-1">{label}</span></span>}
+          : <span className="absolute inset-0 flex flex-col items-center justify-center text-center px-1"><span className="text-xl leading-none">+</span><span className="ow-eyebrow mt-1">{label}</span>{hint && <span className="text-[0.75rem] text-black/60 mt-0.5 normal-case">{hint}</span>}</span>}
       </button>
       {file && (
         <>
           <span className="absolute top-1 left-1 bg-white/90 px-1.5 py-0.5 text-[10px] uppercase tracking-wide">{label}</span>
-          <button type="button" aria-label={`Remove ${label}`} onClick={onClear} className="absolute top-1 right-1 w-7 h-7 bg-white/90 grid place-items-center text-sm">×</button>
+          <button type="button" aria-label={`Remove ${label}`} onClick={onClear} className="absolute top-0 right-0 w-11 h-11 [@media(pointer:fine)]:w-7 [@media(pointer:fine)]:h-7 [@media(pointer:fine)]:top-1 [@media(pointer:fine)]:right-1 bg-white/90 grid place-items-center text-base">×</button>
         </>
       )}
       <input ref={input} type="file" accept="image/png,image/jpeg,image/webp" className="hidden"
@@ -109,6 +109,7 @@ export function ManualLook({ onAdd, lookCount, busy }: { onAdd: (items: ManualIt
         <div className="ow-display text-xl">Add a look by hand</div>
         <Button size="sm" variant="ghost" onPress={() => { reset(); setOpen(false); }}>Cancel</Button>
       </div>
+      <p className="text-sm text-black/70 mb-5 max-w-xl">Add the top, the bottom or both, with front and back packshots (the back is used for the back shot). Shoes, accessories and a fit reference are optional.</p>
       <TextField value={look} onChange={setLook} className="mb-6 max-w-sm">
         <Label className="ow-eyebrow">Look name</Label>
         <Input placeholder={`Look ${lookCount + 1}`} />
@@ -119,7 +120,7 @@ export function ManualLook({ onAdd, lookCount, busy }: { onAdd: (items: ManualIt
           <div className="ow-nav mb-3">{title}</div>
           <div className="grid grid-cols-2 sm:grid-cols-[repeat(2,120px)_1fr_1fr] gap-3 items-end">
             <Slot label="Front" testId={`slot-${id}-front`} file={g.front} onPick={(f) => patch({ front: f })} onClear={() => patch({ front: null })} />
-            <Slot label="Back" testId={`slot-${id}-back`} file={g.back} onPick={(f) => patch({ back: f })} onClear={() => patch({ back: null })} />
+            <Slot label="Back" hint="For the back shot" testId={`slot-${id}-back`} file={g.back} onPick={(f) => patch({ back: f })} onClear={() => patch({ back: null })} />
             <TextField value={g.sku} onChange={(v) => patch({ sku: v })}>
               <Label className="ow-eyebrow">Style number</Label>
               <Input placeholder="From the file name" />
@@ -129,28 +130,32 @@ export function ManualLook({ onAdd, lookCount, busy }: { onAdd: (items: ManualIt
         </div>
       ))}
 
-      <div className="grid grid-cols-3 sm:grid-cols-[repeat(5,120px)] gap-3 mb-2">
-        <div>
-          <div className="ow-nav mb-3">Shoes</div>
-          <Slot label="Shoes" testId="slot-shoes" file={shoes} onPick={setShoes} onClear={() => setShoes(null)} />
-        </div>
-        <div className="col-span-3 sm:col-span-3">
-          <div className="ow-nav mb-3">Accessories</div>
-          <div className="grid grid-cols-3 gap-3">
-            {accessories.map((a, i) => (
-              <Slot key={i} label={`Item ${i + 1}`} testId={`slot-accessory-${i}`} file={a}
-                onPick={(f) => setAccessories((xs) => xs.map((x, j) => (j === i ? f : x)))} onClear={() => setAccessories((xs) => xs.map((x, j) => (j === i ? null : x)))} />
-            ))}
+      <div className="border-t border-line pt-5 mb-2" data-testid="look-optional">
+        <div className="ow-nav mb-1">Optional · complete the look</div>
+        <p className="text-sm text-black/70 mb-4 max-w-xl">Leave these empty and the styling text in step 4 is used instead. Shoes appear where the feet are in the picture; accessories only in the styled shot.</p>
+        <div className="grid grid-cols-3 sm:grid-cols-[repeat(5,120px)] gap-3">
+          <div>
+            <div className="ow-eyebrow mb-2">Shoes</div>
+            <Slot label="Shoes" hint="Optional" testId="slot-shoes" file={shoes} onPick={setShoes} onClear={() => setShoes(null)} />
           </div>
-        </div>
-        <div>
-          <div className="ow-nav mb-3 flex items-center gap-2">Fit
-            <InfoTip title="Fit reference">A photo that shows how the look should sit on the body: length, looseness, where the waist and hems sit. The top of the photo (the head) is cut away before it is used, and the person in it is ignored.</InfoTip>
+          <div className="col-span-3 sm:col-span-3">
+            <div className="ow-eyebrow mb-2">Accessories</div>
+            <div className="grid grid-cols-3 gap-3">
+              {accessories.map((a, i) => (
+                <Slot key={i} label={`Item ${i + 1}`} hint="Optional" testId={`slot-accessory-${i}`} file={a}
+                  onPick={(f) => setAccessories((xs) => xs.map((x, j) => (j === i ? f : x)))} onClear={() => setAccessories((xs) => xs.map((x, j) => (j === i ? null : x)))} />
+              ))}
+            </div>
           </div>
-          <Slot label="Fit" testId="slot-fit" file={fit} onPick={setFit} onClear={() => setFit(null)} />
+          <div>
+            <div className="ow-eyebrow mb-2 flex items-center gap-2">Fit
+              <InfoTip title="Fit reference">A photo that shows how the look should sit on the body: length, looseness, where the waist and hems sit. The top of the photo (the head) is cut away before it is used, and the person in it is ignored.</InfoTip>
+            </div>
+            <Slot label="Fit" hint="Optional" testId="slot-fit" file={fit} onPick={setFit} onClear={() => setFit(null)} />
+          </div>
         </div>
       </div>
-      <p className="text-xs text-black/60 mb-5">Shoes appear where the feet are in the picture. Accessories appear only in the styled shot.</p>
+      <div className="mb-5" />
 
       {error && <p className="text-danger text-sm mb-3" role="alert">{error}</p>}
       <Button onPress={submit} isPending={busy}>Add look</Button>

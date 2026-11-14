@@ -8,9 +8,9 @@
 - Metrics per production: approved, approved on the first recorded attempt, attempts, spent, spent per approved image, and attempts with an unknown outcome (not counted in spent, may have been billed).
 - Migration: images finished before this change get one backfilled attempt (not reviewed). Verified on a copy of the real database: 20 images → 20 attempts, idempotent on reopen.
 
-## Looks: top, bottom, shoes, accessories, fit reference (2026-11-14, branch `feature/manual-look`)
+## Looks: top, bottom, shoes, accessories, fit reference (2026-11-14, branch `feature/looks`)
 
-A look is one set (a folder, or a look added by hand with a slot per image: top front/back, bottom front/back, shoes, up to three accessories, fit reference). The products of a look are photographed wearing each other: each product still gets its own brand set, and in every image the other garment of the look is drawn from its own packshot instead of from the styling text.
+A look is one set (a folder, or a look added by hand with a slot per image: top front/back, bottom front/back, and optionally shoes, up to three accessories and a fit reference). Only the garment packshots are needed; without shoes, accessories or fit reference the styling text is used, exactly as before. The products of a look are photographed wearing each other: each product still gets its own brand set, and in every image the other garment of the look is drawn from its own packshot instead of from the styling text.
 
 - Only garments that are worn together combine: top with bottom or outerwear, bottom with top or outerwear, a dress only with outerwear. A folder of three dresses is not one look (`wornTogether` in `repo.ts`).
 - Shoes are sent only where the feet are in the picture; accessories only in the styled shot; nothing of the look in the close-up.

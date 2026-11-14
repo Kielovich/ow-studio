@@ -378,7 +378,7 @@ export function NewProduction() {
         {savedAt && <span className="text-xs text-black/60 self-center">Import saved {new Date(savedAt + "Z").toLocaleTimeString()}</span>}
       </PageTitle>
       <TipBox id="new-production" title="Before you start" steps={[
-        <>Use one folder per look, or press <b>Add a look by hand</b> and put each image in its place: top, bottom, shoes, accessories and fit reference.</>,
+        <>Use one folder per look, or press <b>Add a look by hand</b>: a top, a bottom or both, and if you like shoes, accessories and a fit reference.</>,
         <>Name files with style number and angle, e.g. <span className="font-mono text-[13px]">AB123-045_front.jpg</span> and <span className="font-mono text-[13px]">AB123-045_back.jpg</span>. Every product needs a front packshot.</>,
         <>A box marked <b>Blocks run</b> needs a decision from you, e.g. two files for the same angle.</>,
         <>Your import is saved as you go. Nothing is paid until you press Run.</>,
@@ -545,7 +545,7 @@ export function NewProduction() {
                             className="mt-2 w-full border border-line bg-white h-9 px-1 text-xs">
                             {(Object.keys(KIND_LABELS) as FileKind[]).map((k) => <option key={k} value={k}>{KIND_LABELS[k]}</option>)}
                           </select>
-                          <button type="button" className="text-xs text-black/60 underline mt-1" onClick={() => remove(f.key)}>Remove</button>
+                          <button type="button" className="text-[0.75rem] text-black/70 underline min-h-11 [@media(pointer:fine)]:min-h-6" onClick={() => remove(f.key)}>Remove</button>
                         </div>
                       ))}
                     </div>

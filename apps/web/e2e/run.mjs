@@ -262,7 +262,19 @@ async function main() {
   });
 
   await stage("A look uploaded by hand", async () => {
+    // Only the garment packshots are required: shoes, accessories and a fit reference are optional.
     await page.goto(`${BASE}/productions/new`);
+    await page.getByRole("button", { name: "Add a look by hand" }).click();
+    await page.getByTestId("manual-look").getByRole("textbox", { name: "Look name" }).fill("Manual-00");
+    await page.getByTestId("slot-top-front").locator("xpath=..").locator("input[type=file]").setInputFiles(join(fixtures, "manual", "IMG_0101.jpg"));
+    await page.getByTestId("slot-top-back").locator("xpath=..").locator("input[type=file]").setInputFiles(join(fixtures, "manual", "IMG_0102.jpg"));
+    const minimal = page.waitForResponse(async (r) => r.url().endsWith("/api/compile") && (await r.json().catch(() => null))?.images?.length === 5, { timeout: 60000 });
+    await page.getByTestId("manual-look").getByRole("button", { name: "Add look" }).click();
+    const min = await (await minimal).json();
+    check(min.canRun === true && min.images.every((i) => !i.refs.some((r) => ["footwear", "accessory", "fit_reference", "look_garment_front"].includes(r))), `a look with only a top can run; shoes, accessories and fit are optional (${min.canRun}, ${min.conflicts.filter((c) => c.severity === "error").map((c) => c.code).join(",")})`);
+    check(await page.getByTestId("rest-of-look").count() === 0, "no empty 'rest of the look' for a look without extras");
+
+    await page.goto(`${BASE}/productions/new`); // a fresh import (no ?draft=)
     await page.getByRole("button", { name: "Add a look by hand" }).click();
     const panel = page.getByTestId("manual-look");
     await panel.getByRole("textbox", { name: "Look name" }).fill("Manual-01");
@@ -302,11 +314,22 @@ async function main() {
       await hig(mp, path, true);
       await shot(mp, `mob${path.replace(/\//g, "-").slice(0, 40) || "-home"}`);
     }
+    await mp.goto(`${BASE}/productions/new`);
+    await mp.getByRole("button", { name: "Add a look by hand" }).click();
+    await mp.getByTestId("manual-look").waitFor();
+    check(await mp.getByTestId("look-optional").getByText("Optional · complete the look").isVisible(), "shoes, accessories and fit are marked optional");
+    await hig(mp, "the manual look panel", true);
+    check(await noOverflow(mp), "the manual look panel has no horizontal scroll at 390 px");
     // Mobile navigation is one compact Menu button; the menu holds every page and log out.
     check(!(await mp.getByRole("link", { name: "Productions", exact: true }).isVisible()), "mobile header is compact (links behind the menu)");
     await mp.getByRole("button", { name: "Menu" }).click();
     check(await mp.getByRole("button", { name: "Log out" }).isVisible(), "log out is reachable on mobile");
     await hig(mp, "the open mobile menu", true);
+    // Screenshots last on this page: a full-page screenshot resets Playwright's touch emulation for later checks.
+    await mp.keyboard.press("Escape");
+    await mp.getByTestId("manual-look").scrollIntoViewIfNeeded();
+    await shot(mp, "mob-manual-look");
+    await mp.getByRole("button", { name: "Menu" }).click();
     await mp.getByRole("link", { name: "Models", exact: true }).click();
     await mp.waitForURL(/\/models$/);
     check(await mp.locator("#mobile-menu").waitFor({ state: "hidden", timeout: 5000 }).then(() => true, () => false), "the mobile menu closes after navigating");
