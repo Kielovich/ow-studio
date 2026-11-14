@@ -157,7 +157,7 @@ export function ProductionView() {
                     <button className="block w-full text-left" onClick={() => openImage(img)} disabled={!img.attempts.length && !img.job.lastError}>
                       <Tile src={assetUrl(img.finalAsset, 800)} alt={`${sku} ${img.preset}`} className={st.key === "approved" ? "outline outline-1 outline-ink -outline-offset-1" : ""}>
                         {ACTIVE_STATES.has(img.state) && <span className="absolute inset-0 grid place-items-center bg-white/40"><Spinner /></span>}
-                        {img.attempts.length > 1 && <span className="absolute top-1.5 left-1.5 bg-white/90 text-[10px] px-1.5 py-0.5 uppercase tracking-wide">{img.attempts.length} attempts</span>}
+                        {img.attempts.length > 1 && <span className="absolute top-1.5 left-1.5 bg-white/90 text-[0.75rem] px-1.5 py-0.5 uppercase tracking-wide">{img.attempts.length} attempts</span>}
                       </Tile>
                     </button>
                     <div className="flex items-center justify-between mt-2 gap-2">
@@ -192,7 +192,7 @@ export function ProductionView() {
       <Modal.Backdrop isOpen={!!open} onOpenChange={(o) => !o && setOpenId(null)}>
         <Modal.Container size="full">
           <Modal.Dialog className="bg-white">
-            <Modal.CloseTrigger />
+            <Modal.CloseTrigger className="[@media(pointer:coarse)]:w-11 [@media(pointer:coarse)]:h-11" />
             {open && (() => {
               const shown = open.attempts.find((a) => a.attempt === viewAttempt) ?? open.attempts.at(-1);
               const other = compare ? [...open.attempts].reverse().find((a) => a.finalAsset && a.attempt !== shown?.attempt) : undefined;
@@ -202,7 +202,7 @@ export function ProductionView() {
                   <div className="bg-canvas relative">
                     {label && <div className="absolute top-2 left-2 bg-white/90 text-xs px-2 py-1 ow-eyebrow">{label}</div>}
                     {src ? <img src={assetUrl(src)} alt="" className="w-full h-auto max-h-[78vh] object-contain mx-auto" />
-                      : <div className="aspect-square grid place-items-center text-black/50 text-sm px-6 text-center">{a?.outcome === "unknown" ? "Unknown outcome: no image came back. It may have been billed." : a?.error ?? "No image"}</div>}
+                      : <div className="aspect-square grid place-items-center text-black/60 text-sm px-6 text-center">{a?.outcome === "unknown" ? "Unknown outcome: no image came back. It may have been billed." : a?.error ?? "No image"}</div>}
                   </div>
                 );
               };
@@ -223,11 +223,11 @@ export function ProductionView() {
                             <div className="ow-eyebrow mb-2">Attempts</div>
                             <div className="grid grid-cols-4 gap-2">
                               {open.attempts.map((a) => (
-                                <button key={a.attempt} onClick={() => setViewAttempt(a.attempt)} className={`text-left ${a.attempt === shown?.attempt ? "" : "opacity-60 hover:opacity-100"}`}>
-                                  <Tile src={assetUrl(a.finalAsset, 240)} alt={`Attempt ${a.attempt}`} className={a.attempt === shown?.attempt ? "outline outline-1 outline-ink outline-offset-2" : ""} />
-                                  <div className="text-[10px] mt-1 leading-tight">
+                                <button key={a.attempt} onClick={() => setViewAttempt(a.attempt)} aria-pressed={a.attempt === shown?.attempt} className="group text-left">
+                                  <Tile src={assetUrl(a.finalAsset, 240)} alt={`Attempt ${a.attempt}`} className={a.attempt === shown?.attempt ? "outline outline-1 outline-ink outline-offset-2" : "opacity-60 group-hover:opacity-100 transition-opacity"} />
+                                  <div className="text-[0.75rem] mt-1 leading-tight text-ink">
                                     #{a.attempt} · {a.review === "approved" ? "approved" : a.review === "rejected" ? "rejected" : OUTCOME_LABEL[a.outcome].toLowerCase()}
-                                    <br /><span className="text-black/50">{usd(a.costUsd)}</span>
+                                    <br /><span className="text-black/60">{usd(a.costUsd)}</span>
                                   </div>
                                 </button>
                               ))}

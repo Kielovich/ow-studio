@@ -104,7 +104,7 @@ function Field({ label, value, onChange, placeholder }: { label: string; value: 
 
 function SourceTag({ source }: { source: Source | null }) {
   if (!source) return null;
-  return <span className={`text-[10px] uppercase tracking-wide ${source === "manual" ? "text-ink" : "text-black/50"}`}>{SOURCE_LABEL[source]}</span>;
+  return <span className={`text-[0.75rem] uppercase tracking-wide ${source === "manual" ? "text-ink" : "text-black/60"}`}>{SOURCE_LABEL[source]}</span>;
 }
 
 export function NewProduction() {
@@ -350,7 +350,7 @@ export function NewProduction() {
               return f ? (
                 <div key={k} className="w-32">
                   <Tile src={assetUrl(f.hash, 240)} alt={f.filename} />
-                  <div className="text-[11px] truncate mt-1" title={f.path}>{f.filename}</div>
+                  <div className="text-[0.75rem] truncate mt-1" title={f.path}>{f.filename}</div>
                   <Button size="sm" variant="secondary" className="mt-1 w-full" onPress={() => keepOnly(k, i.keys)}>Use this</Button>
                 </div>
               ) : null;
@@ -369,7 +369,7 @@ export function NewProduction() {
   return (
     <>
       <PageTitle eyebrow="Create" title="New production">
-        {savedAt && <span className="text-xs text-black/50 self-center">Import saved {new Date(savedAt + "Z").toLocaleTimeString()}</span>}
+        {savedAt && <span className="text-xs text-black/60 self-center">Import saved {new Date(savedAt + "Z").toLocaleTimeString()}</span>}
       </PageTitle>
       <TipBox id="new-production" title="Before you start" steps={[
         <>Use one folder per look. The folder name becomes the name of the set.</>,
@@ -396,7 +396,7 @@ export function NewProduction() {
               <li key={d.id}>
                 <Link href={`/productions/new?draft=${d.id}`} className="flex justify-between py-3 text-sm hover:bg-meta px-2">
                   <span>{d.name || "Untitled import"} · {d.files} files{d.productionId ? " · run" : ""}</span>
-                  <span className="text-black/50">{new Date(d.updatedAt + "Z").toLocaleString()}</span>
+                  <span className="text-black/60">{new Date(d.updatedAt + "Z").toLocaleString()}</span>
                 </Link>
               </li>
             ))}
@@ -446,7 +446,7 @@ export function NewProduction() {
               <div key={set}>
                 <div className="flex items-baseline gap-3 border-b border-line pb-2 mb-6">
                   <span className="ow-display text-xl">{set}</span>
-                  <span className="text-sm text-black/50">{setSkus.length} {setSkus.length === 1 ? "product" : "products"}</span>
+                  <span className="text-sm text-black/60">{setSkus.length} {setSkus.length === 1 ? "product" : "products"}</span>
                 </div>
                 <div className="flex flex-col gap-10">
                   {setSkus.map((sku) => {
@@ -471,7 +471,7 @@ export function NewProduction() {
                                     ) : (
                                       <span className="absolute inset-0 grid place-items-center ow-eyebrow">empty</span>
                                     )}
-                                    {here.length > 1 && <span className="absolute bottom-1 left-1 bg-white/90 text-[10px] px-1">{here.length} files</span>}
+                                    {here.length > 1 && <span className="absolute bottom-1 left-1 bg-white/90 text-[0.75rem] px-1">{here.length} files</span>}
                                   </Tile>
                                   <div className="ow-eyebrow mt-1.5">{r}</div>
                                   {f && <SourceTag source={f.roleSource} />}
@@ -560,8 +560,8 @@ export function NewProduction() {
             const id = `${m.modelId}@${m.version}`;
             const selected = id === model;
             return (
-              <button key={id} onClick={() => setModel(id)} className={`text-left ${selected ? "" : "opacity-60 hover:opacity-100"}`}>
-                <Tile src={assetUrl(m.data.refs.primaryPortrait, 480)} alt={m.data.displayName} className={selected ? "outline outline-1 outline-ink outline-offset-4" : ""} />
+              <button key={id} onClick={() => setModel(id)} aria-pressed={selected} className="group text-left">
+                <Tile src={assetUrl(m.data.refs.primaryPortrait, 480)} alt={m.data.displayName} className={selected ? "outline outline-1 outline-ink outline-offset-4" : "opacity-60 group-hover:opacity-100 transition-opacity"} />
                 <div className="ow-nav mt-3">{m.data.displayName}</div>
                 <div className="text-sm text-black/60">{m.data.heightCm} cm · EU {m.data.euSize}</div>
               </button>

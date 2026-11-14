@@ -5,7 +5,7 @@ One container runs the web app and the generation worker (`apps/web/scripts/serv
 ## What the container does on start
 
 1. Opens the database and applies the additive migrations.
-2. On an empty volume, imports the 7 registered models and their 42 reference images from `apps/web/seed/` (verified against their content hashes).
+2. On an empty volume, imports the 6 registered models and their 36 reference images from `apps/web/seed/` (verified against their content hashes).
 3. Starts the worker (writes a database snapshot to `/data/backups` once a day, keeps 7) and the web server.
 4. If either process stops, the container exits, so the platform restarts both.
 
@@ -39,7 +39,7 @@ Every push to `main` deploys again.
 
 **Trap when Railway creates the service itself:** on connecting the repository, Railway detected the npm workspaces and proposed a Railpack build with `npm run build --workspace=web`, start command `npm run start --workspace=web` and watch path `/apps/web/**`. That runs only `next start`: no worker, no prestart (migrations, seed), and changes in `packages/core` would not deploy. The service must build the root `Dockerfile` with no build or start command override and no watch paths.
 
-Live since 2026-11-14: project `genuine-enthusiasm`, service `web`, region EU West (Amsterdam), one replica, volume `web-volume` at `/data`, health check `/api/health`, domain `web-production-21c1e5a1.up.railway.app`. First start: 7 models seeded, backup written, worker up with `gemini-3-pro-image`. Note that Railway's `railway.json` config file is deprecated for new services, so these settings live in the dashboard.
+Live since 2026-11-14: project `genuine-enthusiasm`, service `web`, region EU West (Amsterdam), one replica, volume `web-volume` at `/data`, health check `/api/health`, domain `web-production-21c1e5a1.up.railway.app`. First start: 7 models seeded (Mei was retired later the same day; 6 remain), backup written, worker up with `gemini-3-pro-image`. Note that Railway's `railway.json` config file is deprecated for new services, so these settings live in the dashboard.
 
 ## Verified locally (2026-11-13)
 

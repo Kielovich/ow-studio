@@ -14,6 +14,7 @@ import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import sharp from "sharp";
+import { auditCount, auditPage } from "./hig-audit.mjs";
 
 const require = createRequire(import.meta.url);
 const { chromium, devices } = require("playwright");
@@ -84,6 +85,12 @@ async function typeUntilEnabled(page, text) {
   throw new Error("login form never became interactive");
 }
 const noOverflow = (page) => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1);
+/** Human Interface Guidelines, measured (e2e/hig-audit.mjs): targets, text size, field size, contrast. */
+const hig = async (page, label, phone) => {
+  const a = await auditPage(page, { phone });
+  const first = Object.entries(a).flatMap(([k, v]) => v.map((x) => `${k}: ${x}`)).slice(0, 3).join("; ");
+  check(auditCount(a) === 0, `${label} meets the HIG checks${phone ? " on a phone" : ""}${first ? ` (${first})` : ""}`);
+};
 const shot = async (page, name) => { if (SHOTS) await page.screenshot({ path: join(SHOTS, `${name}.png`), fullPage: true }); };
 
 async function main() {
@@ -184,6 +191,8 @@ async function main() {
     await page.getByRole("button", { name: "Compare" }).click();
     await page.getByText("Attempt 1").first().waitFor();
     check(await page.getByText("Attempt 2").first().isVisible(), "lightbox compares attempts side by side");
+    await page.waitForTimeout(800);
+    await hig(page, "the image viewer", false);
     await page.waitForTimeout(800); // let the open animation finish before the screenshot
     await shot(page, "desk-lightbox-compare");
     await page.keyboard.press("Escape");
@@ -206,6 +215,7 @@ async function main() {
       await page.goto(`${BASE}${path}`);
       await page.getByText(text).first().waitFor();
       check(await noOverflow(page), `${path} has no horizontal scroll at 1440 px`);
+      await hig(page, path, false);
       await shot(page, `desk${path.replace(/\//g, "-") || "-home"}`);
     }
     // Help: a tip box per page that can be dismissed (and stays dismissed), brought back from Settings, and (i) explanations.
@@ -229,7 +239,7 @@ async function main() {
     // Model library: an overview of portraits and names; each model opens on all her reference images.
     await page.goto(`${BASE}/models`);
     await page.getByTestId("model-card").first().waitFor();
-    check(await page.getByTestId("model-card").count() === 7, "models page shows one card per model (7)");
+    check(await page.getByTestId("model-card").count() === 6, "models page shows one card per model (6)");
     await page.getByTestId("model-card").filter({ hasText: "Sable" }).click();
     await page.getByText("← All models").waitFor();
     check(await page.getByRole("button", { name: /Identity portrait|Body, front|Character sheet/ }).count() >= 3, "a model page shows her reference images");
@@ -253,12 +263,14 @@ async function main() {
       await mp.goto(`${BASE}${path}`);
       await mp.waitForTimeout(2500);
       check(await noOverflow(mp), `${path} has no horizontal scroll at 390 px`);
+      await hig(mp, path, true);
       await shot(mp, `mob${path.replace(/\//g, "-").slice(0, 40) || "-home"}`);
     }
     // Mobile navigation is one compact Menu button; the menu holds every page and log out.
     check(!(await mp.getByRole("link", { name: "Productions", exact: true }).isVisible()), "mobile header is compact (links behind the menu)");
     await mp.getByRole("button", { name: "Menu" }).click();
     check(await mp.getByRole("button", { name: "Log out" }).isVisible(), "log out is reachable on mobile");
+    await hig(mp, "the open mobile menu", true);
     await mp.getByRole("link", { name: "Models", exact: true }).click();
     await mp.waitForURL(/\/models$/);
     check(await mp.locator("#mobile-menu").waitFor({ state: "hidden", timeout: 5000 }).then(() => true, () => false), "the mobile menu closes after navigating");

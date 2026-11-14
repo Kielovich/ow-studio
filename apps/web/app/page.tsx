@@ -72,7 +72,7 @@ export default function StudioPage() {
       <section className="pt-14">
         <div className="flex items-baseline justify-between mb-6">
           <h2 className="ow-display text-2xl">Recent productions</h2>
-          <Link href="/productions" className="ow-nav border-b border-ink">View all</Link>
+          <Link href="/productions" className="ow-nav inline-flex items-center min-h-11 [@media(pointer:fine)]:min-h-6"><span className="border-b border-ink">View all</span></Link>
         </div>
         {data && data.recent.length === 0 ? (
           <div className="bg-meta py-20 text-center">

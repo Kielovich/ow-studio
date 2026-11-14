@@ -52,8 +52,8 @@ export function ResetTipsButton() {
 export function InfoTip({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <Popover>
-      <Popover.Trigger aria-label={`About: ${title}`} className="inline-grid place-items-center w-5 h-5 rounded-full border border-black/40 text-[11px] leading-none text-black/60 hover:border-ink hover:text-ink cursor-pointer align-middle normal-case tracking-normal font-normal select-none">
-        i
+      <Popover.Trigger aria-label={`About: ${title}`} className="group inline-grid place-items-center w-11 h-11 -my-3 -mx-2.5 [@media(pointer:fine)]:w-6 [@media(pointer:fine)]:h-6 [@media(pointer:fine)]:m-0 cursor-pointer align-middle normal-case tracking-normal font-normal select-none">
+        <span aria-hidden className="grid place-items-center w-5 h-5 rounded-full border border-black/50 text-[0.75rem] leading-none text-black/70 group-hover:border-ink group-hover:text-ink">i</span>
       </Popover.Trigger>
       <Popover.Content placement="top" className="max-w-xs">
         <Popover.Dialog className="p-4">

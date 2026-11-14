@@ -17,7 +17,7 @@ Internal tool for a fashion e-commerce team. A user imports garment packshots (f
 | `apps/web/lib/server/repo.ts` | All data access: models, productions, images, attempts, review, drafts, ZIP entries, budget |
 | `apps/web/lib/server/pipeline.ts` | One worker step for one image (freeze session anchor, run job, store output as a new attempt) |
 | `apps/web/worker/index.ts` | Long-running worker: claims queued images with leases, runs `processImage`, daily DB backup |
-| `apps/web/lib/server/seed.ts`, `apps/web/seed/` | 7 registered models and their 42 reference images, imported on an empty database |
+| `apps/web/lib/server/seed.ts`, `apps/web/seed/` | 6 registered models and their 36 reference images, imported on an empty database. `RETIRED_MODELS` archives removed models in existing databases on every start |
 | `apps/web/lib/auth.ts`, `apps/web/proxy.ts` | Shared-password login, signed session cookie, guard on paid and writing routes |
 | `apps/web/app/` | Next.js 16 App Router (Cache Components on), HeroUI v3 UI, API route handlers |
 | `apps/web/lib/import.ts`, `lib/outcome.ts` | Folder import parsing; status and metrics (pure, shared with the client) |
@@ -83,7 +83,7 @@ npm test --workspaces --if-present
 npm run typecheck -w web
 ```
 
-Today: 115 tests in `packages/core` and 24 in `apps/web` (folder import, idempotent creation, attempts, ZIP, metrics, unknown outcome, session anchor, access control, colour check, realism language). All must pass on the new data layer.
+Today: 115 tests in `packages/core` and 25 in `apps/web` (folder import, idempotent creation, attempts, ZIP, metrics, unknown outcome, session anchor, access control, colour check, realism language). All must pass on the new data layer.
 
 End to end (run it before and after the port; it starts its own isolated server and simulated worker, no paid calls). Node 22.13 or newer (`node:sqlite`). Install the browser once:
 
@@ -92,10 +92,10 @@ npx playwright install --with-deps chromium
 npm run e2e -w web
 ```
 
-It checks 47 things in a real browser: login and logout, folder import with conflicts, the import session after a reload, idempotent Run, simulated generation, approve/reject/new attempt/compare, the approved ZIP and 2000 px downloads, the model library (overview of portraits and names, a model page with her reference images and a large view), every page at 1440 and 390 px without horizontal scroll or console errors, the compact mobile menu, the tip boxes (dismiss, stay dismissed, bring back from Settings) and an (i) explanation, keyboard focus, the not-found state, the health check and the daily backup. On Sites, run the same flows against the deployed site with `OW_PROVIDER=simulated` on a staging copy if the runtime allows it; otherwise by hand. Then check by hand on the deployed site, without paid calls:
+It checks 60 things in a real browser: login and logout, folder import with conflicts, the import session after a reload, idempotent Run, simulated generation, approve/reject/new attempt/compare, the approved ZIP and 2000 px downloads, the model library (overview of portraits and names, a model page with her reference images and a large view), every page at 1440 and 390 px without horizontal scroll or console errors, the compact mobile menu, the tip boxes (dismiss, stay dismissed, bring back from Settings) and an (i) explanation, measurable Human Interface Guidelines checks on every page, the image viewer and the mobile menu (`e2e/hig-audit.mjs`: touch targets 44 px on a phone, text at least 11 px, text fields 16 px on a phone, contrast 4.5:1), keyboard focus, the not-found state, the health check and the daily backup. On Sites, run the same flows against the deployed site with `OW_PROVIDER=simulated` on a staging copy if the runtime allows it; otherwise by hand. Then check by hand on the deployed site, without paid calls:
 
 1. Unauthenticated: pages redirect to the login, APIs answer 401.
-2. After login: the 7 models are listed (seeded).
+2. After login: the 6 models are listed (seeded).
 3. New production: import a folder; SKU and angle are recognised with their source; two files for one angle block Run.
 4. Run is idempotent (double click gives one production) and the images wait in the queue.
 5. Only then, with the owner's approval, one real production of one garment (5 images, about $0.80): the front generates first, the others follow, approve and reject work, the ZIP holds approved images at 2000 x 2000.

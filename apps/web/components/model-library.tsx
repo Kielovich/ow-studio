@@ -38,9 +38,11 @@ function refsOf(v: ModelRow) {
 function currentVersions(models: ModelRow[]) {
   const by = new Map<string, ModelRow[]>();
   for (const m of models) by.set(m.modelId, [...(by.get(m.modelId) ?? []), m]);
-  return [...by.entries()].map(([id, versions]) => {
+  // Only models with an active version: retired models (all versions archived) are no longer in the library.
+  return [...by.entries()].flatMap(([id, versions]) => {
     const sorted = [...versions].sort((a, b) => b.version - a.version);
-    return { id, current: sorted.find((v) => v.status === "active") ?? sorted[0]!, versions: sorted };
+    const current = sorted.find((v) => v.status === "active");
+    return current ? [{ id, current, versions: sorted }] : [];
   });
 }
 
@@ -135,7 +137,7 @@ export function ModelDetail() {
       <Modal.Backdrop isOpen={!!viewer} onOpenChange={(o) => !o && setViewer(null)}>
         <Modal.Container size="full">
           <Modal.Dialog className="bg-white">
-            <Modal.CloseTrigger />
+            <Modal.CloseTrigger className="[@media(pointer:coarse)]:w-11 [@media(pointer:coarse)]:h-11" />
             {viewer && (
               <>
                 <Modal.Header><Modal.Heading className="ow-display text-2xl">{v.data.displayName} · {viewer.label}</Modal.Heading></Modal.Header>

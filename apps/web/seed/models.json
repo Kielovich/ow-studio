@@ -32,34 +32,6 @@
     {
       "status": "active",
       "data": {
-        "modelId": "M05",
-        "version": 2,
-        "displayName": "Mei",
-        "ageYears": 21,
-        "heightCm": 176,
-        "euSize": 34,
-        "look": {
-          "hair": "long straight glossy black hair with a centre part, usually styled as: high sleek ponytail, hair pulled back tightly with a centre part",
-          "skinTone": "light warm",
-          "eyes": "dark-brown monolid eyes",
-          "features": "East Asian, high cheekbones, small straight nose, soft full lips"
-        },
-        "refs": {
-          "primaryPortrait": "sha256:8a79b382c7fa7a18e5f28f576adc3d6cacf414d9a0eed0fb0f00bbe65021b4ab",
-          "identityAngles": [
-            "sha256:a429dc02900235ba965102de7ebf1da6cc3a4c305904ac1b477b840e36ffa309",
-            "sha256:18eded94017395d00d180cee427dc4255e1967bd14ae768aee23b030080d7496"
-          ],
-          "fullBodyFront": "sha256:3ad846c0d5afc6e6c69815d2eeca41f4a3e2fc2c6b992c0b9ad9954408fcc8de",
-          "fullBodyBack": "sha256:17bd659d860b5eb26030b6d18cf6be9bc5ba9d9cfa649a0627abb12c823ccd29",
-          "characterSheet": "sha256:b338386b96f545adb939f2fc8e0ff62615548b5404131750835b6b7febaf618c",
-          "facialDetailSheet": "sha256:8a79b382c7fa7a18e5f28f576adc3d6cacf414d9a0eed0fb0f00bbe65021b4ab"
-        }
-      }
-    },
-    {
-      "status": "active",
-      "data": {
         "modelId": "M06",
         "version": 2,
         "displayName": "Lucía",

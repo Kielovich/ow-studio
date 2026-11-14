@@ -273,3 +273,15 @@ describe("unknown outcome", () => {
     expect(m.costPerApprovedUsd).toBeCloseTo(0.32);
   });
 });
+
+describe("retired models", () => {
+  it("archives every active version of a retired model, once, and keeps the others", async () => {
+    const { retireModels } = await import("../lib/server/seed");
+    const v = repo.listModels().find((m) => m.modelId === "M07")!;
+    repo.insertModelVersion({ ...v.data, modelId: "M05", version: 2, displayName: "Mei" }, "active");
+    expect(retireModels(["M05"])).toBe(1);
+    expect(retireModels(["M05"])).toBe(0);
+    expect(repo.listModels().find((m) => m.modelId === "M05")!.status).toBe("archived");
+    expect(repo.listModels().find((m) => m.modelId === "M07")!.status).toBe("active");
+  });
+});

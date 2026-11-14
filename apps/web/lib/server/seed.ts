@@ -12,6 +12,18 @@ export const SEED_DIR = join(process.cwd(), "seed");
 type SeedFile = { exportedAt: string; models: { status: string; data: any }[] };
 
 /** Imports the seed when the database has no models yet. Every asset is verified against its content hash. */
+/**
+ * Models taken out of the library. Their versions are archived on every start (idempotent): they can no longer start a
+ * production, and productions already made with them keep working. M05 Mei: removed by the owner on 2026-11-14.
+ */
+export const RETIRED_MODELS = ["M05"] as const;
+
+export function retireModels(ids: readonly string[] = RETIRED_MODELS): number {
+  if (!ids.length) return 0;
+  const r = getDb().prepare(`UPDATE models SET status = 'archived' WHERE status = 'active' AND model_id IN (${ids.map(() => "?").join(",")})`).run(...ids);
+  return Number(r.changes);
+}
+
 export async function seedIfEmpty(dir = SEED_DIR): Promise<{ imported: number; skipped?: string }> {
   if (listModels().length) return { imported: 0, skipped: "models already present" };
   const file = join(dir, "models.json");

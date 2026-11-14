@@ -31,14 +31,14 @@
   --surface-foreground: var(--ow-ink);
   --overlay: #ffffff;
   --overlay-foreground: var(--ow-ink);
-  --muted: rgba(17, 17, 17, 0.55);
+  --muted: rgba(17, 17, 17, 0.64);
   --default: var(--ow-meta);
   --default-foreground: var(--ow-ink);
   --accent: var(--ow-ink);
   --accent-foreground: #ffffff;
   --field-background: #ffffff;
   --field-foreground: var(--ow-ink);
-  --field-placeholder: rgba(17, 17, 17, 0.4);
+  --field-placeholder: rgba(17, 17, 17, 0.55);
   --field-border: var(--ow-border);
   --success: #478947;
   --success-foreground: #ffffff;
@@ -74,8 +74,10 @@ body {
   background: #ffffff;
   color: var(--ow-ink);
   font-family: "Figtree", ui-sans-serif, system-ui, sans-serif;
-  font-size: 15px;
+  /* 16 px base (web standard, and the iOS body size of 17 pt at reading distance): no text ends up under 11 px. */
+  font-size: 16px;
   -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
 }
 
 @layer components {
@@ -120,7 +122,7 @@ body {
   .chip {
     @apply rounded-none uppercase;
     letter-spacing: 0.04em;
-    font-size: 0.68rem;
+    font-size: 0.7rem;
   }
 }
 
@@ -140,6 +142,54 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   font-size: 0.8rem;
+}
+
+/*
+ * Human Interface Guidelines on the web (checked by e2e/hig-audit.mjs):
+ * - touch targets of at least 44 x 44 px wherever the pointer is a finger;
+ * - text fields at 16 px on phones, so iOS Safari does not zoom in when one is tapped;
+ * - content clear of the notch and the home indicator (safe areas);
+ * - no animation for people who asked for reduced motion.
+ */
+@media (pointer: coarse), (max-width: 767px) {
+  .button,
+  .toggle-button,
+  select,
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  textarea {
+    min-height: 44px;
+  }
+  .button--icon-only {
+    min-width: 44px;
+  }
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+.safe-x {
+  --gutter: 1.5rem;
+  padding-left: max(var(--gutter), env(safe-area-inset-left));
+  padding-right: max(var(--gutter), env(safe-area-inset-right));
+}
+@media (min-width: 768px) {
+  .safe-x {
+    --gutter: 2.5rem;
+  }
+}
+.safe-bottom {
+  padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Keyboard focus for native links and buttons (image tiles, model picker, nav). HeroUI components draw their own ring. */
