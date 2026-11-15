@@ -28,11 +28,11 @@ export const BUILDER_OPTIONS = {
   ],
   skin: [
     ["fair", "Fair", "fair"],
-    ["light", "Light", "light, warm undertone"],
+    ["light", "Light", "light warm-toned"],
     ["light-olive", "Light olive", "light olive"],
     ["olive", "Olive", "olive"],
     ["golden", "Golden tan", "golden tan"],
-    ["medium-brown", "Medium brown", "medium brown, warm undertone"],
+    ["medium-brown", "Medium brown", "warm medium-brown"],
     ["deep-brown", "Deep brown", "deep brown"],
     ["ebony", "Deep ebony", "deep ebony brown"],
   ],
@@ -54,18 +54,18 @@ export const BUILDER_OPTIONS = {
     ["coily", "Coily", "tightly coiled natural"],
   ],
   hairLength: [
-    ["short", "Short", "short, cropped close"],
-    ["bob", "Bob", "chin-length bob"],
+    ["short", "Short", "short cropped"],
+    ["bob", "Bob", "chin-length"],
     ["shoulder", "Shoulder", "shoulder-length"],
     ["long", "Long", "long"],
   ],
   hairStyle: [
     ["down", "Worn down", "worn down with a centre part"],
-    ["tucked", "Behind the ears", "worn down with a centre part, tucked behind the ears"],
+    ["tucked", "Behind the ears", "worn down with a centre part and tucked behind the ears"],
     ["fringe", "Curtain fringe", "worn down with a soft curtain fringe"],
-    ["low-bun", "Low bun", "a sleek low bun with a centre part"],
-    ["high-bun", "High bun", "a sleek high bun"],
-    ["ponytail", "Ponytail", "a high sleek ponytail"],
+    ["low-bun", "Low bun", "styled in a sleek low bun with a centre part"],
+    ["high-bun", "High bun", "styled in a sleek high bun"],
+    ["ponytail", "Ponytail", "styled in a high sleek ponytail"],
   ],
   eyes: [
     ["dark-brown", "Dark brown", "dark-brown eyes"],
@@ -111,12 +111,22 @@ export const hairStyleAllowed = (spec: Pick<BuilderSpec, "hairLength">, style: s
   spec.hairLength !== "short" || style === "down";
 
 /** The hair in words, e.g. "dark brown, long, straight hair, styled as a sleek low bun with a centre part". */
+/** The hair itself, e.g. "shoulder-length auburn hair with soft natural waves" or "long straight black hair cut in a bob". */
+function hairCore(spec: BuilderSpec): string {
+  const len = text("hairLength", spec.hairLength);
+  const colour = text("hairColour", spec.hairColour);
+  const base = spec.hairTexture === "straight" ? `${len} straight ${colour} hair`
+    : spec.hairTexture === "coily" ? `${len} tightly coiled natural ${colour} hair`
+      : `${len} ${colour} hair ${text("hairTexture", spec.hairTexture)}`;
+  return spec.hairLength === "bob" ? `${base}, cut in a bob` : base;
+}
+const styleOf = (spec: BuilderSpec) => (spec.hairLength === "short" ? "neatly shaped" : text("hairStyle", spec.hairStyle));
+
 export function builderHair(spec: BuilderSpec): string {
-  const style = spec.hairLength === "short" ? "neatly shaped" : `styled as ${text("hairStyle", spec.hairStyle)}`;
-  return `${text("hairColour", spec.hairColour)}, ${text("hairLength", spec.hairLength)}, ${text("hairTexture", spec.hairTexture)} hair, ${style}`;
+  return `${hairCore(spec)}, ${styleOf(spec)}`;
 }
 
-const skinText = (spec: BuilderSpec) => `${text("skin", spec.skin)}${spec.freckles ? ", with light natural freckles" : ""}`;
+const FRECKLES = "light natural freckles";
 
 /** Realism language from the realism refresh (docs/realism-audit.md, lever 2). */
 const REAL = {
@@ -136,7 +146,7 @@ const LOOK =
 export function builderPortraitPrompt(spec: BuilderSpec): string {
   return [
     `Model agency digital of an original fictional adult woman, ${spec.ageYears} years old. She is not a real or identifiable person and must not resemble any real person, model or celebrity.`,
-    `${text("heritage", spec.heritage)}; ${text("eyes", spec.eyes)}; ${skinText(spec)} skin. Hair: ${builderHair(spec)}.`,
+    `${text("heritage", spec.heritage)}; ${text("eyes", spec.eyes)}; ${text("skin", spec.skin)} skin${spec.freckles ? ` with ${FRECKLES}` : ""}. Hair: ${builderHair(spec)}.`,
     LOOK,
     `Hair finish: ${REAL.hair}.`,
     `Makeup: ${REAL.makeup}.`,
@@ -188,12 +198,12 @@ export function builderReferencePrompt(kind: ReferenceKind, spec: BuilderSpec): 
 
 /** How the model is described to production prompts (templates.ts), like the library's models. */
 export function builderLook(spec: BuilderSpec): ModelVersion["look"] {
-  const style = spec.hairLength === "short" ? "worn short and neatly shaped" : `usually styled as ${text("hairStyle", spec.hairStyle)}`;
+  // Production prompts read "<features>; <eyes>; <skinTone> skin; <hair>", so freckles belong with the features.
   return {
-    hair: `${text("hairColour", spec.hairColour)}, ${text("hairLength", spec.hairLength)}, ${text("hairTexture", spec.hairTexture)} hair, ${style}`,
-    skinTone: skinText(spec),
+    hair: `${hairCore(spec)}, usually ${styleOf(spec)}`,
+    skinTone: text("skin", spec.skin),
     eyes: text("eyes", spec.eyes),
-    features: text("heritage", spec.heritage),
+    features: `${text("heritage", spec.heritage)}${spec.freckles ? `, ${FRECKLES}` : ""}`,
   };
 }
 
