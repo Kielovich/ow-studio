@@ -35,6 +35,16 @@ One test model (Northern European, fair with freckles, green eyes, shoulder-leng
 4. **Added to the models** through the app as "Isla" (M11): headless body references, shown on the Models page and selectable in New production.
 5. **Used in Ecom (5 images, $0.80):** one dress (CAMELIA) on Isla, the brand set. The compiled requests used her portrait, three-quarter, character sheet and headless body references, and her look text read naturally. Front, three-quarter, back and styled came out consistent with her portrait (face, freckles, hair, glam) and the dress right (ruching, mock neck, feather cuffs). The close-up was paid but its file was lost: the test stopped the worker seconds after the image was marked done, before its file was stored (a gap in the pipeline, not in the builder; see the open point below). Made again as a one-shot production (1 image, $0.16): ruching, mock neck and feather cuffs sharp.
 
+## Freja and Inés (2026-11-15, 12 images, $1.92)
+
+Two models made for OW as AI photographs (by the brand's owner), not good enough in quality: over-smoothed skin, flat light. Remade with `scripts/model-from-image.ts` and the realism finish above:
+
+1. **Portraits (2 images, $0.32):** the same women (face, freckles, eyes, hairline, hair) as real, unretouched photographs: pores, peach fuzz, freckles of varied shape, light with fall-off. Owner: "much better". Weak points: both cropped tighter than asked (head close to the top edge); Inés has a slight shine on the forehead and a hint of a smile, as in her original; both read a year or two older than the originals.
+2. **References (10 images, $1.60):** three-quarter, profile, body front and back, 5-panel character sheet each. Identity consistent in every view; hands and feet clean at full resolution. The profiles turn about 70 degrees, not a full 90.
+3. **Registered** locally as Freja (M11) and Inés (M12), version 1, headless body references; exported to the seed. On deploy the additive seed import adds them to the live server without touching its other models (`apps/web/lib/server/seed.ts`, tests in `apps/web/test/seed.test.ts`).
+
+The source photographs stay in the local asset store only; they are not in the seed and never become a model reference.
+
 ## Not covered yet
 
 - The prompt after round 2 (young, square to the camera) and the realism finish are not yet tested with real images.
