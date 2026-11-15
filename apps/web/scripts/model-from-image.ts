@@ -5,6 +5,8 @@
  * The source photograph stays in the local asset store; only the generated portrait and references become the model.
  *
  *   npx tsx scripts/model-from-image.ts <key> init <photo.png>          free: stores the photograph and a face crop
+ *   npx tsx scripts/model-from-image.ts <key> candidates [--n 2] [--confirm]   words-only keys (like-*): portrait candidates
+ *   npx tsx scripts/model-from-image.ts <key> choose <n>                 words-only keys: candidate n becomes her portrait
  *   npx tsx scripts/model-from-image.ts <key> portrait [--confirm] [--note "..."]   1 image
  *   npx tsx scripts/model-from-image.ts <key> refs [--confirm] [--redo bodyBack]   5 images (the builder's reference set)
  *   npx tsx scripts/model-from-image.ts <key> register <Name>          a new model, version 1, active
@@ -15,7 +17,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import sharp from "sharp";
 import {
-  BUILDER_OPTIONS, BuilderSpec, builderHair, builderLook, builderReferencePrompt, extractImages, GEMINI_API_REVISION, GEMINI_ENDPOINT, GEMINI_PRO_PROFILE,
+  BUILDER_OPTIONS, BuilderSpec, builderHair, builderLook, builderPortraitPrompt, builderReferencePrompt, extractImages, GEMINI_API_REVISION, GEMINI_ENDPOINT, GEMINI_PRO_PROFILE,
   loadLocalSecrets, MODEL_NAME_RULE, realPortraitPrompt, REFERENCE_ASPECT, REFERENCE_KINDS, type ReferenceKind,
 } from "@ow-studio/core";
 import { headless, nextModelId } from "../lib/server/builder";
@@ -26,7 +28,9 @@ import { assets, insertModelVersion, listModels } from "../lib/server/repo";
  * The two models from the owner's photographs (2026-11-15). The spec feeds the builder's reference prompts and the look
  * production prompts read; `hair` replaces the builder's hair wording and `eyes` its eye colour where her own is more exact.
  */
-const MODELS: Record<string, { spec: BuilderSpec; hair?: string; lookHair?: string; eyes?: string; faceCrop: [number, number, number] }> = {
+type Entry = { spec: BuilderSpec; hair?: string; lookHair?: string; eyes?: string; faceCrop?: [number, number, number]; like?: string };
+const S = (o: Omit<BuilderSpec, "freckles"> & { freckles?: boolean }) => BuilderSpec.parse(o);
+const MODELS: Record<string, Entry> = {
   blonde: {
     spec: BuilderSpec.parse({ heritage: "northern-european", skin: "fair", freckles: true, hairColour: "dark-blonde", hairTexture: "wavy", hairLength: "long", hairStyle: "low-bun", eyes: "blue", ageYears: 25, heightCm: 178, euSize: 36 }),
     hair: "long dark blonde hair with lighter golden face-framing strands, pulled back into a soft low bun with a centre part, a few loose strands falling by the temples",
@@ -38,6 +42,17 @@ const MODELS: Record<string, { spec: BuilderSpec; hair?: string; lookHair?: stri
     spec: BuilderSpec.parse({ heritage: "mixed", skin: "light-olive", freckles: false, hairColour: "dark-brown", hairTexture: "straight", hairLength: "long", hairStyle: "low-bun", eyes: "brown", ageYears: 24, heightCm: 178, euSize: 36 }),
     faceCrop: [760, 0, 520],
   },
+  /**
+   * New models from words only, each of the same type as one of the six library models (owner, 2026-11-15: "new models
+   * that resemble the others, so they are not exactly them"): the library's portraits could not be refreshed without the
+   * generator copying them. No image goes in; the builder's portrait prompt with the realism finish makes a new face.
+   */
+  "like-sable": { like: "Sable", spec: S({ heritage: "mixed", skin: "olive", hairColour: "dark-brown", hairTexture: "straight", hairLength: "long", hairStyle: "low-bun", eyes: "dark-brown", ageYears: 21, heightCm: 178, euSize: 36 }) },
+  "like-lucia": { like: "Lucía", spec: S({ heritage: "latina", skin: "golden", freckles: true, hairColour: "dark-brown", hairTexture: "curly", hairLength: "long", hairStyle: "down", eyes: "hazel", ageYears: 20, heightCm: 176, euSize: 36 }) },
+  "like-liv": { like: "Liv", spec: S({ heritage: "northern-european", skin: "fair", freckles: true, hairColour: "platinum", hairTexture: "straight", hairLength: "long", hairStyle: "low-bun", eyes: "blue", ageYears: 20, heightCm: 178, euSize: 34 }) },
+  "like-nadia": { like: "Nadia", spec: S({ heritage: "east-asian", skin: "light-olive", freckles: true, hairColour: "black", hairTexture: "straight", hairLength: "long", hairStyle: "tucked", eyes: "dark-brown", ageYears: 21, heightCm: 176, euSize: 36 }) },
+  "like-noa": { like: "Noa", spec: S({ heritage: "southern-european", skin: "light", freckles: true, hairColour: "chestnut", hairTexture: "straight", hairLength: "bob", hairStyle: "down", eyes: "hazel", ageYears: 20, heightCm: 176, euSize: 34 }) },
+  "like-kaia": { like: "Kaia", spec: S({ heritage: "black", skin: "medium-brown", hairColour: "black", hairTexture: "coily", hairLength: "shoulder", hairStyle: "high-bun", eyes: "dark-brown", ageYears: 21, heightCm: 180, euSize: 36 }) },
 };
 
 loadLocalSecrets();
@@ -106,8 +121,29 @@ async function describe(refs: string[]) {
 }
 
 async function main() {
-  if (stage === "init") {
+  if (stage === "candidates") {
+    // Words only: n candidates from the builder's portrait prompt (one prompt, the generator varies the face).
+    if (m.faceCrop) throw new Error(`${key} is made from a photograph: use init and portrait`);
+    const n = process.argv.includes("--n") ? Number(process.argv[process.argv.indexOf("--n") + 1]) : 2;
+    const prompt = own(builderPortraitPrompt(m.spec));
+    console.log(`${n} images (portrait candidates, ${key}, like ${m.like}), 1:1 2K, no image attached, est. $${(n * COST).toFixed(2)}`);
+    if (!confirm) return console.log("\nDry run. Add --confirm.\n\n" + prompt);
+    for (let i = 0; i < n; i++) {
+      const k = `candidate_${Object.keys(state).filter((x) => x.startsWith("candidate_")).length + 1}`;
+      state[k] = await generate(prompt, [], "1:1");
+      save();
+      console.log(k, "->", state[k]);
+    }
+  } else if (stage === "choose") {
+    const k = `candidate_${arg}`;
+    if (!state[k]) throw new Error(`no ${k}`);
+    if (state.portrait && state.portrait !== state[k]) throw new Error("a portrait is already chosen and its references may exist");
+    state.portrait = state[k]!;
+    save();
+    console.log(`${key}: portrait = ${k} (${state.portrait})`);
+  } else if (stage === "init") {
     if (!arg || !existsSync(arg)) throw new Error("give the photograph's path");
+    if (!m.faceCrop) throw new Error(`${key} is made from words: use candidates and choose`);
     const bytes = new Uint8Array(readFileSync(arg));
     const [left, top, size] = m.faceCrop;
     const face = await sharp(bytes).extract({ left, top, width: size, height: size }).resize(1024, 1024, { kernel: "lanczos3" }).png().toBuffer();
