@@ -52,7 +52,7 @@ The owner found the six library models not realistic enough. Refreshing them fai
 1. **Words only** (`scripts/model-from-image.ts`, `like-*` keys): one builder spec per library type, the builder's portrait prompt with the realism finish, no image attached. 12 candidates, 2 per type ($1.92): real photographs at last. Faults: a caption ("MODEL AGENCY DIGITAL") written into one, a softbox edge, a window, a backdrop edge, stubble-like fuzz on a jaw, a wrong hairstyle. The prompt was fixed for all three kinds (tests pin it); two chosen candidates were fixed by a free crop.
 2. **References** for the six chosen portraits (30 images, $4.80 approved): 20 made ($3.20) before the Gemini prepaid credits ran out (HTTP 402, not billed). Identity consistent in every view; hands and feet clean at full resolution.
 3. **Registered** as Signe (M13, Liv's type), Yuna (M14, Nadia's), Elena (M15, Noa's) and Amara (M16, Kaia's). Liv, Nadia, Noa and Kaia are retired (`RETIRED_MODELS` in `apps/web/lib/server/seed.ts`): archived, not deleted, so productions made with them keep working.
-4. **Waiting for credits:** the types of Sable and Lucía (portraits chosen, 10 references, $1.60 of the approved batch). Until then Sable and Lucía stay in the library.
+4. **After the credits were topped up:** the last 10 references ($1.60, the rest of the approved batch); registered as Mara (M17, Sable's type) and Valeria (M18, Lucía's). Sable and Lucía are retired the same way.
 
 ## Not covered yet
 

@@ -1,62 +1,6 @@
 {
-  "exportedAt": "2026-11-15T18:37:29.110Z",
+  "exportedAt": "2026-11-15T18:55:21.999Z",
   "models": [
-    {
-      "status": "active",
-      "data": {
-        "modelId": "M01",
-        "version": 4,
-        "displayName": "Sable",
-        "ageYears": 21,
-        "heightCm": 178,
-        "euSize": 36,
-        "look": {
-          "hair": "long straight dark-brown hair with a centre part, usually styled as: sleek slicked-back low bun with a clean centre part",
-          "skinTone": "olive",
-          "eyes": "dark-brown eyes",
-          "features": "high cheekbones, straight natural brows, soft full lips"
-        },
-        "refs": {
-          "primaryPortrait": "sha256:c4cebc4b887dcb0eea485862d801712a46806075d33519d1977538395171234a",
-          "identityAngles": [
-            "sha256:ce1c993503e39570df1f8010d69464a39b29327f5ed4830143b6f7dc4cc281f7",
-            "sha256:5511a4e386ec05e180bec640796acf6225bf2d0f36d28da111048c2daa646ebf"
-          ],
-          "fullBodyFront": "sha256:a3f544d306e950bf033c8a301186bdebb79e80763d50fa39cee48acc8c456c0c",
-          "fullBodyBack": "sha256:13a003a76a5c56da7eafdaac5eeefd8bfc12fdaa34891d8fdae425fa3e5ecd22",
-          "characterSheet": "sha256:79e8f3829ea759633942221e590a580683e5b890e7884958f12a7e096590d7b1",
-          "facialDetailSheet": "sha256:c4cebc4b887dcb0eea485862d801712a46806075d33519d1977538395171234a"
-        }
-      }
-    },
-    {
-      "status": "active",
-      "data": {
-        "modelId": "M06",
-        "version": 2,
-        "displayName": "Lucía",
-        "ageYears": 20,
-        "heightCm": 177,
-        "euSize": 36,
-        "look": {
-          "hair": "long dark-brown natural curls, usually styled as: long defined curls with volume, a soft side part",
-          "skinTone": "golden tan",
-          "eyes": "hazel eyes",
-          "features": "Latina, high cheekbones, strong natural brows, full lips"
-        },
-        "refs": {
-          "primaryPortrait": "sha256:82999784f5e6e0e288d6efd69763821f518e981314344b1e70e5c00f2e447561",
-          "identityAngles": [
-            "sha256:f382e511c7e112b9dc4a72aabcf38cce1d8077c9f814ea6fd5f40528c385344a",
-            "sha256:4d506f6954c662addba6851f859f0b1347fbab9bbe7d55c6a7926a05d8e7e787"
-          ],
-          "fullBodyFront": "sha256:1119fb283bd214f82e1cd1f1df8fadd27bc3625aea93154d72743f1792eb2967",
-          "fullBodyBack": "sha256:0b0c28f99618a1eb23c04e735fe1cb254b0c2e7e1f9f12d29826f290a1608221",
-          "characterSheet": "sha256:f1bdd705faf16f5e330296891228b7adcec36533629e0282e2d3238c880ddc70",
-          "facialDetailSheet": "sha256:82999784f5e6e0e288d6efd69763821f518e981314344b1e70e5c00f2e447561"
-        }
-      }
-    },
     {
       "status": "active",
       "data": {
@@ -222,6 +166,62 @@
           "fullBodyBack": "sha256:87ce9b1374d097da52564bd49adf4907e51757d0082e8cc5ac0b0a9ba9011f15",
           "characterSheet": "sha256:c04a85b9c6a0974b5d85e86a1869892e55004fa87c6d09922b0ddcc54287dc4a",
           "facialDetailSheet": "sha256:e451b0c13bf41d52815f49f576b62a1c0a045f209208c2c8023647588cba1f3b"
+        }
+      }
+    },
+    {
+      "status": "active",
+      "data": {
+        "modelId": "M17",
+        "version": 1,
+        "displayName": "Mara",
+        "ageYears": 21,
+        "heightCm": 178,
+        "euSize": 36,
+        "look": {
+          "hair": "long straight dark brown hair, usually styled in a sleek low bun with a centre part",
+          "skinTone": "olive",
+          "eyes": "dark-brown eyes",
+          "features": "mixed heritage"
+        },
+        "refs": {
+          "primaryPortrait": "sha256:05f07f76dae29285867068a5aec8d48c484884aae43ba1125c8a878fb21c5dd2",
+          "identityAngles": [
+            "sha256:1d12de762e4a63caa7f1271d7484dce4c77d107be7f1cdc886c062464dbc16fe",
+            "sha256:a9b8e1aeac9fb23ff830c256e2839f33e76187a4fc745c2207b49c87b63fa108"
+          ],
+          "fullBodyFront": "sha256:a775203ae1d63a7b0847dfa90fd32d144b60b0d881281120ba326f7b60040379",
+          "fullBodyBack": "sha256:d8d0b5c4a7d6b739c31ff31609c73b5405d07ff76164147e5066f6276740a65e",
+          "characterSheet": "sha256:8cefe4a213aaa761c04c483c9877191404e0b185448dc03588eadf71634d6b2a",
+          "facialDetailSheet": "sha256:05f07f76dae29285867068a5aec8d48c484884aae43ba1125c8a878fb21c5dd2"
+        }
+      }
+    },
+    {
+      "status": "active",
+      "data": {
+        "modelId": "M18",
+        "version": 1,
+        "displayName": "Valeria",
+        "ageYears": 20,
+        "heightCm": 176,
+        "euSize": 36,
+        "look": {
+          "hair": "long dark brown hair with defined natural curls, usually worn down with a centre part",
+          "skinTone": "golden tan",
+          "eyes": "hazel eyes",
+          "features": "Latin American heritage, light natural freckles"
+        },
+        "refs": {
+          "primaryPortrait": "sha256:cde63f30dd7a6ebb3ea2be51d9b0fef592951cfe4ecaed36c01cf9d7057ec921",
+          "identityAngles": [
+            "sha256:83fd973a0b039dad1693acb938c471c5b4f0392e10e8f0e9ce954edfcd91acee",
+            "sha256:8cd8fe937bf29a353581e28f0266ca7180f407f942c9583cf7e8cbe471476e0c"
+          ],
+          "fullBodyFront": "sha256:2477feed61ad07ae69d95deac155f3b8a4058e0388827972924fe0153e4f3efa",
+          "fullBodyBack": "sha256:b3d498687ff425c0bb9b19ae3c94ba603a89dac06bf6061cfd64faeeb10025cc",
+          "characterSheet": "sha256:86896a6955f914999526c3da8c2ec816338bfe09fb2c1488d5882df92fdb87d8",
+          "facialDetailSheet": "sha256:cde63f30dd7a6ebb3ea2be51d9b0fef592951cfe4ecaed36c01cf9d7057ec921"
         }
       }
     }
