@@ -1,13 +1,17 @@
 /**
  * Folder import: turns relative file paths ("Look-07/AB123-045_top-front.jpg") into set, SKU and role, and says where
- * each answer came from. Pure and shared by client and tests. Nothing here guesses silently: anything not recognised
- * is left empty and has to be decided by the user, and two files for the same SKU and role block the run.
+ * each answer came from. Pure and shared by client and tests. Nothing here guesses silently: every answer shows its
+ * source, anything not recognised is left empty and has to be decided by the user, and two files for the same SKU and
+ * role block the run. Webshop exports name files after the product ("abril-suit-pants-2501566.webp"): without a
+ * style number, the product name becomes the SKU (source "name").
  */
 import type { Category } from "./types";
 
 export const ROLES = ["front", "back", "detail", "side"] as const;
 export type Role = (typeof ROLES)[number];
-export type Source = "filename" | "folder" | "manual";
+/** Where an answer came from: a style number or angle word in the file or folder name, the product name in the file
+ * name ("name"), the other file of a front/back pair ("pair"), or the user ("manual"). */
+export type Source = "filename" | "folder" | "name" | "pair" | "manual";
 
 /** Brand style numbers: 2-4 letters, 2-6 digits, optional colour code ("AB123-045"). Editable per import. */
 export const DEFAULT_SKU_PATTERN = "[A-Z]{2,4}\\d{2,6}(?:-\\d{2,4})?";
@@ -69,6 +73,17 @@ function findSku(text: string, re: RegExp | null): string | null {
   return m[1]!.toUpperCase();
 }
 
+/**
+ * The product name in a webshop file name, as an SKU: "abril-suit-pants-2501566" → "ABRIL-SUIT-PANTS". Image ids (all
+ * digits) and angle words are dropped; camera names ("IMG_2231") and names without a product word give nothing.
+ */
+export function skuFromName(base: string): string | null {
+  if (CAMERA_PREFIXES.test(base)) return null;
+  const parts = words(base).filter((w) => !/^\d+$/.test(w) && !ROLE_WORDS[w] && !(w.length === 1 && SHORT_ROLES[w]));
+  if (!parts.some((w) => /[a-z]{2,}/.test(w))) return null;
+  return parts.join("-").toUpperCase().slice(0, 60);
+}
+
 const words = (s: string) => s.toLowerCase().split(/[^a-z0-9æøå]+/i).filter(Boolean).map((w) => w.replace(/æ/g, "ae").replace(/ø/g, "oe").replace(/å/g, "aa"));
 
 export function parseFile(path: string, pattern = DEFAULT_SKU_PATTERN): ParsedFile {
@@ -105,6 +120,10 @@ export function parseFile(path: string, pattern = DEFAULT_SKU_PATTERN): ParsedFi
 
   const kind: FileKind = w.some((x) => FIT_WORDS.has(x)) ? "fit" : w.some((x) => FOOTWEAR_WORDS.has(x)) ? "footwear" : w.some((x) => ACCESSORY_WORDS.has(x)) ? "accessory" : "garment";
   const category = w.map((x) => CATEGORY_WORDS[x]).find(Boolean) ?? null;
+  if (!sku && kind === "garment") {
+    sku = skuFromName(base);
+    if (sku) skuSource = "name";
+  }
   // The set is the folder nearest the file that is not itself a role folder ("Look-07/Back/x.jpg" → Look-07).
   const set = [...folders].reverse().find((f) => !(words(f).length === 1 && ROLE_WORDS[words(f)[0]!])) ?? null;
   return { path: parts.join("/"), filename, set, sku, skuSource, role, roleSource, kind, category };
@@ -140,6 +159,28 @@ export function importIssues(files: ImportFile[]): ImportIssue[] {
   }
   for (const sku of skus) if (!groups.has(`${sku}\u0000front`)) issues.push({ code: "NO_FRONT", sku });
   return issues;
+}
+
+const OTHER_SIDE: Partial<Record<Role, Role>> = { front: "back", back: "front" };
+
+/**
+ * A product with exactly two packshots and one angle known: the other one is the other side (front ↔ back). Angles
+ * set this way are marked "pair" and follow the known one when it changes; nothing is decided for larger groups.
+ */
+export function completePairs(files: ImportFile[]): ImportFile[] {
+  const reset = files.map((f) => (f.roleSource === "pair" ? { ...f, role: null, roleSource: null } : f));
+  const groups = new Map<string, ImportFile[]>();
+  for (const f of reset.filter(usable)) if (f.sku) groups.set(f.sku, [...(groups.get(f.sku) ?? []), f]);
+  const set = new Map<string, Role>();
+  for (const g of groups.values()) {
+    if (g.length !== 2) continue;
+    const [a, b] = g as [ImportFile, ImportFile];
+    const known = a.role && !b.role ? a : b.role && !a.role ? b : null;
+    const other = known === a ? b : a;
+    const role = known?.role ? OTHER_SIDE[known.role] : undefined;
+    if (known && role) set.set(other.key, role);
+  }
+  return reset.map((f) => (set.has(f.key) ? { ...f, role: set.get(f.key)!, roleSource: "pair" as const } : f));
 }
 
 /** Uploaded, not a duplicate, not ignored: counts for the look whatever its kind. */

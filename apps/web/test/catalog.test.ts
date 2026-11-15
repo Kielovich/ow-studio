@@ -4,7 +4,7 @@ import { join } from "node:path";
 import sharp from "sharp";
 import { beforeAll, describe, expect, it } from "vitest";
 import { GEMINI_PRO_PROFILE, GeminiProvider } from "@ow-studio/core";
-import { importIssues, lookAssets, lookOfSku, packshotsBySku, parseFile, type ImportFile } from "../lib/import";
+import { completePairs, importIssues, lookAssets, lookOfSku, packshotsBySku, parseFile, type ImportFile } from "../lib/import";
 import { productionMetrics, statusView } from "../lib/outcome";
 
 // Isolated data directory: the real production history is never touched. No network: the provider is simulated.
@@ -356,5 +356,35 @@ describe("a look: top, bottom, shoes, accessories and fit reference", () => {
     const id = await created({ ...draft, sessionAnchor: false, presets: ["full_body"] });
     const roles = repo.getProduction(id)!.images.flatMap((i) => i.refs.map((r) => r.role));
     for (const r of ["look_garment_front", "look_garment_back", "footwear", "accessory", "fit_reference"]) expect(roles).not.toContain(r);
+  });
+});
+
+describe("webshop file names", () => {
+  const f = (path: string, key: string, extra: Partial<ImportFile> = {}): ImportFile => ({ ...parseFile(path), key, hash: "sha256:" + key.padEnd(64, "0"), ...extra });
+
+  it("uses the product name when there is no style number, and says so", () => {
+    const r = ["abril-suit-pants-2501566.webp", "abril-suit-pants-4380911.webp", "camelia-mini-dress-2070462.webp", "IMG_2231.jpg", "front.jpg", "shoes.jpg"].map((p) => parseFile(p));
+    expect(r.map((x) => [x.sku, x.skuSource])).toEqual([
+      ["ABRIL-SUIT-PANTS", "name"], ["ABRIL-SUIT-PANTS", "name"], ["CAMELIA-MINI-DRESS", "name"], [null, null], [null, null], [null, null],
+    ]);
+    expect(r[0]!.category).toBe("trousers");
+    expect(r[2]!.category).toBe("dress");
+    // A style number still wins over the name.
+    expect(parseFile("abril-suit-pants-AB123-045-front.jpg")).toMatchObject({ sku: "AB123-045", skuSource: "filename", role: "front" });
+  });
+
+  it("sets the other side of a two-image product once one side is chosen, and follows a change", () => {
+    let files = [f("abril-suit-pants-2501566.webp", "a1"), f("abril-suit-pants-4380911.webp", "a2")];
+    expect(completePairs(files).map((x) => x.role)).toEqual([null, null]); // nothing known yet: nothing decided
+    files = completePairs(files.map((x) => (x.key === "a2" ? { ...x, role: "front" as const, roleSource: "manual" as const } : x)));
+    expect(files.map((x) => [x.role, x.roleSource])).toEqual([["back", "pair"], ["front", "manual"]]);
+    expect(importIssues(files)).toEqual([]);
+    files = completePairs(files.map((x) => (x.key === "a2" ? { ...x, role: "back" as const } : x)));
+    expect(files.map((x) => x.role)).toEqual(["front", "back"]);
+  });
+
+  it("decides nothing for a product with more than two images", () => {
+    const files = completePairs([f("x-dress-1.webp", "b1", { role: "front", roleSource: "manual" }), f("x-dress-2.webp", "b2"), f("x-dress-3.webp", "b3")]);
+    expect(files.map((x) => x.role)).toEqual(["front", null, null]);
   });
 });

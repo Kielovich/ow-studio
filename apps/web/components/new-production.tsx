@@ -9,7 +9,7 @@ import { ManualLook } from "@/components/manual-look";
 import { PageTitle } from "@/components/page-title";
 import { Tile } from "@/components/tile";
 import {
-  DEFAULT_SKU_PATTERN, importIssues, KIND_LABELS, lookAssets, lookOfSku, packshotsBySku, parseFile, ROLES, usable, type FileKind,
+  completePairs, DEFAULT_SKU_PATTERN, importIssues, KIND_LABELS, lookAssets, lookOfSku, packshotsBySku, parseFile, ROLES, usable, type FileKind,
   type ImportFile, type ImportIssue, type Role, type Source,
 } from "@/lib/import";
 import {
@@ -61,7 +61,7 @@ const guessCategory = (s: string): Category => {
 
 const randomId = (prefix: string) => prefix + crypto.randomUUID().replace(/-/g, "").slice(0, 16);
 
-const SOURCE_LABEL: Record<Source, string> = { filename: "from name", folder: "from folder", manual: "set by hand" };
+const SOURCE_LABEL: Record<Source, string> = { filename: "from name", folder: "from folder", name: "from product name", pair: "other of a pair", manual: "set by hand" };
 
 /** Walks dropped folders. Entries must be taken synchronously in the drop handler, before any await. */
 async function droppedFiles(entries: FileSystemEntry[]): Promise<{ file: File; path: string }[]> {
@@ -216,7 +216,7 @@ export function NewProduction() {
             ...(f.hash ? { hash: f.hash } : {}), ...(f.error ? { error: f.error } : {}), ...(dup ? { duplicateOf: dup.path } : {}),
           });
         });
-        return next;
+        return completePairs(next);
       });
       setUploading((n) => n - chunk.length);
     }
@@ -250,7 +250,8 @@ export function NewProduction() {
     });
   }, [skus, files]);
 
-  const update = (key: string, patch: Partial<ImportFile>) => setFiles((fs) => fs.map((f) => (f.key === key ? { ...f, ...patch } : f)));
+  // Every change re-derives front/back pairs, so choosing one side of a two-image product sets the other.
+  const update = (key: string, patch: Partial<ImportFile>) => setFiles((fs) => completePairs(fs.map((f) => (f.key === key ? { ...f, ...patch } : f))));
   const remove = (key: string) => setFiles((fs) => fs.filter((f) => f.key !== key));
   const keepOnly = (keep: string, all: string[]) => setFiles((fs) => fs.map((f) => (all.includes(f.key) && f.key !== keep ? { ...f, ignored: true } : f)));
   const setProduct = (sku: string, patch: Partial<ProductInfo>) => setInfo((i) => ({ ...i, [sku]: { ...i[sku]!, ...patch } }));
@@ -447,6 +448,7 @@ export function NewProduction() {
               <Chip color="danger" size="sm">Blocks run</Chip>
               <span className="ow-eyebrow">Needs a decision ({issues.length})</span>
             </div>
+            <p className="text-sm text-black/70 mb-5 max-w-2xl">These file names do not say which product or which side they show. Type the style number and pick the side. With two images of one product, picking the front sets the other as the back.</p>
             <div className="flex flex-col gap-5">{issues.map(issueView)}</div>
           </div>
         )}
