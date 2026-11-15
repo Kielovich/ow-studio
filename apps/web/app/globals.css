@@ -119,6 +119,11 @@ body {
     color: #ffffff;
     box-shadow: none;
   }
+  /* Hovering a chosen toggle keeps it dark: the library's hover tint (ink at 20%) made the white label nearly invisible. */
+  .toggle-button[data-selected="true"][data-hovered="true"],
+  .toggle-button[aria-pressed="true"]:hover {
+    background: #333333;
+  }
   .chip {
     @apply rounded-none uppercase;
     letter-spacing: 0.04em;

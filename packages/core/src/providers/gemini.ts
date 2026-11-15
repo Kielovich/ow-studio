@@ -207,10 +207,18 @@ export class GeminiProvider implements ProviderAdapter {
    * hand. No image in a 200 answer is a content-policy outcome that may have been billed.
    */
   async edit(prompt: string, images: { bytes: Uint8Array; mime: string }[]): Promise<{ bytes: Uint8Array; costUsd: number }> {
+    return this.generateImage(prompt, images, "1:1");
+  }
+
+  /**
+   * One image from a text prompt plus optional input images, in the given aspect ratio (2K tier). Used by the model
+   * builder (portraits and reference sets). Same billing semantics as edit: no image in a 200 answer may have been billed.
+   */
+  async generateImage(prompt: string, images: { bytes: Uint8Array; mime: string }[], aspectRatio: "1:1" | "2:3" | "4:5" | "16:9"): Promise<{ bytes: Uint8Array; costUsd: number }> {
     const text = await this.post(JSON.stringify({
       model: this.profile.id,
       input: [{ type: "text", text: prompt }, ...images.map((i) => ({ type: "image", mime_type: i.mime, data: Buffer.from(i.bytes).toString("base64") }))],
-      response_format: { type: "image", aspect_ratio: "1:1", image_size: OUTPUT_IMAGE_SIZE },
+      response_format: { type: "image", aspect_ratio: aspectRatio, image_size: OUTPUT_IMAGE_SIZE },
     }));
     let json: unknown;
     try { json = JSON.parse(text); } catch { json = null; }

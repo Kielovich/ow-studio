@@ -65,7 +65,9 @@ export function ModelOverview() {
   const list = useMemo(() => currentVersions(models ?? []), [models]);
   return (
     <>
-      <PageTitle eyebrow="Library" title="Models" />
+      <PageTitle eyebrow="Library" title="Models">
+        <LinkButton href="/models/new">Build a model</LinkButton>
+      </PageTitle>
       <TipBox id="models" title="Models" steps={[
         <>These are the models who can wear your products. Tap one to see all her reference images.</>,
         <>You choose the model for each production in step 2 of <b>New production</b>.</>,

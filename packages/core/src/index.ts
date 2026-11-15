@@ -17,3 +17,4 @@ export * from "./post/export";
 export * from "./post/handfix";
 export * from "./post/fit";
 export * from "./secrets";
+export * from "./modelBuilder";

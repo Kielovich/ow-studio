@@ -6,6 +6,7 @@
  */
 import { hostname } from "node:os";
 import { GeminiProvider, loadLocalSecrets } from "@ow-studio/core";
+import { claimBuilderImage, processBuilderImage } from "../lib/server/builder";
 import { backupDatabase, getDb } from "../lib/server/db";
 import { SqliteJobStore } from "../lib/server/jobstore";
 import { processImage } from "../lib/server/pipeline";
@@ -38,7 +39,17 @@ function claim(): any | null {
 async function loop(n: number) {
   for (;;) {
     const row = claim();
-    if (!row) { await sleep(2000); continue; }
+    if (!row) {
+      // No production image waiting: make the next model builder image (portrait or reference), if any.
+      const b = claimBuilderImage(WORKER_ID);
+      if (b) {
+        const outcome = await processBuilderImage(b, adapter);
+        console.log(`[${new Date().toISOString()}] model builder ${b.draft_id} ${b.kind} -> ${outcome}`);
+        continue;
+      }
+      await sleep(2000);
+      continue;
+    }
     try {
       const job = await processImage(row, { adapter, store, sleep });
       console.log(`[${new Date().toISOString()}] ${row.sku} ${row.preset} -> ${job.state} (attempt ${job.attempt})${job.lastError ? ` (${job.lastError.kind})` : ""}`);

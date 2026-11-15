@@ -70,12 +70,20 @@ export default function StudioPage() {
             </span>
           </Link>
 
-          <div className="grid lg:grid-rows-3 gap-2">
+          <div className="grid lg:grid-rows-4 gap-2">
+            <Link href="/models/new" data-testid="tool" className="group bg-canvas p-5 md:px-7 md:py-5 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+              <span>
+                <span className="ow-nav text-black/60 block mb-2">02 · Available</span>
+                <span className="ow-display text-2xl xl:text-3xl block mb-1">Model builder</span>
+                <span className="text-sm text-black/70 block">Your own model, from a few choices.</span>
+              </span>
+              <span className="button button--secondary button--md inline-flex items-center justify-center shrink-0 self-start sm:self-auto">Build</span>
+            </Link>
             {COMING_SOON.map((f, i) => (
-              <Link key={f.id} href={`/coming-soon#${f.id}`} data-testid="tool" className="group bg-ink text-white p-5 md:p-7 flex flex-col justify-between gap-3">
-                <span className="ow-nav text-white/70">0{i + 2} · Coming soon</span>
+              <Link key={f.id} href={`/coming-soon#${f.id}`} data-testid="tool" className="group bg-ink text-white p-5 md:px-7 md:py-5 flex flex-col justify-between gap-3">
+                <span className="ow-nav text-white/70">0{i + 3} · Coming soon</span>
                 <span>
-                  <span className="ow-display text-2xl md:text-3xl block mb-1 group-hover:opacity-80">{f.title}</span>
+                  <span className="ow-display text-2xl xl:text-3xl block mb-1 group-hover:opacity-80">{f.title}</span>
                   <span className="text-sm text-white/75 block">{f.line}</span>
                 </span>
               </Link>

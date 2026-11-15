@@ -4,6 +4,7 @@ import { Button, Chip, Input, Label, ListBox, Select, Spinner, TextArea, TextFie
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Choices } from "@/components/choices";
 import { InfoTip, TipBox } from "@/components/help";
 import { ManualLook } from "@/components/manual-look";
 import { PageTitle } from "@/components/page-title";
@@ -64,25 +65,6 @@ const SUNGLASSES: [string, string][] = [
   ["black oval sunglasses with dark lenses", "Black, oval"],
   ["tortoiseshell sunglasses with brown lenses", "Tortoiseshell"],
 ];
-
-/** A row of choices. Single choice, or several with `multi`. */
-function Choices({ label, hint, options, value, onChange, multi }: { label: string; hint?: string; options: [string, string][]; value: string | string[]; onChange: (v: string | string[]) => void; multi?: boolean }) {
-  const chosen = (v: string) => (multi ? (value as string[]).includes(v) : value === v);
-  return (
-    <div role="group" aria-label={label}>
-      <div className="ow-eyebrow mb-2">{label}</div>
-      {hint ? <p className="text-sm text-black/60 -mt-1 mb-2">{hint}</p> : null}
-      <div className="flex flex-wrap gap-2">
-        {options.map(([v, l]) => (
-          <ToggleButton key={l} isSelected={chosen(v)} className="rounded-none"
-            onChange={() => onChange(multi ? (chosen(v) ? (value as string[]).filter((x) => x !== v) : [...(value as string[]), v]) : v)}>
-            {l}
-          </ToggleButton>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 const STEPS = ["Packshots", "Model & shots", "Styling", "Review"] as const;
 

@@ -306,7 +306,9 @@ export function getImage(imageId: string): ImageRow | null {
 
 export function spentThisMonthUsd(): number {
   const rows = getDb().prepare("SELECT job FROM images WHERE updated_at >= date('now', 'start of month')").all() as any[];
-  return rows.reduce((s, r) => s + (JSON.parse(r.job).costUsd ?? 0), 0);
+  // Model builder images (portraits and reference sets) count against the same monthly budget.
+  const builder: any = getDb().prepare("SELECT COALESCE(SUM(cost_usd), 0) AS usd FROM model_draft_images WHERE updated_at >= date('now', 'start of month')").get();
+  return rows.reduce((s, r) => s + (JSON.parse(r.job).costUsd ?? 0), 0) + (builder?.usd ?? 0);
 }
 
 export function budgetRemaining(): number {

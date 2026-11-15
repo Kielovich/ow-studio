@@ -129,13 +129,14 @@ async function main() {
     // generated images); the three planned tools are marked as coming soon. No review counts.
     const tools = page.getByTestId("tool");
     await tools.first().locator("img").first().waitFor();
-    check(await tools.count() === 4
+    check(await tools.count() === 5
       && await tools.first().getAttribute("href") === "/productions/new"
+      && await tools.nth(1).getAttribute("href") === "/models/new"
       && await tools.first().locator("img").count() === 5
       && (await tools.filter({ hasText: "Coming soon" }).count()) === 3
       && await page.locator("main a[href^='/productions/']:not([href='/productions/new'])").count() === 0
       && !(await page.getByText(/to review/i).count()),
-      "signed in; the overview offers the tools: on-model images to start, three coming soon, no review counts");
+      "signed in; the overview offers the tools: on-model images and the model builder, three coming soon, no review counts");
     await shot(page, "desk-overview-empty");
   });
 
@@ -290,6 +291,61 @@ async function main() {
     check(true, "a missing production shows a clear not-found state");
   });
 
+  await stage("Model builder (simulated images)", async () => {
+    await page.goto(`${BASE}/models`);
+    await page.getByRole("link", { name: "Build a model" }).click();
+    await page.waitForURL(/\/models\/new$/);
+    await page.getByRole("heading", { name: "Her look" }).waitFor();
+    check(await page.waitForFunction(() => document.title === "Model builder · OW Studio", null, { timeout: 10000 }).then(() => true, () => false), "the Models page leads to the model builder");
+    await page.getByTestId("tip-model-builder").getByRole("button", { name: "Got it" }).click().catch(() => {});
+    // Choices only. Short hair is worn as cut: the bun is not offered.
+    const group = (name) => page.getByRole("group", { name, exact: true });
+    await group("Heritage").getByRole("button", { name: "East Asian", exact: true }).click();
+    await group("Hair length").getByRole("button", { name: "Short", exact: true }).click();
+    check(await group("Hairstyle").getByRole("button", { name: "High bun", exact: true }).isDisabled(), "short hair cannot be worn in a bun");
+    await group("Hair length").getByRole("button", { name: "Long", exact: true }).click();
+    await group("Hairstyle").getByRole("button", { name: "Low bun", exact: true }).click();
+    await group("Age").getByRole("button", { name: "22", exact: true }).click();
+    check(await page.locator("input[type=file]").count() === 0, "the builder has no image upload: words only");
+    // The toggles animate their colours for 0.1 s after a click; measured mid-animation the contrast reads 1:1.
+    await page.mouse.move(0, 0);
+    await page.waitForTimeout(800);
+    await hig(page, "model builder: look", false);
+    const bar = page.locator("div.fixed");
+    await bar.getByRole("button", { name: /^Make 3 portraits · \$0\.48$/ }).click();
+    await page.waitForURL(/\/models\/new\?draft=mdl_/);
+    await page.getByRole("heading", { name: "Portraits" }).waitFor();
+    const portraits = page.getByRole("button", { name: /^Portrait \d$/ });
+    await page.waitForFunction(() => document.querySelectorAll("main img[alt^='Portrait ']").length === 3, null, { timeout: 120000 });
+    check(await portraits.count() === 3, "three portrait candidates are made");
+    await hig(page, "model builder: portraits", false);
+    await portraits.nth(1).click();
+    check(await portraits.nth(1).getAttribute("aria-pressed") === "true", "a portrait can be chosen");
+    await bar.getByRole("button", { name: "Use this portrait" }).click();
+    await page.getByRole("heading", { name: "Reference set" }).waitFor();
+    await bar.getByRole("button", { name: /^Make the reference set · \$0\.80$/ }).click();
+    await bar.getByRole("button", { name: "Next: Add to models" }).waitFor({ timeout: 180000 });
+    check(await page.locator("main img[alt='Character sheet']").count() === 1 && await page.locator("main img[alt='Body, back']").count() === 1, "the reference set is made from her portrait");
+    await hig(page, "model builder: references", false);
+    await shot(page, "desk-model-builder-references");
+    await bar.getByRole("button", { name: "Next: Add to models" }).click();
+    const add = bar.getByRole("button", { name: "Add to models" });
+    check(await add.isDisabled(), "she cannot be added without a name");
+    await page.getByLabel("Name").fill("Hana");
+    await add.click();
+    await page.getByText("She is in the models.").waitFor();
+    await bar.getByRole("link", { name: "Open her page" }).click();
+    await page.getByRole("heading", { name: "Hana" }).waitFor();
+    // The simulated images repeat (identical files share one hash), so the full set is checked on the model itself.
+    const hana = ((await (await page.request.get(`${BASE}/api/models`)).json()).models).find((m) => m.data.displayName === "Hana" && m.status === "active");
+    check(!!hana && hana.version === 1 && hana.data.refs.identityAngles.length === 2
+      && ["primaryPortrait", "fullBodyFront", "fullBodyBack", "characterSheet", "facialDetailSheet"].every((k) => typeof hana.data.refs[k] === "string")
+      && await page.getByRole("button", { name: /Identity portrait/ }).count() === 1, "she is in the models with a complete reference set");
+    await page.goto(`${BASE}/models`);
+    await page.getByTestId("model-card").first().waitFor();
+    check(await page.getByTestId("model-card").count() === 7 && await page.getByTestId("model-card").filter({ hasText: "Hana" }).count() === 1, "the models page now has 7 models, Hana among them");
+  });
+
   await stage("A look uploaded by hand", async () => {
     // Only the garment packshots are required: shoes, accessories and a fit reference are optional.
     await page.goto(`${BASE}/productions/new`);
@@ -336,7 +392,7 @@ async function main() {
     const m = await browser.newContext({ ...devices["iPhone 13"], storageState: await ctx.storageState() });
     const mp = await m.newPage();
     watch(mp, "mobile");
-    for (const path of ["/", "/productions", prodUrl.replace(BASE, ""), "/productions/new", "/models", "/models/M01", "/coming-soon", "/settings"]) {
+    for (const path of ["/", "/productions", prodUrl.replace(BASE, ""), "/productions/new", "/models", "/models/M01", "/models/new", "/coming-soon", "/settings"]) {
       await mp.goto(`${BASE}${path}`);
       await mp.waitForTimeout(2500);
       check(await noOverflow(mp), `${path} has no horizontal scroll at 390 px`);

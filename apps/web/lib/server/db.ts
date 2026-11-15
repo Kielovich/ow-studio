@@ -88,6 +88,38 @@ function migrate(d: DatabaseSync) {
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
   `);
+  d.exec(`
+    -- Model builder: a new model made from choices (BuilderSpec), its portrait rounds and its reference set.
+    CREATE TABLE IF NOT EXISTS model_drafts (
+      id TEXT PRIMARY KEY,
+      spec TEXT NOT NULL,                         -- BuilderSpec JSON
+      status TEXT NOT NULL DEFAULT 'open',        -- open | registered | discarded
+      portrait TEXT,                              -- the chosen identity portrait (asset hash)
+      model_id TEXT,                              -- set when added to the models
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    -- One generated image of a draft. Paid images are never retried automatically; a new attempt is a new row.
+    CREATE TABLE IF NOT EXISTS model_draft_images (
+      id TEXT PRIMARY KEY,
+      draft_id TEXT NOT NULL REFERENCES model_drafts(id),
+      kind TEXT NOT NULL,                         -- portrait | threeQuarter | profile | bodyFront | bodyBack | characterSheet
+      round INTEGER NOT NULL,                     -- portrait round, or the attempt of a reference
+      prompt TEXT NOT NULL,
+      refs TEXT NOT NULL,                         -- JSON array of input asset hashes
+      aspect TEXT NOT NULL,
+      state TEXT NOT NULL DEFAULT 'queued',       -- queued | running | succeeded | failed
+      asset TEXT,
+      cost_usd REAL NOT NULL DEFAULT 0,
+      error TEXT,
+      claimed_by TEXT,
+      claimed_until TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS model_draft_images_by_state ON model_draft_images(state);
+    CREATE INDEX IF NOT EXISTS model_draft_images_by_draft ON model_draft_images(draft_id);
+  `);
   // One-time backfill when the table is created: images finished before attempts were recorded keep their files as one attempt.
   if (!hadAttempts) d.exec(`INSERT OR IGNORE INTO attempts (image_id, attempt, outcome, raw_asset, final_asset, cost_usd, created_at)
     SELECT id, json_extract(job, '$.attempt'), CASE WHEN state = 'needs_review' THEN 'needs_review' ELSE 'succeeded' END,
