@@ -33,6 +33,60 @@ type Session = {
 };
 type DraftSummary = { id: string; name: string | null; files: number; productionId: string | null; updatedAt: string };
 
+/** Styling as choices: [text sent to the generator, label shown]. The first option is the default. */
+const TOPS: [string, string][] = [
+  ["a plain fitted black long-sleeve crew-neck top that ends at the waist", "Black long-sleeve top"],
+  ["a plain fitted black sleeveless crew-neck tank top that ends at the waist", "Black tank top"],
+  ["a plain fitted white long-sleeve crew-neck top that ends at the waist", "White long-sleeve top"],
+  ["a plain fitted white sleeveless crew-neck tank top that ends at the waist", "White tank top"],
+];
+const BOTTOMS: [string, string][] = [
+  ["straight black tailored trousers", "Black trousers"],
+  ["straight black jeans", "Black jeans"],
+  ["straight mid-blue jeans", "Blue jeans"],
+  ["straight white tailored trousers", "White trousers"],
+  ["a plain black mini skirt", "Black mini skirt"],
+];
+const SHOES: [string, string][] = [
+  ["black pointed-toe stiletto pumps", "Black pumps"],
+  ["black leather ankle boots with a slim heel", "Ankle boots"],
+  ["black leather knee-high boots with a slim heel", "Knee-high boots"],
+  ["black leather ballet flats", "Ballet flats"],
+  ["clean white leather sneakers", "White sneakers"],
+];
+const ACCESSORIES: [string, string][] = [
+  ["small black evening bag carried by its handle", "Small black bag"],
+  ["black leather shoulder bag", "Shoulder bag"],
+  ["small gold hoop earrings", "Gold earrings"],
+  ["small silver hoop earrings", "Silver earrings"],
+  ["a thin gold necklace", "Gold necklace"],
+];
+const SUNGLASSES: [string, string][] = [
+  ["", "None"],
+  ["modern black sunglasses with dark lenses and a slim rectangular frame", "Black, slim"],
+  ["black oval sunglasses with dark lenses", "Black, oval"],
+  ["tortoiseshell sunglasses with brown lenses", "Tortoiseshell"],
+];
+
+/** A row of choices. Single choice, or several with `multi`. */
+function Choices({ label, hint, options, value, onChange, multi }: { label: string; hint?: string; options: [string, string][]; value: string | string[]; onChange: (v: string | string[]) => void; multi?: boolean }) {
+  const chosen = (v: string) => (multi ? (value as string[]).includes(v) : value === v);
+  return (
+    <div role="group" aria-label={label}>
+      <div className="ow-eyebrow mb-2">{label}</div>
+      {hint ? <p className="text-sm text-black/60 -mt-1 mb-2">{hint}</p> : null}
+      <div className="flex flex-wrap gap-2">
+        {options.map(([v, l]) => (
+          <ToggleButton key={l} isSelected={chosen(v)} className="rounded-none"
+            onChange={() => onChange(multi ? (chosen(v) ? (value as string[]).filter((x) => x !== v) : [...(value as string[]), v]) : v)}>
+            {l}
+          </ToggleButton>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const DEFAULT_STYLING: Styling = {
   // Empty = the model's own signature hair and makeup from her identity portrait.
   hairState: "",
@@ -329,9 +383,8 @@ export function NewProduction() {
       name: name || (setNames.length ? setNames.join(", ") : products.map((p) => p.sku).join(", ")).slice(0, 80),
       products, modelId: modelId!, modelVersion: Number(version), presets, sessionAnchor, looks,
       styling: {
-        ...(styling.hairState.trim() ? { hairState: styling.hairState } : {}),
-        ...(styling.makeup.trim() ? { makeup: styling.makeup } : {}),
-        top: styling.top, innerTop: styling.innerTop,
+        // Hair and makeup are always the model's own (her identity portrait); the chosen top also goes under outerwear.
+        top: styling.top, innerTop: styling.top,
         bottoms: styling.bottoms, footwear: styling.footwear,
         accessories: styling.accessories.split(",").map((s) => s.trim()).filter(Boolean),
         ...(styling.sunglasses.trim() ? { sunglasses: styling.sunglasses } : {}),
@@ -695,26 +748,18 @@ export function NewProduction() {
         </div>
       </Section>
 
-      <Section n={4} title="Styling" hint="Ready as it is. Change it only for this production.">
-        <div className="max-w-md mb-4">
-          <Field label="Production name" value={name} onChange={setName} placeholder="Defaults to the set names" />
+      <Section n={4} title="Styling" hint="What she wears with your products. Hair and makeup are always her own.">
+        <div className="flex flex-col gap-7 max-w-3xl">
+          <Choices label="Top" hint="With trousers and skirts, and under jackets." options={TOPS} value={styling.top} onChange={(v) => setStyling((s) => ({ ...s, top: v as string }))} />
+          <Choices label="Bottoms" hint="With tops and jackets." options={BOTTOMS} value={styling.bottoms} onChange={(v) => setStyling((s) => ({ ...s, bottoms: v as string }))} />
+          <Choices label="Shoes" options={SHOES} value={styling.footwear} onChange={(v) => setStyling((s) => ({ ...s, footwear: v as string }))} />
+          <Choices label="Accessories" hint="Only in the styled shot." multi options={ACCESSORIES}
+            value={styling.accessories.split(",").map((x) => x.trim()).filter(Boolean)} onChange={(v) => setStyling((s) => ({ ...s, accessories: (v as string[]).join(", ") }))} />
+          <Choices label="Sunglasses" hint="Only in the styled shot." options={SUNGLASSES} value={styling.sunglasses} onChange={(v) => setStyling((s) => ({ ...s, sunglasses: v as string }))} />
+          <div className="max-w-md">
+            <Field label="Production name (optional)" value={name} onChange={setName} placeholder="Defaults to the set names" />
+          </div>
         </div>
-        <details>
-          <summary className="ow-nav cursor-pointer inline-flex items-center min-h-11 [@media(pointer:fine)]:min-h-7 text-black/70">Hair, makeup and what she wears with it</summary>
-        <div className="grid md:grid-cols-2 gap-5 mt-4">
-          <Field label="Hair (empty = model's own)" value={styling.hairState} onChange={(v) => setStyling((s) => ({ ...s, hairState: v }))} placeholder="Her signature hairstyle from the portrait" />
-          <TextField value={styling.makeup} onChange={(v) => setStyling((s) => ({ ...s, makeup: v }))} className="md:col-span-2">
-            <Label className="ow-eyebrow">Makeup (empty = model&apos;s own)</Label>
-            <TextArea rows={2} placeholder="Her own makeup from the portrait" />
-          </TextField>
-          <Field label="Top (with bottoms)" value={styling.top} onChange={(v) => setStyling((s) => ({ ...s, top: v }))} />
-          <Field label="Under outerwear" value={styling.innerTop} onChange={(v) => setStyling((s) => ({ ...s, innerTop: v }))} />
-          <Field label="Bottoms (with tops)" value={styling.bottoms} onChange={(v) => setStyling((s) => ({ ...s, bottoms: v }))} />
-          <Field label="Footwear" value={styling.footwear} onChange={(v) => setStyling((s) => ({ ...s, footwear: v }))} />
-          <Field label="Accessories, comma separated" value={styling.accessories} onChange={(v) => setStyling((s) => ({ ...s, accessories: v }))} />
-          <Field label="Sunglasses (empty = none)" value={styling.sunglasses} onChange={(v) => setStyling((s) => ({ ...s, sunglasses: v }))} placeholder="No sunglasses in the styled shot" />
-        </div>
-        </details>
       </Section>
 
       <Section n={5} title="Review" hint="Checked before anything is paid for. Fix anything marked Blocks before you run.">
