@@ -3,6 +3,7 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 import { PageTitle } from "@/components/page-title";
 import { ResetTipsButton } from "@/components/help";
+import { HomeImagePicker } from "@/components/home-image-picker";
 import { DEFAULT_PROFILE, MONTHLY_BUDGET_USD, spentThisMonthUsd } from "@/lib/server/repo";
 
 export const metadata: Metadata = { title: "Settings" };
@@ -36,7 +37,12 @@ export default function SettingsPage() {
       <Suspense fallback={<div className="h-80" />}>
         <SettingsRows />
       </Suspense>
-      <div className="mt-10 flex flex-col sm:flex-row sm:items-center gap-3 max-w-3xl">
+      <section className="mt-12 max-w-3xl" aria-labelledby="home-image">
+        <h2 id="home-image" className="ow-display text-2xl mb-1">Overview picture</h2>
+        <p className="text-sm text-black/60 mb-5">The picture on the Ecom panel of the overview. Choose one of your approved images, ideally a full-body shot in a garment.</p>
+        <HomeImagePicker />
+      </section>
+      <div className="mt-12 flex flex-col sm:flex-row sm:items-center gap-3 max-w-3xl">
         <p className="text-sm text-black/60 flex-1">Closed a tip box by mistake? Bring all the tips back.</p>
         <ResetTipsButton />
       </div>

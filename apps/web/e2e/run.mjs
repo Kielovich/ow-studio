@@ -471,6 +471,26 @@ async function main() {
     await hig(page, "/404", false);
   });
 
+  await stage("Overview picture", async () => {
+    // An approved image (from the review stage) can be the Ecom picture; the overview then shows it.
+    await page.goto(`${BASE}/settings`);
+    const choices = page.locator("section[aria-labelledby=home-image] button[aria-pressed]");
+    await choices.first().waitFor();
+    await choices.first().click();
+    await page.getByText("✓ Shown").waitFor();
+    const src = await choices.first().locator("img").getAttribute("src");
+    const hash = src.split("/api/assets/")[1].split("?")[0];
+    await hig(page, "/settings with the overview picture", false);
+    await page.goto(`${BASE}/`);
+    const ecomImg = page.getByTestId("tool").first().locator("img");
+    await ecomImg.waitFor();
+    check((await ecomImg.getAttribute("src")).includes(hash), "an approved image chosen in Settings becomes the Ecom picture on the overview");
+    await page.goto(`${BASE}/settings`);
+    await page.getByRole("button", { name: "Use a model portrait" }).click();
+    await page.getByText("✓ Shown").waitFor({ state: "hidden" });
+    check(true, "Settings can switch back to a model portrait");
+  });
+
   await stage("Logout", async () => {
     await page.goto(`${BASE}/`);
     await page.getByRole("button", { name: "Log out" }).click();

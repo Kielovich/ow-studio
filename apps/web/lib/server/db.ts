@@ -89,6 +89,12 @@ function migrate(d: DatabaseSync) {
     );
   `);
   d.exec(`
+    -- Studio settings chosen in the app (e.g. the picture of the Ecom panel on the overview).
+    CREATE TABLE IF NOT EXISTS settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL,
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
     -- Model builder: a new model made from choices (BuilderSpec), its portrait rounds and its reference set.
     CREATE TABLE IF NOT EXISTS model_drafts (
       id TEXT PRIMARY KEY,

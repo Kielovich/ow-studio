@@ -325,6 +325,33 @@ export function deleteProduction(id: string): { ok: true } | { error: string } {
   return { ok: true };
 }
 
+// ---------- Studio settings ----------
+
+/** Approved images that may be shown as the Ecom picture on the overview: newest first. */
+export function homeImageCandidates(limit = 24): { hash: string; production: string; preset: string }[] {
+  return getDb().prepare(`
+    SELECT a.final_asset AS hash, p.name AS production, i.preset AS preset
+    FROM attempts a JOIN images i ON i.id = a.image_id JOIN productions p ON p.id = i.production_id
+    WHERE a.review = 'approved' AND a.final_asset IS NOT NULL AND p.deleted_at IS NULL
+    ORDER BY a.created_at DESC LIMIT ?`).all(limit) as any[];
+}
+
+/** The Ecom picture, while it is still an approved image of a production that exists; otherwise none. */
+export function homeImage(): string | null {
+  const r: any = getDb().prepare("SELECT value FROM settings WHERE key = 'home.ecomImage'").get();
+  if (!r) return null;
+  return homeImageCandidates(1000).some((c) => c.hash === r.value) ? r.value : null;
+}
+
+/** Sets (or clears, with null) the Ecom picture. Only an approved image can be chosen. */
+export function setHomeImage(hash: string | null): { ok: true } | { error: string } {
+  const db = getDb();
+  if (hash === null) { db.prepare("DELETE FROM settings WHERE key = 'home.ecomImage'").run(); return { ok: true }; }
+  if (!homeImageCandidates(1000).some((c) => c.hash === hash)) return { error: "Only an approved image can be shown on the overview." };
+  db.prepare("INSERT INTO settings (key, value) VALUES ('home.ecomImage', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = datetime('now')").run(hash);
+  return { ok: true };
+}
+
 export function overview() {
   const db = getDb();
   const counts: any = db.prepare(`SELECT
@@ -341,6 +368,7 @@ export function overview() {
     recent: recent.slice(0, 6),
     models: listModels().filter((m) => m.status === "active").length,
     faces: faces(),
+    homeImage: homeImage(),
   };
 }
 

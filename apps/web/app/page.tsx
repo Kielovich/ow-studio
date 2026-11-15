@@ -50,9 +50,10 @@ function Panel({ href, index, word, line, children }: { href: string; index: str
 
 export default function StudioPage() {
   const [faces, setFaces] = useState<Face[] | null>(null);
+  const [ecomImage, setEcomImage] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
   useEffect(() => {
-    getJson<{ faces: Face[] }>("/api/overview").then((d) => { if (!isNotFound(d)) setFaces(d.faces); }).catch(() => setFailed(true));
+    getJson<{ faces: Face[]; homeImage: string | null }>("/api/overview").then((d) => { if (!isNotFound(d)) { setFaces(d.faces); setEcomImage(d.homeImage); } }).catch(() => setFailed(true));
   }, []);
   // Different models from day to day, so every model gets her turn.
   const start = faces?.length ? new Date().getDate() % faces.length : 0;
@@ -72,7 +73,10 @@ export default function StudioPage() {
 
         <div className="grid lg:grid-cols-2 gap-2">
           <Panel href="/productions/new" index="01" word="Ecom" line="Your packshots on our models, ready for the webshop.">
-            {faces ? <Portrait face={face(0)} big /> : loading}
+            {!faces ? loading : ecomImage
+              ? <img src={assetUrl(ecomImage, 1200)} alt="" fetchPriority="high"
+                  className="absolute inset-0 w-full h-full object-cover object-[50%_20%] transition-transform duration-[1200ms] ease-out group-hover:scale-[1.04]" />
+              : <Portrait face={face(0)} big />}
           </Panel>
           <Panel href="/models/new" index="02" word="Casting" line="Build a new model of your own, from a few choices.">
             {faces
@@ -81,9 +85,9 @@ export default function StudioPage() {
           </Panel>
         </div>
 
-        {/* What is on the way: one graphic band. */}
-        <div className="mt-2 bg-ink text-white px-5 md:px-8 py-7 md:py-9 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-          <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 ow-display uppercase leading-none tracking-[-0.01em] text-[clamp(2rem,4.2vw,4rem)]">
+        {/* What is on the way: one quiet band, smaller than the tools that work today. */}
+        <div className="mt-2 bg-ink text-white px-5 md:px-8 py-3 md:py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-x-6 gap-y-1">
+          <div className="flex flex-wrap items-center gap-x-4 ow-display uppercase leading-none tracking-[0.02em] text-lg md:text-xl">
             {COMING_SOON.map((f, i) => (
               <span key={f.id} className="inline-flex items-baseline gap-x-4">
                 {i > 0 && <span aria-hidden className="hidden md:inline text-white/30">/</span>}
