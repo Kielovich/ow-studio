@@ -105,6 +105,48 @@ function Field({ label, value, onChange, placeholder }: { label: string; value: 
   );
 }
 
+/** A packshot shown large: the whole garment on the studio canvas, a clear title and a meta line under it. */
+function PackshotCard({ hash, title, meta, warn, children }: { hash?: string; title: string; meta?: React.ReactNode; warn?: boolean; children?: React.ReactNode }) {
+  return (
+    <div className="min-w-0">
+      <div className={`relative aspect-[3/4] bg-canvas overflow-hidden ${warn ? "outline outline-2 outline-danger" : ""}`}>
+        {hash ? <img src={assetUrl(hash, 800)} alt={title} loading="lazy" className="absolute inset-0 w-full h-full object-contain p-3" /> : null}
+      </div>
+      <div className="mt-3 text-base font-medium leading-tight">{title}</div>
+      {meta ? <div className="text-sm text-black/60 mt-1 min-w-0">{meta}</div> : null}
+      {children ? <div className="mt-1 flex flex-wrap gap-x-4 items-center">{children}</div> : null}
+    </div>
+  );
+}
+
+/** An empty packshot place: says what it is for. */
+function EmptySlot({ title, hint }: { title: string; hint: string }) {
+  return (
+    <div className="min-w-0">
+      <div className="aspect-[3/4] border border-dashed border-[#bbbbbb] bg-white grid place-items-center px-3 text-center">
+        <span className="text-sm text-black/60">{hint}</span>
+      </div>
+      <div className="mt-3 text-base font-medium leading-tight text-black/60">{title}</div>
+    </div>
+  );
+}
+
+/** Text-style action under a card (link or button), with a full touch target. */
+function TextAction({ href, onPress, children }: { href?: string; onPress?: () => void; children: React.ReactNode }) {
+  const cls = "text-sm underline underline-offset-4 decoration-1 inline-flex items-center min-h-11 [@media(pointer:fine)]:min-h-7";
+  return href
+    ? <a href={href} target="_blank" rel="noreferrer" className={cls}>{children}</a>
+    : <button type="button" onClick={onPress} className={cls}>{children}</button>;
+}
+
+const SLOT_HINT: Record<Role, string> = {
+  front: "Front packshot needed",
+  back: "Back packshot, for the back shot",
+  detail: "Optional: the close-up uses the front",
+  side: "Optional",
+};
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
 function SourceTag({ source }: { source: Source | null }) {
   if (!source) return null;
   return <span className={`text-[0.75rem] uppercase tracking-wide ${source === "manual" ? "text-ink" : "text-black/60"}`}>{SOURCE_LABEL[source]}</span>;
@@ -243,7 +285,10 @@ export function NewProduction() {
       for (const s of skus) {
         if (next[s]) continue;
         const hint = files.find((f) => f.sku === s && f.category)?.category;
-        next[s] = { name: s, category: hint ?? guessCategory(s), color: "black", description: "", flags: [] };
+        // An SKU made from the product name ("ABRIL-SUIT-PANTS") reads better as a name: "Abril Suit Pants".
+        const fromName = files.some((f) => f.sku === s && f.skuSource === "name");
+        const name = fromName ? s.split("-").map((w) => w.charAt(0) + w.slice(1).toLowerCase()).join(" ") : s;
+        next[s] = { name, category: hint ?? guessCategory(s), color: "black", description: "", flags: [] };
         changed = true;
       }
       return changed ? next : prev;
@@ -329,18 +374,22 @@ export function NewProduction() {
   const overBudget = preview ? preview.estCostUsd > preview.budgetRemainingUsd : false;
 
   const decisionRow = (f: ImportFile, note: string) => (
-    <div key={f.key} className="grid grid-cols-[64px_1fr] md:grid-cols-[64px_1fr_auto] gap-4 items-center">
-      <Tile src={assetUrl(f.hash, 240)} alt={f.filename} />
-      <div className="text-sm min-w-0">
-        <div className="truncate">{f.path}</div>
-        <div className="text-black/60">{note}</div>
-      </div>
-      <div className="flex flex-wrap gap-2 items-center col-span-2 md:col-span-1">
+    <div key={f.key} className="grid grid-cols-[112px_1fr] sm:grid-cols-[160px_1fr] gap-4 sm:gap-6 items-start">
+      <a href={assetUrl(f.hash)} target="_blank" rel="noreferrer" aria-label={`Open ${f.filename} full size`} className="block relative aspect-[3/4] bg-canvas overflow-hidden">
+        <img src={assetUrl(f.hash, 480)} alt={f.filename} loading="lazy" className="absolute inset-0 w-full h-full object-contain p-2" />
+      </a>
+      <div className="min-w-0 flex flex-col gap-3">
+        <div className="text-sm min-w-0">
+          <div className="font-medium text-base truncate">{f.filename}</div>
+          <div className="text-black/60">{note}</div>
+        </div>
+      <div className="flex flex-wrap gap-2 items-center">
         <Input aria-label="SKU" placeholder="SKU" className="w-36" value={f.sku ?? ""} onChange={(e) => update(f.key, { sku: e.target.value.trim().toUpperCase() || null, skuSource: "manual" })} />
         {ROLES.map((r) => (
           <Button key={r} size="sm" variant={f.role === r ? "primary" : "secondary"} onPress={() => update(f.key, { role: r, roleSource: "manual" })}>{r}</Button>
         ))}
         <Button size="sm" variant="ghost" onPress={() => update(f.key, { ignored: true })}>Ignore</Button>
+      </div>
       </div>
     </div>
   );
@@ -358,10 +407,9 @@ export function NewProduction() {
             {i.keys.map((k) => {
               const f = byKey(k);
               return f ? (
-                <div key={k} className="w-32">
-                  <Tile src={assetUrl(f.hash, 240)} alt={f.filename} />
-                  <div className="text-[0.75rem] truncate mt-1" title={f.path}>{f.filename}</div>
-                  <Button size="sm" variant="secondary" className="mt-1 w-full" onPress={() => keepOnly(k, i.keys)}>Use this</Button>
+                <div key={k} className="w-36 sm:w-44">
+                  <PackshotCard hash={f.hash} title={f.filename} />
+                  <Button size="sm" variant="secondary" className="mt-2 w-full" onPress={() => keepOnly(k, i.keys)}>Use this</Button>
                 </div>
               ) : null;
             })}
@@ -466,35 +514,29 @@ export function NewProduction() {
                     const own = files.filter((f) => usable(f) && f.sku === sku);
                     const p = info[sku];
                     return (
-                      <div key={sku} className="grid lg:grid-cols-[1fr_1fr] gap-8">
-                        <div>
-                          <div className="flex items-baseline gap-3 mb-4">
-                            <span className="ow-nav">{sku}</span>
-                            <SourceTag source={own[0]?.skuSource ?? null} />
-                          </div>
-                          <div className="grid grid-cols-4 gap-2">
-                            {ROLES.map((r: Role) => {
-                              const here = own.filter((x) => x.role === r);
-                              const f = here[0];
-                              return (
-                                <div key={r}>
-                                  <Tile src={assetUrl(f?.hash, 240)} alt={`${sku} ${r}`} className={here.length > 1 ? "outline outline-2 outline-danger" : f ? "" : "border border-dashed border-[#cccccc] bg-white"}>
-                                    {f ? (
-                                      <button aria-label={`Remove ${r}`} onClick={() => update(f.key, { ignored: true })} className="absolute top-1 right-1 bg-white/90 text-xs px-1.5">✕</button>
-                                    ) : (
-                                      <span className="absolute inset-0 grid place-items-center ow-eyebrow">empty</span>
-                                    )}
-                                    {here.length > 1 && <span className="absolute bottom-1 left-1 bg-white/90 text-[0.75rem] px-1">{here.length} files</span>}
-                                  </Tile>
-                                  <div className="ow-eyebrow mt-1.5">{r}</div>
-                                  {f && <SourceTag source={f.roleSource} />}
-                                </div>
-                              );
-                            })}
-                          </div>
+                      <div key={sku} className="flex flex-col gap-6" data-testid="import-product">
+                        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                          <span className="ow-display text-2xl">{p?.name || sku}</span>
+                          <span className="ow-nav text-black/60">{sku}</span>
+                          <SourceTag source={own[0]?.skuSource ?? null} />
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-8">
+                          {ROLES.map((r: Role) => {
+                            const here = own.filter((x) => x.role === r);
+                            const f = here[0];
+                            // Optional empty places (detail, side) only take room from tablet width up.
+                            if (!f) return <div key={r} className={r === "detail" || r === "side" ? "hidden sm:block" : ""}><EmptySlot title={cap(r)} hint={SLOT_HINT[r]} /></div>;
+                            return (
+                              <PackshotCard key={r} hash={f.hash} title={cap(r)} warn={here.length > 1}
+                                meta={here.length > 1 ? <span className="text-danger">{here.length} files: choose one above</span> : <><SourceTag source={f.roleSource} /><span className="block truncate" title={f.path}>{f.filename}</span></>}>
+                                <TextAction href={assetUrl(f.hash)}>Full size ↗</TextAction>
+                                <TextAction onPress={() => update(f.key, { ignored: true })}>Remove</TextAction>
+                              </PackshotCard>
+                            );
+                          })}
                         </div>
                         {p && (
-                          <div className="grid grid-cols-2 gap-4 content-start">
+                          <div className="grid grid-cols-2 gap-4 content-start max-w-3xl">
                             <Field label="Name" value={p.name} onChange={(v) => setProduct(sku, { name: v })} />
                             <Select value={p.category} onChange={(v) => v && setProduct(sku, { category: v as Category })} className="w-full">
                               <Label className="ow-eyebrow">Category</Label>
@@ -542,16 +584,15 @@ export function NewProduction() {
                     <div className="ow-eyebrow mb-3 flex items-center gap-2">Rest of the look
                       <InfoTip title="Rest of the look">These images style the look: shoes appear where the feet are in the picture, accessories only in the styled shot, and the fit reference shows how the look should sit (its top, with the head, is cut away). The products of this look are also worn together.</InfoTip>
                     </div>
-                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-8">
                       {lookFilesOf(set).map((f) => (
-                        <div key={f.key}>
-                          <Tile src={assetUrl(f.hash, 240)} alt={f.filename} />
+                        <PackshotCard key={f.key} hash={f.hash} title={KIND_LABELS[f.kind]} meta={<span className="block truncate" title={f.path}>{f.filename}</span>}>
                           <select aria-label={`Type of ${f.filename}`} value={f.kind} onChange={(e) => update(f.key, { kind: e.target.value as FileKind })}
-                            className="mt-2 w-full border border-line bg-white h-9 px-1 text-xs">
+                            className="mt-1 border border-line bg-white h-9 px-2 text-sm">
                             {(Object.keys(KIND_LABELS) as FileKind[]).map((k) => <option key={k} value={k}>{KIND_LABELS[k]}</option>)}
                           </select>
-                          <button type="button" className="text-[0.75rem] text-black/70 underline min-h-11 [@media(pointer:fine)]:min-h-6" onClick={() => remove(f.key)}>Remove</button>
-                        </div>
+                          <TextAction onPress={() => remove(f.key)}>Remove</TextAction>
+                        </PackshotCard>
                       ))}
                     </div>
                   </div>
