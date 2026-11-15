@@ -6,6 +6,7 @@
  *
  *   npx tsx scripts/model-from-image.ts <key> init <photo.png>          free: stores the photograph and a face crop
  *   npx tsx scripts/model-from-image.ts <key> candidates [--n 2] [--confirm]   words-only keys (like-*): portrait candidates
+ *   npx tsx scripts/model-from-image.ts <key> crop <n> <left> <top> <size>   free: square crop of candidate n (candidate_<n>c)
  *   npx tsx scripts/model-from-image.ts <key> choose <n>                 words-only keys: candidate n becomes her portrait
  *   npx tsx scripts/model-from-image.ts <key> portrait [--confirm] [--note "..."]   1 image
  *   npx tsx scripts/model-from-image.ts <key> refs [--confirm] [--redo bodyBack]   5 images (the builder's reference set)
@@ -134,6 +135,16 @@ async function main() {
       save();
       console.log(k, "->", state[k]);
     }
+  } else if (stage === "crop") {
+    // Free: a square crop of a candidate that shows something at an edge (a window, a softbox), resized back to 2048.
+    const [n, left, top, size] = process.argv.slice(4, 8).map(Number) as [number, number, number, number];
+    const src = state[`candidate_${n}`];
+    if (!src || !size) throw new Error("crop <n> <left> <top> <size>");
+    const { bytes } = await assets.resolve(src);
+    const out = await sharp(bytes).extract({ left, top, width: size, height: size }).resize(2048, 2048, { kernel: "lanczos3" }).jpeg({ quality: 94 }).toBuffer();
+    state[`candidate_${n}c`] = await assets.putBytes(new Uint8Array(out));
+    save();
+    console.log(`candidate_${n}c ->`, state[`candidate_${n}c`]);
   } else if (stage === "choose") {
     const k = `candidate_${arg}`;
     if (!state[k]) throw new Error(`no ${k}`);

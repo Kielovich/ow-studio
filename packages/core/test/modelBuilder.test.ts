@@ -68,6 +68,10 @@ describe("model builder prompts", () => {
     expect(p).toContain("a real photograph straight out of the camera, not retouched");
     expect(p).toContain("must not look like CGI");
     expect(p).not.toMatch(/flawless|luminous|glow(?!ing\b)|satin|gloss(?!y\b)|expensive|perfect|8k|hyper|ultra|smooth youthful/i);
+    // First words-only round: stubble-like fuzz on a jaw, a window and equipment edges in frame, a caption in the picture.
+    expect(p).toContain("never on the jaw or chin, never like stubble");
+    expect(p).toContain("no windows, walls or backdrop edges");
+    expect(p).toContain("No text, captions, logos or watermarks anywhere in the picture");
     // No studio equipment in the picture (the first paid test showed a softbox in frame).
     expect(p).toContain("no lights, softboxes, stands or other studio equipment visible");
   });
