@@ -133,7 +133,8 @@ const REAL = {
   hair: "real hair, not a solid helmet: the same cut, with a few fine flyaways crossing the outline of the hair against the background, a few short baby hairs at the temples and along the parting, and individual strands separating at the ends",
   makeup: "polished clean-glam makeup as on a fashion e-commerce set, finished as on a real set: contour softly blended with no bronze stripe, groomed defined brows and lashes, highlight only as a faint natural sheen on the cheekbones; lips in a matte nude with visible natural lip texture, no gloss and no shine",
   skin: "real skin: visible pores, slight natural unevenness and colour variation, a few tiny marks, no airbrushing, no oily or dewy shine",
-  light: "one large soft key light slightly to one side of the camera with gentle fall-off across the face, plus soft fill; bright studio, plain light grey seamless background",
+  // The first paid test drew the softbox itself into the frame: the light is described, the equipment is excluded.
+  light: "one large soft key light slightly to one side of the camera with gentle fall-off across the face, plus soft fill; bright studio, plain light grey seamless background filling the whole frame; no lights, softboxes, stands or other studio equipment visible anywhere in the picture",
   camera: "full-frame camera, 85 mm lens at f/5.6, ISO 100: natural micro-contrast, crisp individual lashes and hairs, very subtle grain",
 };
 
@@ -177,7 +178,7 @@ export function builderReferencePrompt(kind: ReferenceKind, spec: BuilderSpec): 
   const hair = `${builderHair(spec)} (exactly as in the portrait)`;
   const finish = `Hair: ${hair}; ${REAL.hair}. Makeup: ${REAL.makeup}. Skin: ${REAL.skin}.`;
   const body = `${spec.heightCm} cm tall, slim, long-limbed, toned fashion-model build, EU size ${spec.euSize}. Plain fitted black tank top and plain black leggings, barefoot.`;
-  const even = "Soft even studio light, plain light grey seamless background, no distortion.";
+  const even = "Soft even studio light, plain light grey seamless background filling the whole frame, no studio equipment visible, no distortion.";
   switch (kind) {
     case "threeQuarter":
       return `Identity reference, three-quarter view, of ${same}\n\nHead and shoulders, head and body turned about 40 degrees to the side, eyes following the head, calm expression, lips closed. Plain fitted black tank top.\n\n${finish} Light: ${REAL.light}. Camera: ${REAL.camera}.`;

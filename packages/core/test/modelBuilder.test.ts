@@ -53,6 +53,8 @@ describe("model builder prompts", () => {
     // The realism finish: matte lips and real hair edges, no glossy or airbrushed look.
     expect(p).toContain("matte nude");
     expect(p).toContain("flyaways");
+    // No studio equipment in the picture (the first paid test showed a softbox in frame).
+    expect(p).toContain("no lights, softboxes, stands or other studio equipment visible");
   });
 
   it("every reference is made from the attached portrait and keeps her identity", () => {
@@ -61,6 +63,7 @@ describe("model builder prompts", () => {
       expect(p, k).toContain("attached identity portrait");
       expect(p, k).toContain("not a real or identifiable person");
       expect(p, k).toContain("exactly as in the portrait");
+      expect(p, k).toMatch(/no (lights, softboxes, stands or other )?studio equipment visible/);
     }
   });
 
