@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   BUILDER_OPTIONS, BuilderSpec, builderHair, builderLook, builderPortraitPrompt, builderReferencePrompt, builderSummary,
   DEFAULT_BUILDER_SPEC, GEMINI_PRO_PROFILE, GeminiProvider, hairForPrompt, hairStyleAllowed, ModelVersion, REFERENCE_ASPECT,
-  REFERENCE_KINDS, type FetchLike,
+  REFERENCE_KINDS, realPortraitPrompt, type FetchLike,
 } from "../src/index";
 
 const spec = (over: Partial<BuilderSpec> = {}): BuilderSpec => BuilderSpec.parse({ ...DEFAULT_BUILDER_SPEC, ...over });
@@ -159,5 +159,29 @@ describe("GeminiProvider.generateImage", () => {
     const fetch: FetchLike = async () => ({ ok: true, status: 200, text: async () => JSON.stringify({ steps: [] }) });
     const p = new GeminiProvider(GEMINI_PRO_PROFILE, { resolveAsset: async () => ({ bytes: new Uint8Array(), mime: "image/png" }), fetch, apiKey: "test" });
     await expect(p.generateImage("x", [], "1:1")).rejects.toMatchObject({ kind: "content_policy", billable: "unknown" });
+  });
+});
+
+describe("a new portrait of a woman in attached photographs (Freja, Inés, the library refresh)", () => {
+  const p = realPortraitPrompt({
+    sources: "a front portrait and a three-quarter view of her", description: "High cheekbones; dark-brown eyes. Skin tone: olive.",
+    sourceFlaw: "they are retouched, over-smoothed and glowing", ageYears: 21, hair: "long straight dark-brown hair",
+  });
+  it("keeps who she is and takes nothing of how the source photographs look", () => {
+    expect(p).toContain("exactly the same original fictional adult woman as in the attached photographs: a front portrait and a three-quarter view of her");
+    expect(p).toContain("not a real or identifiable person");
+    expect(p).toContain("Keep her identity exactly");
+    expect(p).toContain("Take only who she is from the attached photographs, not how they look: they are retouched, over-smoothed and glowing.");
+    expect(p).toContain("Hair: long straight dark-brown hair, exactly as in the photographs");
+    expect(p).toContain("21 years old");
+  });
+  it("has the brand's look and the realism finish, without beauty-retouch words", () => {
+    expect(p).toContain("cool, self-assured");
+    expect(p).toContain("never gaunt");
+    expect(p).toContain("real, unretouched skin");
+    expect(p).toContain("natural fall-off");
+    expect(p).toContain("must not look like CGI");
+    expect(p).toContain("no lights, softboxes, stands or other studio equipment visible");
+    expect(p).not.toMatch(/flawless|luminous|satin|expensive|perfect|Re-photograph|Do not zoom in/i);
   });
 });

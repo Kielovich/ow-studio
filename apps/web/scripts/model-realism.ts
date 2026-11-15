@@ -4,7 +4,9 @@
  *
  * Round 1 (2026-11-13, docs/realism-audit.md, lever 2): real hair edges, matte lips, less contour and glow.
  * Round 2 (2026-11-15, owner: "not realistic enough"): the model builder's finish (BUILDER_REAL in modelBuilder.ts),
- * which made Freja and Inés: real unretouched skin, light with fall-off, natural colour, focus fall-off, grain.
+ * which made Freja and Inés: real unretouched skin, light with fall-off, natural colour, focus fall-off, grain. The new
+ * portrait is made from her portrait and three-quarter view scaled down to 640 px: from the sharp 2K portrait in the
+ * same framing the generator only edited (near copies, still glowing; first attempt, $0.96).
  *
  *   npx tsx scripts/model-realism.ts <modelId> portrait [--confirm]   1 image: the new identity portrait
  *   npx tsx scripts/model-realism.ts <modelId> refs [--confirm] [--redo characterSheet]   three-quarter, profile, 5-panel character sheet
@@ -12,7 +14,8 @@
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { BUILDER_REAL, extractImages, GEMINI_API_REVISION, GEMINI_ENDPOINT, GEMINI_PRO_PROFILE, hairForPrompt, loadLocalSecrets } from "@ow-studio/core";
+import sharp from "sharp";
+import { BUILDER_REAL, extractImages, GEMINI_API_REVISION, GEMINI_ENDPOINT, GEMINI_PRO_PROFILE, hairForPrompt, loadLocalSecrets, realPortraitPrompt } from "@ow-studio/core";
 import { DATA_DIR } from "../lib/server/db";
 import { assets, insertModelVersion, listModels, setModelStatus } from "../lib/server/repo";
 
@@ -27,18 +30,21 @@ const save = () => writeFileSync(STATE, JSON.stringify(state, null, 1));
 
 const REAL = BUILDER_REAL;
 
-const portraitPrompt = (hair: string) => [
-  "Re-photograph this exact original fictional adult woman in the same studio set-up. She is not a real or identifiable person.",
-  `Keep identical: face, bone structure, eye shape and colour, nose, lip shape, skin tone, freckles, hair colour and length, the hairstyle (${hair}), the plain black tank top, ` +
-  "and the framing exactly as in the attached photograph: the same distance and crop, with space above the head and the shoulders and tank top fully visible. Do not zoom in.",
-  "Change only what makes the photograph look retouched or generated: the new picture is a real, unretouched photograph of her.",
-  `- Hair: ${REAL.hair}.`,
-  `- Makeup: ${REAL.makeup}.`,
-  `- Skin: ${REAL.skin}.`,
-  "- Face and expression: her own features and her own expression, lips closed; she must be immediately recognisable as the same woman.",
-  `- Light: ${REAL.light}.`,
-  `Camera: ${REAL.camera}.`,
-].join("\n");
+/** Inputs this small make the generator photograph her anew instead of editing the sharp 2K portrait (see realPortraitPrompt). */
+const SOFT_PX = 640;
+async function soft(hash: string): Promise<string> {
+  const { bytes } = await assets.resolve(hash);
+  return assets.putBytes(new Uint8Array(await sharp(bytes).resize(SOFT_PX, SOFT_PX, { fit: "inside" }).jpeg({ quality: 90 }).toBuffer()));
+}
+const cap = (t: string) => t[0]!.toUpperCase() + t.slice(1);
+
+const portraitPrompt = (m: { ageYears: number; look: { hair: string; skinTone: string; eyes: string; features: string } }, hair: string) => realPortraitPrompt({
+  sources: "a front portrait and a three-quarter view of her",
+  description: `${cap(m.look.features)}; ${m.look.eyes}. Skin tone: ${m.look.skinTone}.`,
+  sourceFlaw: "they are retouched, over-smoothed and glowing, like a beauty advert",
+  ageYears: m.ageYears,
+  hair,
+});
 
 const fromPortrait = (kind: "threeQuarter" | "profile" | "characterSheet", hair: string) => {
   const same = "exactly the same original fictional adult woman as in the attached identity portrait: identical face, bone structure, skin, hair colour, hairstyle and makeup. She is not a real or identifiable person.";
@@ -83,10 +89,19 @@ async function main() {
     console.log(`1 image (portrait of ${current.data.displayName} v${current.version}), est. $${GEMINI_PRO_PROFILE.estimatedCostUsd.toFixed(2)}`);
     // --note "..." adds one correction after a rejected attempt (the rejected hash is kept).
     const note = process.argv.includes("--note") ? `\nCorrection: ${process.argv[process.argv.indexOf("--note") + 1]}` : "";
-    if (!confirm) return console.log("Dry run. Add --confirm.\n\n" + portraitPrompt(hair) + note);
+    // Her current front portrait and three-quarter view, scaled down (free; stored once).
+    state.softPortrait ??= await soft(current.data.refs.primaryPortrait);
+    state.softAngle ??= await soft(current.data.refs.identityAngles[0] ?? current.data.refs.primaryPortrait);
+    save();
+    const prompt = portraitPrompt(current.data, hair) + note;
+    for (const h of [state.softPortrait, state.softAngle]) {
+      const meta = await sharp((await assets.resolve(h)).bytes).metadata();
+      console.log(`  attach ${h.slice(0, 19)}… ${meta.width}x${meta.height} ${meta.format}`);
+    }
+    if (!confirm) return console.log("Dry run. Add --confirm.\n\n" + prompt);
     if (state.portrait) state[`rejected_portrait_${Date.now()}`] = state.portrait;
-    state.portrait = await generate(portraitPrompt(hair) + note, [current.data.refs.primaryPortrait], "1:1");
-    state.portraitPrompt = portraitPrompt(hair) + note;
+    state.portrait = await generate(prompt, [state.softPortrait, state.softAngle], "1:1");
+    state.portraitPrompt = prompt;
     save();
     console.log("portrait ->", state.portrait);
   } else if (stage === "refs") {
