@@ -250,7 +250,7 @@ export function ModelBuilder() {
 
   return (
     <>
-      <PageTitle eyebrow="Models" title="Model builder" />
+      <PageTitle eyebrow="Casting" title="Model builder" />
       <TipBox id="model-builder" title="Build a model" steps={[
         <><b>Choose her look</b>, or press Surprise me. Only choices, no photos: every model is an original, fictional adult.</>,
         <><b>Choose one of 3 portraits</b> (about {usd(PORTRAITS_PER_ROUND * cost)}). Not right? Change the look or make 3 new.</>,

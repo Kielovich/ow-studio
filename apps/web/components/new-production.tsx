@@ -504,7 +504,7 @@ export function NewProduction() {
 
   return (
     <>
-      <PageTitle eyebrow="Create" title="New production">
+      <PageTitle eyebrow="Ecom" title="New production">
         {savedAt && <span className="text-xs text-black/60 self-center">Import saved {formatTime(savedAt)}</span>}
       </PageTitle>
       <TipBox id="new-production" title="Before you start" steps={[
