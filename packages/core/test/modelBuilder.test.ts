@@ -58,6 +58,10 @@ describe("model builder prompts", () => {
     expect(p).toContain("pores visible");
     expect(p).toContain("flyaways");
     expect(p).not.toMatch(/approachable|tiny marks|unevenness|high-street/);
+    // Round 2 of the paid test: young (not gaunt), visibly made up, square to the camera.
+    expect(p).toContain("never gaunt");
+    expect(p).toContain("clearly visible polished clean glam");
+    expect(p).toContain("square to the camera");
     // No studio equipment in the picture (the first paid test showed a softbox in frame).
     expect(p).toContain("no lights, softboxes, stands or other studio equipment visible");
   });

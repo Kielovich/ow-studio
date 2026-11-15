@@ -138,7 +138,8 @@ const FRECKLES = "light natural freckles";
  */
 const REAL = {
   hair: "real hair, not a solid helmet: the same cut, with a few fine flyaways crossing the outline of the hair against the background, a few short baby hairs at the temples and along the parting, and individual strands separating at the ends",
-  makeup: "the polished clean glam of a high-end fashion campaign: luminous skin with a soft highlight on the cheekbones and the bridge of the nose, a warm bronze contour that sculpts the hollows under the cheekbones, groomed defined brows, soft brown liner and defined lashes, nude lips with a light satin sheen",
+  // Round 2 of the paid test: only the candidate with clearly visible glam had the brand's look; the others came out bare.
+  makeup: "clearly visible polished clean glam of a high-end fashion campaign: luminous skin with a distinct soft highlight on the cheekbones and the bridge of the nose, a warm bronze contour that sculpts under the cheekbones, a light flush of blush, groomed defined brows, soft brown liner and defined lashes, nude-pink lips with a soft satin shine",
   skin: "flawless-looking but real: fine skin texture and pores visible under the makeup on the nose and cheeks; not airbrushed, not plastic, not waxy",
   // The first paid test drew the softbox itself into the frame: the light is described, the equipment is excluded.
   light: "soft beauty light from a large source in front of her and slightly above, sculpting gentle shadows under the cheekbones and along the jaw, with soft fill; plain light grey seamless background filling the whole frame; no lights, softboxes, stands or other studio equipment visible anywhere in the picture",
@@ -148,7 +149,9 @@ const REAL = {
 /** A face and presence like the models international brands book for their campaigns. */
 const LOOK =
   "She has the face and presence of an in-demand top fashion model who walks international runways and fronts campaigns: striking rather than pretty, " +
-  "high sculpted cheekbones, a defined jawline and chin, strong groomed brows, full lips, a long elegant neck and defined collarbones; tall, slim, long-limbed model build.";
+  "high sculpted cheekbones, a defined jawline and chin, strong groomed brows, full lips, a long elegant neck and defined collarbones; tall, slim, long-limbed model build. " +
+  // Round 2: "striking" without this aged two of three candidates (gaunt, hollow-cheeked, past 30).
+  "A young face that matches her age: smooth youthful skin and a soft fullness in the cheeks under the high cheekbones; never gaunt, hollow-cheeked or older-looking.";
 
 /** The attitude: cool and self-assured, never sweet. */
 const ATTITUDE =
@@ -165,7 +168,7 @@ export function builderPortraitPrompt(spec: BuilderSpec): string {
     `Hair finish: styled and expensive-looking; ${REAL.hair}.`,
     `Makeup: ${REAL.makeup}.`,
     `Skin: ${REAL.skin}.`,
-    "No jewellery. Straight-on front view, head and shoulders with space above the head and the shoulders and tank top fully visible, camera at eye level. " +
+    "No jewellery. Straight-on front view: face and shoulders square to the camera, no head turn; head and shoulders with space above the head and the shoulders and tank top fully visible, camera at eye level. " +
       "Plain fitted black tank top.",
     `Light: ${REAL.light}. Camera: ${REAL.camera}.`,
   ].join("\n\n");
