@@ -21,6 +21,7 @@ const { chromium, devices } = require("playwright");
 const PORT = Number(process.env.E2E_PORT ?? 3400);
 const BASE = `http://localhost:${PORT}`;
 const PASSWORD = "e2e-password-123";
+const HOME_HEADLINE = "On-model images from your packshots";
 const SHOTS = process.env.E2E_SHOTS;
 const data = mkdtempSync(join(tmpdir(), "ow-e2e-data-"));
 const fixtures = mkdtempSync(join(tmpdir(), "ow-e2e-fixtures-"));
@@ -120,9 +121,14 @@ async function main() {
     await typeUntilEnabled(page, PASSWORD);
     await page.getByRole("button", { name: "Sign in" }).click();
     await page.waitForURL(`${BASE}/`);
-    await page.getByText("Studio overview").waitFor();
-    await page.getByText("No productions yet").waitFor();
-    check(true, "signed in; empty overview shows its empty state");
+    await page.getByRole("heading", { name: HOME_HEADLINE }).waitFor();
+    // A calm start: one way in, and the models' portraits (never generated images, never review counts).
+    await page.locator("main a[href^='/models/'] img").first().waitFor();
+    check(await page.locator("main").getByRole("link", { name: "New production" }).isVisible()
+      && await page.locator("main a[href^='/models/']").count() === 5
+      && await page.locator("main a[href^='/productions/']:not([href='/productions/new'])").count() === 0
+      && !(await page.getByText(/to review/i).count()),
+      "signed in; the overview shows one way in and the models, without review counts");
     await shot(page, "desk-overview-empty");
   });
 
@@ -217,7 +223,7 @@ async function main() {
   });
 
   await stage("Other pages, keyboard and missing production", async () => {
-    for (const [path, text] of [["/productions", "Productions"], ["/models", "Models"], ["/settings", "2000 x 2000"], ["/coming-soon", "Lookbook creator"], ["/", "Studio overview"]]) {
+    for (const [path, text] of [["/productions", "Productions"], ["/models", "Models"], ["/settings", "2000 x 2000"], ["/coming-soon", "Lookbook creator"], ["/", HOME_HEADLINE]]) {
       await page.goto(`${BASE}${path}`);
       await page.getByText(text).first().waitFor();
       check(await noOverflow(page), `${path} has no horizontal scroll at 1440 px`);
@@ -230,7 +236,7 @@ async function main() {
     check(await homeTip.waitFor({ timeout: 10000 }).then(() => true, () => false), "the overview shows a how-it-works tip");
     await homeTip.getByRole("button", { name: "Got it" }).click();
     await page.reload();
-    await page.getByText("Studio overview").waitFor();
+    await page.getByRole("heading", { name: HOME_HEADLINE }).waitFor();
     await page.waitForTimeout(800);
     check(!(await homeTip.isVisible()), "a dismissed tip stays away after a reload");
     await page.goto(`${BASE}/settings`);

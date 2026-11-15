@@ -338,7 +338,18 @@ export function overview() {
     spentUsd: spentThisMonthUsd(), budgetUsd: MONTHLY_BUDGET_USD,
     recent: recent.slice(0, 6),
     models: listModels().filter((m) => m.status === "active").length,
+    faces: faces(),
   };
+}
+
+/** The active models' portraits and names, for the overview. */
+function faces(): { id: string; name: string; portrait: string }[] {
+  const seen = new Set<string>();
+  return listModels().flatMap((m) => {
+    if (m.status !== "active" || seen.has(m.modelId)) return [];
+    seen.add(m.modelId);
+    return [{ id: m.modelId, name: m.data.displayName, portrait: m.data.refs.primaryPortrait as string }];
+  });
 }
 
 // ---------- Session anchor ----------
