@@ -24,7 +24,7 @@ While images are being made the page says how long it takes (about a minute an i
 - `apps/web/app/api/model-builder/`: the API. `apps/web/components/model-builder.tsx`: the page.
 - e2e: the whole flow with simulated images (`e2e/run.mjs`, stage "Model builder").
 
-## Paid test (2026-11-15, 16 images, $2.56)
+## Paid test (2026-11-15, 17 images, $2.72)
 
 One test model (Northern European, fair with freckles, green eyes, shoulder-length wavy auburn hair, 22, 176 cm, EU 36), made through the app on a local copy with the real provider:
 
@@ -32,7 +32,7 @@ One test model (Northern European, fair with freckles, green eyes, shoulder-leng
 2. **Round 2, 3 portraits ($0.48), top-model prompt:** one at the brand's level (visible glam, cool, campaign quality); two gaunt, older-looking and nearly bare, and the good one turned her head. Fixes: a young face that is never gaunt, clearly visible glam with blush, square to the camera (not yet tested with real images).
 3. **Reference set from round 2 portrait 3, 5 images ($0.80):** consistent identity in every view (face, freckles, eyes, glam, hair). Weakest: the full-body panels of the character sheet look less model-like than the separate body reference.
 4. **Added to the models** through the app as "Isla" (M11): headless body references, shown on the Models page and selectable in New production.
-5. **Used in Ecom (5 images, $0.80):** one dress (CAMELIA) on Isla, the brand set. The compiled requests used her portrait, three-quarter, character sheet and headless body references, and her look text read naturally. Front, three-quarter, back and styled came out consistent with her portrait (face, freckles, hair, glam) and the dress right (ruching, mock neck, feather cuffs). The close-up was paid but its file was lost: the test stopped the worker seconds after the image was marked done, before its file was stored (a gap in the pipeline, not in the builder; see the open point below).
+5. **Used in Ecom (5 images, $0.80):** one dress (CAMELIA) on Isla, the brand set. The compiled requests used her portrait, three-quarter, character sheet and headless body references, and her look text read naturally. Front, three-quarter, back and styled came out consistent with her portrait (face, freckles, hair, glam) and the dress right (ruching, mock neck, feather cuffs). The close-up was paid but its file was lost: the test stopped the worker seconds after the image was marked done, before its file was stored (a gap in the pipeline, not in the builder; see the open point below). Made again as a one-shot production (1 image, $0.16): ruching, mock neck and feather cuffs sharp.
 
 ## Not covered yet
 

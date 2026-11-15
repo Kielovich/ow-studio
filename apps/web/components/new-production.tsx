@@ -455,7 +455,7 @@ export function NewProduction() {
           ? preview.error
           : runError
             ? runError
-            : `${preview.images.length} images · about ${usd(preview.estCostUsd)}${overBudget ? " · over the monthly budget" : ""}`;
+            : `${preview.images.length} ${preview.images.length === 1 ? "image" : "images"} · about ${usd(preview.estCostUsd)}${overBudget ? " · over the monthly budget" : ""}`;
 
   const decisionRow = (f: ImportFile) => (
     <div key={f.key} className="grid grid-cols-[112px_1fr] sm:grid-cols-[160px_1fr] gap-4 sm:gap-6 items-start">
@@ -830,7 +830,7 @@ export function NewProduction() {
             )}
             <Button isDisabled={!preview?.canRun || overBudget || !draft} isPending={running} onPress={run}
               className={step === STEPS.length ? "flex-1 sm:flex-none" : "hidden sm:inline-flex"}>
-              {productionId ? "Open production" : `Run production · ${preview?.images.length ?? 0} images`}
+              {productionId ? "Open production" : `Run production · ${preview?.images.length ?? 0} ${preview?.images.length === 1 ? "image" : "images"}`}
             </Button>
           </div>
         </div>
