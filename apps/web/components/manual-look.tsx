@@ -133,6 +133,7 @@ export function ManualLook({ onAdd, lookCount, busy }: { onAdd: (items: ManualIt
       <div className="border-t border-line pt-5 mb-2" data-testid="look-optional">
         <div className="ow-nav mb-1">Optional · complete the look</div>
         <p className="text-sm text-black/70 mb-4 max-w-xl">Leave these empty and the styling text in step 4 is used instead. Shoes appear where the feet are in the picture; accessories only in the styled shot.</p>
+        <p className="text-sm text-black/70 mb-4 max-w-xl" data-testid="look-untested">New and not yet checked on a real production: a top and a bottom worn together, accessories and the fit reference. Look closely at those images before you approve them.</p>
         <div className="grid grid-cols-3 sm:grid-cols-[repeat(5,120px)] gap-3">
           <div>
             <div className="ow-eyebrow mb-2">Shoes</div>
