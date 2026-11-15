@@ -23,8 +23,11 @@ export type Attempt = {
 
 type JobLike = { attempt: number; costUsd: number; awaitingReason?: string; lastError?: { kind: string; message: string } };
 
-/** Error kinds and await reasons where the provider may have done (and billed) the work without us seeing a result. */
-const UNKNOWN_REASONS = new Set(["timeout_after_accept", "uncertain_submission", "unknown"]);
+/**
+ * Error kinds and await reasons where the provider may have done (and billed) the work without us seeing a result.
+ * "result_lost": the image was made, but the worker stopped before its file was stored.
+ */
+const UNKNOWN_REASONS = new Set(["timeout_after_accept", "uncertain_submission", "unknown", "result_lost"]);
 
 export function isUnknownOutcome(state: string, job: JobLike): boolean {
   return state === "awaiting_approval" && UNKNOWN_REASONS.has(job.awaitingReason ?? job.lastError?.kind ?? "");
@@ -44,6 +47,10 @@ export type StatusView = { key: string; label: string; color: ChipColor; hint?: 
 export function statusView(state: string, job: JobLike, review: Review, opts: { waitingForAnchor?: boolean; checks?: Attempt["checks"] } = {}): StatusView {
   if (opts.waitingForAnchor && state === "queued") return { key: "waiting", label: "Waiting for front", color: "default", canRetry: false };
   if (isUnknownOutcome(state, job)) {
+    if (job.awaitingReason === "result_lost") return {
+      key: "unknown", label: "Not saved · may have cost", color: "warning", canRetry: true,
+      hint: "The image was made, but its file was not saved before the worker stopped. A new attempt costs again.",
+    };
     return {
       key: "unknown", label: "Unknown outcome", color: "warning", canRetry: true,
       hint: "The provider may have produced and billed this image, but no result came back. A new attempt may cost again.",

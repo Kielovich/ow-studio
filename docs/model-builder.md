@@ -37,6 +37,6 @@ One test model (Northern European, fair with freckles, green eyes, shoulder-leng
 ## Not covered yet
 
 - The prompt after round 2 (young, visible glam, square to the camera) is not yet tested with real images.
-- Pipeline gap found in the Ecom test: an image is marked succeeded before its file is stored; if the worker stops in between, the paid result is lost and the image shows as finished with no file and no new attempt. To fix separately.
+- Fixed (2026-11-15): the pipeline gap found in the Ecom test. An image now reads as finished only after its file is stored; a result lost to a stopped worker shows as "Not saved · may have cost" with a new attempt (`docs/handover-codex-sites.md`, invariant 13). The lost close-up of the test was recovered that way.
 - A model added by mistake cannot be removed from the app yet (it can be archived in the database).
 - Disk: a finished model takes roughly 10 to 20 MB (portraits, references, headless copies). See the storage note in `docs/deploy.md`.

@@ -9,7 +9,7 @@ import { GeminiProvider, loadLocalSecrets } from "@ow-studio/core";
 import { claimBuilderImage, processBuilderImage } from "../lib/server/builder";
 import { backupDatabase, getDb } from "../lib/server/db";
 import { SqliteJobStore } from "../lib/server/jobstore";
-import { processImage } from "../lib/server/pipeline";
+import { processImage, recoverUnsavedResults } from "../lib/server/pipeline";
 import { simulatedProvider } from "../lib/server/simulated";
 import { assets, DEFAULT_PROFILE } from "../lib/server/repo";
 
@@ -73,6 +73,10 @@ function backup() {
 }
 backup();
 setInterval(backup, 60 * 60 * 1000).unref();
+
+// Images an earlier version left "finished" without a file become "not saved, may have cost" (a new attempt is offered).
+void recoverUnsavedResults().then((n) => { if (n) console.log(`[worker] ${n} image(s) without a saved file: marked "not saved, may have cost"`); })
+  .catch((e) => console.error("[worker] recovery check failed:", (e as Error).message));
 
 if (simulated) console.log("[worker] SIMULATED provider: no real images, no cost.");
 else if (!process.env.GEMINI_API_KEY) console.error("[worker] GEMINI_API_KEY is not set: every generation will fail until it is.");
