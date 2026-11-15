@@ -238,6 +238,9 @@ async function main() {
     await page.goto(`${BASE}/`);
     check(await homeTip.waitFor({ timeout: 10000 }).then(() => true, () => false), "Settings brings dismissed tips back");
     await page.goto(`${BASE}/productions/new`);
+    // One step at a time: the shots are in step 2, reached from the bottom bar.
+    await page.getByRole("button", { name: "Next: Model & shots" }).click();
+    check(await page.getByRole("heading", { name: "Model" }).isVisible() && !(await page.getByRole("heading", { name: "Packshots" }).isVisible()), "the new production page shows one step at a time");
     await page.getByRole("button", { name: "About: One studio session" }).click();
     check(await page.getByRole("dialog").getByText(/front image is made first/).waitFor({ timeout: 5000 }).then(() => true, () => false), "an (i) button opens its explanation");
     await page.keyboard.press("Escape");

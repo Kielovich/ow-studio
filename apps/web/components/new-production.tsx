@@ -87,6 +87,8 @@ function Choices({ label, hint, options, value, onChange, multi }: { label: stri
   );
 }
 
+const STEPS = ["Packshots", "Model & shots", "Styling", "Review"] as const;
+
 const DEFAULT_STYLING: Styling = {
   // Empty = the model's own signature hair and makeup from her identity portrait.
   hairState: "",
@@ -136,11 +138,10 @@ async function droppedFiles(entries: FileSystemEntry[]): Promise<{ file: File; p
   return out;
 }
 
-function Section({ n, title, hint, children }: { n: number; title: string; hint?: string; children: React.ReactNode }) {
+function Section({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {
   return (
-    <section className="py-12 border-t border-line grid md:grid-cols-[260px_1fr] gap-8">
+    <section className="py-8 grid md:grid-cols-[240px_1fr] gap-6 md:gap-8">
       <div>
-        <div className="ow-eyebrow mb-2">Step {n}</div>
         <h2 className="ow-display text-2xl mb-2">{title}</h2>
         {hint ? <p className="text-sm text-black/60 leading-relaxed">{hint}</p> : null}
       </div>
@@ -242,6 +243,9 @@ export function NewProduction() {
   const [compiling, setCompiling] = useState(false);
   const [running, setRunning] = useState(false);
   const [runError, setRunError] = useState<string | null>(null);
+  // One step at a time (less scrolling); the bar at the bottom always shows where things stand and how to go on.
+  const [step, setStep] = useState(1);
+  const goTo = (n: number) => { setStep(n); window.scrollTo({ top: 0, behavior: "smooth" }); };
   const [uploading, setUploading] = useState(0);
   const [dragOver, setDragOver] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -457,6 +461,23 @@ export function NewProduction() {
     </select>
   );
 
+  const stepDone = (n: number): boolean =>
+    n === 1 ? skus.length > 0 && issues.length === 0
+      : n === 2 ? !!model && presets.length > 0
+        : n === 3 ? stepDone(1) && stepDone(2)
+          : !!preview?.canRun && !overBudget;
+  const barStatus = issues.length
+    ? `${issues.length} ${issues.length === 1 ? "image needs" : "images need"} a choice in Packshots`
+    : !draft
+      ? "Add packshots, then choose a model and shots"
+      : !preview || compiling
+        ? "Checking…"
+        : preview.error && !preview.conflicts
+          ? preview.error
+          : runError
+            ? runError
+            : `${preview.images.length} images · about ${usd(preview.estCostUsd)}${overBudget ? " · over the monthly budget" : ""}`;
+
   const decisionRow = (f: ImportFile) => (
     <div key={f.key} className="grid grid-cols-[112px_1fr] sm:grid-cols-[160px_1fr] gap-4 sm:gap-6 items-start">
       <a href={assetUrl(f.hash)} target="_blank" rel="noreferrer" aria-label={`Open ${f.filename} full size`} className="block relative aspect-[3/4] bg-canvas overflow-hidden">
@@ -540,7 +561,23 @@ export function NewProduction() {
         </div>
       )}
 
-      <Section n={1} title="Packshots" hint="Drop a folder per look, choose files, or add a look by hand.">
+      <nav aria-label="Steps" className="sticky top-16 md:top-20 z-30 bg-white/95 backdrop-blur grid grid-cols-4 gap-2 sm:gap-4 pt-1 pb-2">
+        {STEPS.map((label, i) => {
+          const n = i + 1;
+          const active = step === n;
+          const done = stepDone(n);
+          return (
+            <button key={label} type="button" onClick={() => goTo(n)} aria-current={active ? "step" : undefined}
+              className={`text-left min-h-11 pt-2 border-t-2 ${active ? "border-t-[#111111]" : done ? "border-t-[#8a8a8a]" : "border-t-[#e8e8e8]"}`}>
+              <span className="ow-eyebrow block">{done && !active ? "✓ " : ""}{n}</span>
+              <span className={`text-sm leading-tight block ${active ? "text-ink font-medium" : "text-black/60"}`}>{label}</span>
+            </button>
+          );
+        })}
+      </nav>
+
+      <div hidden={step !== 1}>
+      <Section title="Packshots" hint="Drop a folder per look, choose files, or add a look by hand.">
         <div
           onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
           onDragLeave={() => setDragOver(false)}
@@ -706,7 +743,9 @@ export function NewProduction() {
         )}
       </Section>
 
-      <Section n={2} title="Model" hint="Choose who wears the products. All images of the production use this model.">
+      </div>
+      <div hidden={step !== 2}>
+      <Section title="Model" hint="Choose who wears the products. All images of the production use this model.">
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4">
           {models.map((m) => {
             const id = `${m.modelId}@${m.version}`;
@@ -722,7 +761,7 @@ export function NewProduction() {
         </div>
       </Section>
 
-      <Section n={3} title="Shots" hint="The brand set, framed like the webshop.">
+      <Section title="Shots" hint="The brand set, framed like the webshop.">
         <div className="flex flex-wrap gap-2">
           {BRAND_SET.map((p) => (
             <ToggleButton
@@ -748,7 +787,9 @@ export function NewProduction() {
         </div>
       </Section>
 
-      <Section n={4} title="Styling" hint="What she wears with your products. Hair and makeup are always her own.">
+      </div>
+      <div hidden={step !== 3}>
+      <Section title="Styling" hint="What she wears with your products. Hair and makeup are always her own.">
         <div className="flex flex-col gap-7 max-w-3xl">
           <Choices label="Top" hint="With trousers and skirts, and under jackets." options={TOPS} value={styling.top} onChange={(v) => setStyling((s) => ({ ...s, top: v as string }))} />
           <Choices label="Bottoms" hint="With tops and jackets." options={BOTTOMS} value={styling.bottoms} onChange={(v) => setStyling((s) => ({ ...s, bottoms: v as string }))} />
@@ -762,7 +803,9 @@ export function NewProduction() {
         </div>
       </Section>
 
-      <Section n={5} title="Review" hint="Checked before anything is paid for. Fix anything marked Blocks before you run.">
+      </div>
+      <div hidden={step !== 4}>
+      <Section title="Review" hint="Checked before anything is paid for.">
         {issues.length > 0 ? (
           <p className="text-danger">Resolve {issues.length} import {issues.length === 1 ? "decision" : "decisions"} in step 1 first.</p>
         ) : !draft ? (
@@ -790,15 +833,29 @@ export function NewProduction() {
             )}
             {preview.error && <p className="text-danger text-sm">{preview.error}</p>}
             {runError && <p className="text-danger text-sm">{runError}</p>}
-            <div className="flex items-center gap-4">
-              <Button size="lg" isDisabled={!preview.canRun || overBudget} isPending={running} onPress={run}>
-                {productionId ? "Open production" : `Run production · ${preview.images.length} images`}
-              </Button>
-              {overBudget && <span className="text-sm text-danger">Over the monthly budget</span>}
-            </div>
+            {overBudget && <p className="text-sm text-danger">Over the monthly budget</p>}
           </div>
         )}
       </Section>
+      </div>
+
+      {/* Always in view: status, back, next and run, so the page never has to be scrolled to go on. */}
+      <div className="h-32" aria-hidden />
+      <div className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur border-t border-line">
+        <div className="max-w-[1440px] mx-auto safe-x pt-3 safe-bottom sm:pb-3 flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
+          <p className={`text-sm ${issues.length || (preview?.error && !preview?.conflicts) || overBudget ? "text-danger" : "text-black/70"}`} role="status">{barStatus}</p>
+          <div className="flex gap-2 items-center">
+            {step > 1 && <Button variant="ghost" onPress={() => goTo(step - 1)}>Back</Button>}
+            {step < STEPS.length && (
+              <Button variant={step === STEPS.length - 1 ? "primary" : "secondary"} className="flex-1 sm:flex-none" onPress={() => goTo(step + 1)}>Next: {STEPS[step]}</Button>
+            )}
+            <Button isDisabled={!preview?.canRun || overBudget || !draft} isPending={running} onPress={run}
+              className={step === STEPS.length ? "flex-1 sm:flex-none" : "hidden sm:inline-flex"}>
+              {productionId ? "Open production" : `Run production · ${preview?.images.length ?? 0} images`}
+            </Button>
+          </div>
+        </div>
+      </div>
     </>
   );
 }
