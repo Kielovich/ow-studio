@@ -153,13 +153,13 @@ export function discardDraft(id: string) {
 }
 
 /** The next free model id: M01, M02, ... (ids are never reused, also not those of retired models). */
-function nextModelId(): string {
+export function nextModelId(): string {
   const nums = listModels().map((m) => /^M(\d+)$/.exec(m.modelId)?.[1]).filter(Boolean).map(Number);
   return `M${String(Math.max(0, ...nums) + 1).padStart(2, "0")}`;
 }
 
 /** Body references are stored headless, like the library's: they carry body proportions only. */
-async function headless(hash: string): Promise<string> {
+export async function headless(hash: string): Promise<string> {
   const { bytes } = await assets.resolve(hash);
   const m = await sharp(bytes).metadata();
   const out = await sharp(bytes)

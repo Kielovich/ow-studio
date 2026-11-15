@@ -136,7 +136,7 @@ const FRECKLES = "light natural freckles";
  * A new face needs the striking part first: top-model bone structure, a cool, self-assured look, the brand's polished
  * clean glam (gallery analysis, docs/model-look.md), sculpting beauty light; real skin texture keeps it from looking plastic.
  */
-const REAL = {
+export const BUILDER_REAL = {
   hair: "real hair, not a solid helmet: the same cut, with a few fine flyaways crossing the outline of the hair against the background, a few short baby hairs at the temples and along the parting, and individual strands separating at the ends",
   // Round 2 of the paid test: only the candidate with clearly visible glam had the brand's look; the others came out bare.
   makeup: "clearly visible polished clean glam of a high-end fashion campaign: luminous skin with a distinct soft highlight on the cheekbones and the bridge of the nose, a warm bronze contour that sculpts under the cheekbones, a light flush of blush, groomed defined brows, soft brown liner and defined lashes, nude-pink lips with a soft satin shine",
@@ -144,7 +144,8 @@ const REAL = {
   // The first paid test drew the softbox itself into the frame: the light is described, the equipment is excluded.
   light: "soft beauty light from a large source in front of her and slightly above, sculpting gentle shadows under the cheekbones and along the jaw, with soft fill; plain light grey seamless background filling the whole frame; no lights, softboxes, stands or other studio equipment visible anywhere in the picture",
   camera: "full-frame camera, 85 mm lens at f/5.6, ISO 100: natural micro-contrast, crisp individual lashes and hairs, very subtle grain",
-};
+} as const;
+const REAL = BUILDER_REAL;
 
 /** A face and presence like the models international brands book for their campaigns. */
 const LOOK =
