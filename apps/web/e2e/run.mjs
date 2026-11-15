@@ -21,7 +21,7 @@ const { chromium, devices } = require("playwright");
 const PORT = Number(process.env.E2E_PORT ?? 3400);
 const BASE = `http://localhost:${PORT}`;
 const PASSWORD = "e2e-password-123";
-const HOME_HEADLINE = "On-model images from your packshots";
+const HOME_HEADLINE = "What would you like to make?";
 const SHOTS = process.env.E2E_SHOTS;
 const data = mkdtempSync(join(tmpdir(), "ow-e2e-data-"));
 const fixtures = mkdtempSync(join(tmpdir(), "ow-e2e-fixtures-"));
@@ -122,13 +122,17 @@ async function main() {
     await page.getByRole("button", { name: "Sign in" }).click();
     await page.waitForURL(`${BASE}/`);
     await page.getByRole("heading", { name: HOME_HEADLINE }).waitFor();
-    // A calm start: one way in, and the models' portraits (never generated images, never review counts).
-    await page.locator("main a[href^='/models/'] img").first().waitFor();
-    check(await page.locator("main").getByRole("link", { name: "New production" }).isVisible()
-      && await page.locator("main a[href^='/models/']").count() === 5
+    // A calm start: the studio's tools. On-model images opens a new production and shows the models' portraits (never
+    // generated images); the three planned tools are marked as coming soon. No review counts.
+    const tools = page.getByTestId("tool");
+    await tools.first().locator("img").first().waitFor();
+    check(await tools.count() === 4
+      && await tools.first().getAttribute("href") === "/productions/new"
+      && await tools.first().locator("img").count() === 5
+      && (await tools.filter({ hasText: "Coming soon" }).count()) === 3
       && await page.locator("main a[href^='/productions/']:not([href='/productions/new'])").count() === 0
       && !(await page.getByText(/to review/i).count()),
-      "signed in; the overview shows one way in and the models, without review counts");
+      "signed in; the overview offers the tools: on-model images to start, three coming soon, no review counts");
     await shot(page, "desk-overview-empty");
   });
 
