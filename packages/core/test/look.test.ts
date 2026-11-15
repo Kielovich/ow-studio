@@ -71,6 +71,14 @@ describe("a look: the other garment, shoes, accessories and fit as images", () =
     expect(noBack.prompt).not.toContain("attached look packshot");
   });
 
+  it("keeps the whole look in back views: the other garment is worn there too", () => {
+    const back = image(r, "TEST-TP-002", "back_full");
+    expect(back.prompt).toContain("Every garment of this look is worn in this back view too");
+    expect(image(r, "TEST-TP-002", "full_body").prompt).not.toContain("back view too");
+    const noBack = image(compileProduction(lookSpec({ trousersBack: false }), GEMINI_PRO_PROFILE), "TEST-TP-002", "back_full");
+    expect(noBack.prompt).not.toContain("back view too");
+  });
+
   it("puts accessories only in the styled shot", () => {
     const styled = image(r, "TEST-TP-002", "styled_full");
     expect(roles(styled)).toContain("accessory");

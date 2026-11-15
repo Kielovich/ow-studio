@@ -164,7 +164,11 @@ export function buildBlocks(spec: ImageSpec, a: PoseAssignment, sent: RefSlot[] 
     const acc = [...(sent.some((r) => r.role === "accessory") ? ["the pieces in the attached accessory images"] : []), ...st.accessories];
     if (acc.length) styling.push(`accessories: ${acc.join(", ")}`);
   }
-  if (styling.length) add("styling", `Styling (secondary, must not draw attention from the garment): ${styling.join("; ")}.`);
+  // Look test 2026-11-15: in the trousers' back view the jacket of the look was left out although its back packshot was
+  // attached ("secondary" read as "optional"). The set must stay one outfit from every side.
+  const lookInBackView = def.view === "back" && sent.some((r) => r.role === "look_garment_back");
+  if (styling.length) add("styling", `Styling (secondary, must not draw attention from the garment): ${styling.join("; ")}.` +
+    (lookInBackView ? " Every garment of this look is worn in this back view too, seen from behind exactly as in its attached back packshot; nothing of the outfit is left out." : ""));
 
   return blocks.sort((x, y) => x.priority - y.priority);
 }
