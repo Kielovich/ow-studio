@@ -74,7 +74,8 @@ export const ROLE_LABELS: Record<RefRole, string> = {
   garment_texture: "fabric crop cut from the front packshot (authority for the fabric surface only: sheen level, weave, pile, transparency and exact colour; not for shape, size, seams or framing)",
   look_garment_front: "packshot, front, of another garment of the same look (she wears it together with the product: reproduce it as shown, but it stays secondary to the product)",
   look_garment_back: "packshot, back, of another garment of the same look (she wears it together with the product: reproduce it as shown, but it stays secondary to the product)",
-  footwear: "the shoes she wears in this look (reproduce them as shown, only where the feet are in frame)",
+  // The shoe image may be a lifestyle photo: legs, jeans or a hand around the shoes must not end up in the picture.
+  footwear: "the shoes she wears in this look (reproduce only the shoes as shown, only where the feet are in frame; ignore everything else in that image: person, legs, clothing, hands and background)",
   accessory: "an accessory of this look (styling only: small and secondary, never covering the product)",
   fit_reference: "fit reference: shows how the garments sit on a body, i.e. length, looseness and where hems and waist sit (ignore the person in it entirely: not her body shape, skin, hair or pose; the packshots stay the authority for the garments)",
 };

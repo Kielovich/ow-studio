@@ -38,6 +38,8 @@ describe("a look: the other garment, shoes, accessories and fit as images", () =
     const pants = image(r, "TEST-PT-003", "full_body");
     expect(pants.refs.find((x) => x.role === "footwear")!.asset).toBe(SHOES);
     expect(pants.prompt).toContain("footwear: the shoes in the attached shoe image");
+    // A lifestyle shoe photo: only the shoes count.
+    expect(pants.prompt).toMatch(/reproduce only the shoes as shown.*ignore everything else in that image/);
     // The garment of the look is styling: it never controls the product's garment or fit.
     expect(i.refs.find((x) => x.role === "look_garment_front")!.controls).toEqual(["styling"]);
     expect(i.prompt).toMatch(/fit reference: .*ignore the person in it entirely/);
