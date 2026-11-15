@@ -7,9 +7,10 @@
  * which made Freja and Inés: real unretouched skin, light with fall-off, natural colour, focus fall-off, grain. The new
  * portrait is made from her front portrait alone, scaled down to 640 px: from the sharp 2K portrait the generator only
  * edited (near copies, still glowing; first attempt, $0.96); with a three-quarter view added it drew both views in one
- * picture (Sable pilot, $0.16).
+ * picture (Sable pilot, $0.16); from the front portrait alone at 640 px it still edited (pilot 2, $0.16). --from-angle
+ * sends only her three-quarter view, so the front view cannot be copied.
  *
- *   npx tsx scripts/model-realism.ts <modelId> portrait [--confirm]   1 image: the new identity portrait
+ *   npx tsx scripts/model-realism.ts <modelId> portrait [--from-angle] [--confirm]   1 image: the new identity portrait
  *   npx tsx scripts/model-realism.ts <modelId> refs [--confirm] [--redo characterSheet]   three-quarter, profile, 5-panel character sheet
  *   npx tsx scripts/model-realism.ts <modelId> register               new active version (older active one archived)
  */
@@ -39,8 +40,10 @@ async function soft(hash: string): Promise<string> {
 }
 const cap = (t: string) => t[0]!.toUpperCase() + t.slice(1);
 
+// --from-angle: her three-quarter view is the only input, so the front portrait has to be photographed anew.
+const FROM_ANGLE = process.argv.includes("--from-angle");
 const portraitPrompt = (m: { ageYears: number; look: { hair: string; skinTone: string; eyes: string; features: string } }, hair: string) => realPortraitPrompt({
-  sources: "a portrait of her", one: true,
+  sources: FROM_ANGLE ? "a three-quarter view of her; the new picture shows her straight-on from the front" : "a portrait of her", one: true,
   description: `${cap(m.look.features)}; ${m.look.eyes}. Skin tone: ${m.look.skinTone}.`,
   sourceFlaw: "it is retouched like a beauty advert, with over-smoothed, glowing skin and heavy bronzer, contour and highlight; do not copy her makeup from it",
   ageYears: m.ageYears,
@@ -93,15 +96,17 @@ async function main() {
     // Her current front portrait and three-quarter view, scaled down (free; stored once).
     // Only her front portrait: with a three-quarter view next to it, the generator drew both views in one picture.
     state.softPortrait ??= await soft(current.data.refs.primaryPortrait);
+    if (FROM_ANGLE) state.softAngle ??= await soft(current.data.refs.identityAngles[0]!);
     save();
+    const input = FROM_ANGLE ? state.softAngle! : state.softPortrait;
     const prompt = portraitPrompt(current.data, hair) + note;
-    for (const h of [state.softPortrait]) {
+    for (const h of [input]) {
       const meta = await sharp((await assets.resolve(h)).bytes).metadata();
       console.log(`  attach ${h.slice(0, 19)}… ${meta.width}x${meta.height} ${meta.format}`);
     }
     if (!confirm) return console.log("Dry run. Add --confirm.\n\n" + prompt);
     if (state.portrait) state[`rejected_portrait_${Date.now()}`] = state.portrait;
-    state.portrait = await generate(prompt, [state.softPortrait], "1:1");
+    state.portrait = await generate(prompt, [input], "1:1");
     state.portraitPrompt = prompt;
     save();
     console.log("portrait ->", state.portrait);
