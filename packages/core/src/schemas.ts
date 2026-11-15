@@ -117,6 +117,8 @@ export const Styling = z.object({
   legwear: z.string().optional(),
   /** Only rendered in the styled full-body shot. */
   accessories: setOf(z.string().min(1)).default([]),
+  /** Worn on the face in the styled full-body shot only: the brand's styled shot (OW gallery, 2026-11-15). */
+  sunglasses: z.string().optional(),
   /** A layer worn over the product. Not allowed unless the product itself is outerwear. */
   outerLayer: z.string().optional(),
 });

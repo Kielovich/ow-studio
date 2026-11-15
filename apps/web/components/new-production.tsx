@@ -25,7 +25,7 @@ type Preview = {
   images: { sku: string; preset: PresetId; poseId: string }[];
   error?: string;
 };
-type Styling = { hairState: string; makeup: string; top: string; innerTop: string; bottoms: string; footwear: string; accessories: string };
+type Styling = { hairState: string; makeup: string; top: string; innerTop: string; bottoms: string; footwear: string; accessories: string; sunglasses: string };
 /** Everything the import session saves on the server. */
 type Session = {
   name: string; files: ImportFile[]; info: Record<string, ProductInfo>; model: string | null; presets: PresetId[]; sessionAnchor: boolean;
@@ -42,6 +42,8 @@ const DEFAULT_STYLING: Styling = {
   bottoms: "straight black tailored trousers",
   footwear: "black pointed-toe stiletto pumps",
   accessories: "small black evening bag carried by its handle",
+  // The brand's styled shot: sunglasses on the face (owner's OW gallery examples). Empty = no sunglasses.
+  sunglasses: "modern black sunglasses with dark lenses and a slim rectangular frame",
 };
 
 const guessCategory = (s: string): Category => {
@@ -276,6 +278,7 @@ export function NewProduction() {
         top: styling.top, innerTop: styling.innerTop,
         bottoms: styling.bottoms, footwear: styling.footwear,
         accessories: styling.accessories.split(",").map((s) => s.trim()).filter(Boolean),
+        ...(styling.sunglasses.trim() ? { sunglasses: styling.sunglasses } : {}),
       },
     };
   }, [model, issues.length, skus, info, packshots, presets, files, name, sessionAnchor, styling, lookOf, looks]);
@@ -625,7 +628,7 @@ export function NewProduction() {
         </div>
       </Section>
 
-      <Section n={4} title="Styling" hint="Hair, makeup and the pieces worn with the product. Accessories appear only in the styled shot.">
+      <Section n={4} title="Styling" hint="Hair, makeup and the pieces worn with the product. Accessories and sunglasses appear only in the styled shot.">
         <div className="grid md:grid-cols-2 gap-5">
           <Field label="Production name" value={name} onChange={setName} placeholder="Defaults to the set names" />
           <Field label="Hair (empty = model's own)" value={styling.hairState} onChange={(v) => setStyling((s) => ({ ...s, hairState: v }))} placeholder="Her signature hairstyle from the portrait" />
@@ -638,6 +641,7 @@ export function NewProduction() {
           <Field label="Bottoms (with tops)" value={styling.bottoms} onChange={(v) => setStyling((s) => ({ ...s, bottoms: v }))} />
           <Field label="Footwear" value={styling.footwear} onChange={(v) => setStyling((s) => ({ ...s, footwear: v }))} />
           <Field label="Accessories, comma separated" value={styling.accessories} onChange={(v) => setStyling((s) => ({ ...s, accessories: v }))} />
+          <Field label="Sunglasses (empty = none)" value={styling.sunglasses} onChange={(v) => setStyling((s) => ({ ...s, sunglasses: v }))} placeholder="No sunglasses in the styled shot" />
         </div>
       </Section>
 

@@ -116,4 +116,13 @@ describe("a look: the other garment, shoes, accessories and fit as images", () =
     expect(Product.safeParse({ ...PRODUCT_HALTER_TOP, look: { garments: [], accessories: [BAG, BAG, BAG, BAG] } }).success).toBe(false);
     expect(Product.safeParse({ ...PRODUCT_HALTER_TOP, look: { garments: [TROUSERS], accessories: [BAG] } }).success).toBe(true);
   });
+
+  it("puts sunglasses on the face in the styled shot only", () => {
+    const spec = exampleSpec({ styling: { sunglasses: "modern black sunglasses with dark lenses", accessories: [] }, slots: [{ preset: "styled_full" }, { preset: "full_body" }], providerProfileId: GEMINI_PRO_PROFILE.id });
+    const r2 = compileProduction(spec, GEMINI_PRO_PROFILE);
+    for (const i of r2.images) {
+      if (i.preset === "styled_full") expect(i.prompt).toContain("sunglasses, worn on the face: modern black sunglasses with dark lenses");
+      else expect(i.prompt).not.toContain("sunglasses");
+    }
+  });
 });

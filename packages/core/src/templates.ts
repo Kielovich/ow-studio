@@ -160,6 +160,8 @@ export function buildBlocks(spec: ImageSpec, a: PoseAssignment, sent: RefSlot[] 
     else if (st.footwear) styling.push(`footwear: ${st.footwear}`);
   }
   if (def.feetVisible(p.category) && st.legwear) styling.push(`legwear: ${st.legwear}`);
+  // The brand's styled shot wears sunglasses on the face (owner's gallery examples): said as worn, so they are not held.
+  if (preset === "styled_full" && st.sunglasses) styling.push(`sunglasses, worn on the face: ${st.sunglasses}`);
   if (preset === "styled_full") {
     const acc = [...(sent.some((r) => r.role === "accessory") ? ["the pieces in the attached accessory images"] : []), ...st.accessories];
     if (acc.length) styling.push(`accessories: ${acc.join(", ")}`);
