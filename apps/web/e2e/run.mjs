@@ -462,7 +462,10 @@ async function main() {
     const first = page.locator("main a[href^='/productions/prod_']").first();
     await first.waitFor();
     await first.click();
-    await page.waitForFunction(() => document.title !== "Production · OW Studio" && document.title.endsWith(" · OW Studio"), null, { timeout: 10000 });
+    await page.waitForURL(/\/productions\/prod_/);
+    await page.getByRole("heading", { level: 1 }).waitFor();
+    // Not the generic page title, and not the list's title still showing while the page changes.
+    await page.waitForFunction(() => !["Production · OW Studio", "Productions · OW Studio"].includes(document.title) && document.title.endsWith(" · OW Studio"), null, { timeout: 10000 });
     check(await page.title() === `${(await page.getByRole("heading", { level: 1 }).textContent())?.trim()} · OW Studio`, "a production's tab shows its name");
     // A branded 404 with a way back.
     const r404 = await page.goto(`${BASE}/this-page-does-not-exist`);

@@ -32,17 +32,18 @@ function Portrait({ face, big }: { face?: Face; big?: boolean }) {
 function Panel({ href, index, word, line, children }: { href: string; index: string; word: string; line: string; children: React.ReactNode }) {
   return (
     <Link href={href} data-testid="tool" aria-label={`${word}: ${line}`}
-      className="group relative block overflow-hidden bg-ink text-white aspect-[4/5] sm:aspect-[4/3] lg:aspect-auto lg:h-[calc(100svh-11rem)] lg:min-h-[560px]">
+      className="@container group relative block overflow-hidden bg-ink text-white aspect-[3/5] sm:aspect-[3/4] lg:aspect-auto lg:h-[calc(100svh-11rem)] lg:min-h-[560px]">
       {children}
       <span aria-hidden className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
       <span aria-hidden className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-black/40 to-transparent" />
-      <span className="absolute top-0 inset-x-0 p-5 md:p-8 flex justify-between ow-nav text-white/85">
+      <span className="absolute top-0 inset-x-0 p-3 sm:p-5 md:p-8 flex justify-between ow-nav text-white/85">
         <span>{index}</span>
         <span className="transition-transform duration-300 group-hover:translate-x-1" aria-hidden>→</span>
       </span>
-      <span className="absolute bottom-0 inset-x-0 p-5 md:p-8">
-        <span className="block ow-display uppercase leading-[0.85] tracking-[-0.02em] text-[clamp(3.5rem,8.5vw,9.5rem)]">{word}</span>
-        <span className="block mt-4 text-sm md:text-base text-white/85 max-w-md md:min-h-12">{line}</span>
+      <span className="absolute bottom-0 inset-x-0 p-3 sm:p-5 md:p-8">
+        <span className="block ow-display uppercase leading-[0.85] tracking-[-0.02em] text-[clamp(1.6rem,17cqw,9.5rem)]">{word}</span>
+        {/* Too narrow for a sentence on a phone: there the word carries the panel (the line stays in the link's name). */}
+        <span className="hidden sm:block mt-4 text-sm md:text-base text-white/85 max-w-md md:min-h-12">{line}</span>
       </span>
     </Link>
   );
@@ -71,7 +72,7 @@ export default function StudioPage() {
         </div>
         {failed && <p className="text-danger text-sm mb-4" role="alert">Could not reach the studio. Reload to try again.</p>}
 
-        <div className="grid lg:grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
           <Panel href="/productions/new" index="01" word="Ecom" line="Your packshots on our models, ready for the webshop.">
             {!faces ? loading : ecomImage
               ? <img src={assetUrl(ecomImage, 1200)} alt="" fetchPriority="high"
@@ -86,16 +87,16 @@ export default function StudioPage() {
         </div>
 
         {/* What is on the way: one quiet band, smaller than the tools that work today. */}
-        <div className="mt-2 bg-ink text-white px-5 md:px-8 py-3 md:py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-x-6 gap-y-1">
-          <div className="flex flex-wrap items-center gap-x-4 ow-display uppercase leading-none tracking-[0.02em] text-lg md:text-xl">
+        <div className="mt-1.5 sm:mt-2 bg-ink text-white px-4 py-4 md:py-5 flex flex-col items-center text-center">
+          <Link href="/coming-soon" className="ow-nav text-white/70 hover:text-white inline-flex items-center min-h-11 [@media(pointer:fine)]:min-h-7">Coming soon</Link>
+          <div className="flex flex-wrap justify-center items-center gap-x-2 sm:gap-x-5 ow-display uppercase leading-none tracking-[0.04em] text-[0.7rem] min-[360px]:text-[0.8rem] min-[400px]:text-[0.9rem] sm:text-lg md:text-xl">
             {COMING_SOON.map((f, i) => (
-              <span key={f.id} className="inline-flex items-baseline gap-x-4">
-                {i > 0 && <span aria-hidden className="hidden md:inline text-white/30">/</span>}
+              <span key={f.id} className="inline-flex items-center gap-x-2 sm:gap-x-5">
+                {i > 0 && <span aria-hidden className="text-white/35">·</span>}
                 <Link href={`/coming-soon#${f.id}`} data-testid="coming-soon-link" className="hover:text-white/70 transition-colors inline-flex items-center min-h-11">{SHORT[f.id] ?? f.title}</Link>
               </span>
             ))}
           </div>
-          <Link href="/coming-soon" className="ow-nav text-white/75 hover:text-white shrink-0 inline-flex items-center min-h-11 [@media(pointer:fine)]:min-h-6">Coming soon →</Link>
         </div>
       </section>
 
