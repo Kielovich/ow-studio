@@ -8,6 +8,7 @@ import { TipBox } from "@/components/help";
 import { PageTitle } from "@/components/page-title";
 import { Tile } from "@/components/tile";
 import { getJson, isNotFound } from "@/lib/client";
+import { COMING_SOON } from "@/lib/coming-soon";
 import { assetUrl, usd } from "@/lib/types";
 
 type Overview = {
@@ -97,6 +98,22 @@ export default function StudioPage() {
             )}
           </div>
         )}
+      </section>
+
+      <section className="pt-16">
+        <div className="flex items-baseline justify-between mb-6">
+          <h2 className="ow-display text-2xl">Coming soon</h2>
+          <Link href="/coming-soon" className="ow-nav inline-flex items-center min-h-11 [@media(pointer:fine)]:min-h-6"><span className="border-b border-ink">What&apos;s next</span></Link>
+        </div>
+        <div className="grid md:grid-cols-3 gap-4">
+          {COMING_SOON.map((f) => (
+            <Link key={f.id} href={`/coming-soon#${f.id}`} className="block bg-meta p-5 hover:bg-meta-dark transition-colors">
+              <div className="ow-eyebrow mb-2">Coming soon</div>
+              <div className="ow-display text-xl mb-1">{f.title}</div>
+              <div className="text-sm text-black/70">{f.line}</div>
+            </Link>
+          ))}
+        </div>
       </section>
     </>
   );

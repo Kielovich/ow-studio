@@ -217,7 +217,7 @@ async function main() {
   });
 
   await stage("Other pages, keyboard and missing production", async () => {
-    for (const [path, text] of [["/productions", "Productions"], ["/models", "Models"], ["/settings", "2000 x 2000"], ["/", "Studio overview"]]) {
+    for (const [path, text] of [["/productions", "Productions"], ["/models", "Models"], ["/settings", "2000 x 2000"], ["/coming-soon", "Lookbook creator"], ["/", "Studio overview"]]) {
       await page.goto(`${BASE}${path}`);
       await page.getByText(text).first().waitFor();
       check(await noOverflow(page), `${path} has no horizontal scroll at 1440 px`);
@@ -241,6 +241,11 @@ async function main() {
     await page.getByRole("button", { name: "About: One studio session" }).click();
     check(await page.getByRole("dialog").getByText(/front image is made first/).waitFor({ timeout: 5000 }).then(() => true, () => false), "an (i) button opens its explanation");
     await page.keyboard.press("Escape");
+
+    // Coming soon: the three planned tools, reachable from the overview.
+    await page.goto(`${BASE}/coming-soon`);
+    await page.getByTestId("coming-soon-item").first().waitFor();
+    check(await page.getByTestId("coming-soon-item").count() === 3 && await page.getByText("Packshot generator").first().isVisible() && await page.getByText("Campaign shoot").first().isVisible(), "the coming-soon page lists packshot generator, lookbook creator and campaign shoot");
 
     // Model library: an overview of portraits and names; each model opens on all her reference images.
     await page.goto(`${BASE}/models`);
@@ -307,7 +312,7 @@ async function main() {
     const m = await browser.newContext({ ...devices["iPhone 13"], storageState: await ctx.storageState() });
     const mp = await m.newPage();
     watch(mp, "mobile");
-    for (const path of ["/", "/productions", prodUrl.replace(BASE, ""), "/productions/new", "/models", "/models/M01", "/settings"]) {
+    for (const path of ["/", "/productions", prodUrl.replace(BASE, ""), "/productions/new", "/models", "/models/M01", "/coming-soon", "/settings"]) {
       await mp.goto(`${BASE}${path}`);
       await mp.waitForTimeout(2500);
       check(await noOverflow(mp), `${path} has no horizontal scroll at 390 px`);
