@@ -73,12 +73,16 @@ export type ProductionDraft = {
   looks?: Record<string, { footwear?: string; accessories?: string[]; fit?: string }>;
 };
 
-/** Garment groups that can be worn together in one look. A folder of three dresses is not a look of three dresses. */
+/**
+ * Which garments of a look a product is photographed with. Never a garment that would cover the product: a top or a
+ * dress is shot without the look's jacket (it would hide them); trousers are shot with the top and the jacket over it.
+ * A folder of three dresses is not a look of three dresses.
+ */
 const GROUP: Record<Category, "top" | "bottom" | "outer" | "dress"> = {
   top: "top", bodysuit: "top", knit: "top", trousers: "bottom", skirt: "bottom", shorts: "bottom", jacket: "outer", coat: "outer", dress: "dress",
 };
 const WORN_WITH: Record<"top" | "bottom" | "outer" | "dress", readonly string[]> = {
-  top: ["bottom", "outer"], bottom: ["top", "outer"], outer: ["top", "bottom", "dress"], dress: ["outer"],
+  top: ["bottom"], bottom: ["top", "outer"], outer: ["top", "bottom", "dress"], dress: [],
 };
 export const wornTogether = (a: Category, b: Category) => WORN_WITH[GROUP[a]].includes(GROUP[b]);
 

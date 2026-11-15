@@ -337,7 +337,11 @@ describe("a look: top, bottom, shoes, accessories and fit reference", () => {
 
   it("only combines garments that are worn together: three dresses in one folder are not one look", async () => {
     expect(repo.wornTogether("top", "trousers")).toBe(true);
-    expect(repo.wornTogether("dress", "coat")).toBe(true);
+    expect(repo.wornTogether("trousers", "jacket")).toBe(true);
+    expect(repo.wornTogether("jacket", "top")).toBe(true);
+    // Never a layer that would cover the product.
+    expect(repo.wornTogether("top", "jacket")).toBe(false);
+    expect(repo.wornTogether("dress", "coat")).toBe(false);
     expect(repo.wornTogether("dress", "dress")).toBe(false);
     expect(repo.wornTogether("dress", "trousers")).toBe(false);
     expect(repo.wornTogether("top", "knit")).toBe(false);

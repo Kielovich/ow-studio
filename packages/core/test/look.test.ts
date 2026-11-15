@@ -85,6 +85,20 @@ describe("a look: the other garment, shoes, accessories and fit as images", () =
     expect(i.prompt).toContain("top: the top in the attached look packshot");
   });
 
+  it("puts a jacket of the look over the top of the trousers, never in place of it", () => {
+    const JACKET = { sku: "TEST-JK-004", category: "jacket" as const, front: asset("TEST-JK-004/front") };
+    const spec = exampleSpec({
+      products: [{ ...PRODUCT_SUIT_PANTS, look: { garments: [JACKET], accessories: [] } }],
+      slots: [{ preset: "full_body" }],
+      styling: { top: "plain black fitted long-sleeve top", accessories: [] },
+      providerProfileId: GEMINI_PRO_PROFILE.id,
+    });
+    const i = compileProduction(spec, GEMINI_PRO_PROFILE).images[0]!;
+    expect(i.prompt).toContain("top: plain black fitted long-sleeve top");
+    expect(i.prompt).toContain("worn over the top: the jacket in the attached look packshot");
+    expect(i.refs.find((x) => x.role === "look_garment_front")!.asset).toBe(JACKET.front);
+  });
+
   it("drops accessories first when references must be trimmed, and the prompt stops calling them attached", () => {
     const t = compileProduction(lookSpec({ presets: ["styled_full"] }), { ...GEMINI_PRO_PROFILE, maxRefs: 6 });
     const styled = image(t, "TEST-TP-002", "styled_full");

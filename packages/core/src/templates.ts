@@ -141,9 +141,12 @@ export function buildBlocks(spec: ImageSpec, a: PoseAssignment, sent: RefSlot[] 
     else if (st.innerTop) styling.push(`worn over: ${st.innerTop}`);
   }
   if (BOTTOM_CATEGORIES.includes(p.category)) {
-    const t = take((g) => !isBottom(g.category));
+    const t = take((g) => !isBottom(g.category) && !isOuter(g.category));
     if (t) styling.push(`top: ${t}`);
     else if (st.top) styling.push(`top: ${st.top}`);
+    // A jacket or coat of the look goes over the top, never instead of it.
+    const outer = take((g) => isOuter(g.category));
+    if (outer) styling.push(`worn over the top: ${outer}`);
   }
   if (!BOTTOM_CATEGORIES.includes(p.category) && p.category !== "dress") {
     const t = take((g) => isBottom(g.category));
