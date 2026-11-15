@@ -128,22 +128,25 @@ export function builderHair(spec: BuilderSpec): string {
 
 const FRECKLES = "light natural freckles";
 
-/** Realism language from the realism refresh (docs/realism-audit.md, lever 2). */
 /**
- * The brand's look (owner's direction, 2026-11-15): models who look like top models, with attitude and a cool look.
- * The first paid test used the realism refresh's wording on its own (natural, matte, "a few tiny marks", calm) and made
- * plain, girl-next-door faces: that wording was written to take the AI sheen off faces that were already striking.
- * A new face needs the striking part first: top-model bone structure, a cool, self-assured look, the brand's polished
- * clean glam (gallery analysis, docs/model-look.md), sculpting beauty light; real skin texture keeps it from looking plastic.
+ * The finish: a top model, photographed for real.
+ *
+ * Owner's direction 1 (2026-11-15): models who look like top models, with attitude and a cool look. The first paid test
+ * used the realism refresh's wording on its own (natural, matte, calm) and made plain, girl-next-door faces: a new face
+ * needs the striking part first (LOOK, ATTITUDE).
+ * Owner's direction 2 (later the same day): "not realistic enough". The glam wording added after round 2 ("luminous",
+ * "flawless-looking", "distinct highlight", "satin shine", "expensive-looking") is beauty-retouch language: it gives the
+ * smooth, glowing AI finish the realism audit warned against (docs/realism-audit.md: no "flawless"/"perfect"). Now the
+ * makeup is the brand's clean glam as a real make-up artist does it, and everything else describes an unretouched
+ * photograph: skin that reads as skin, light with fall-off, natural colour, focus fall-off, grain.
  */
 export const BUILDER_REAL = {
   hair: "real hair, not a solid helmet: the same cut, with a few fine flyaways crossing the outline of the hair against the background, a few short baby hairs at the temples and along the parting, and individual strands separating at the ends",
-  // Round 2 of the paid test: only the candidate with clearly visible glam had the brand's look; the others came out bare.
-  makeup: "clearly visible polished clean glam of a high-end fashion campaign: luminous skin with a distinct soft highlight on the cheekbones and the bridge of the nose, a warm bronze contour that sculpts under the cheekbones, a light flush of blush, groomed defined brows, soft brown liner and defined lashes, nude-pink lips with a soft satin shine",
-  skin: "flawless-looking but real: fine skin texture and pores visible under the makeup on the nose and cheeks; not airbrushed, not plastic, not waxy",
+  makeup: "the brand's clean glam as a real make-up artist does it on set, visible but skin-like: a light base that lets the skin's texture show through, softly sculpted cheekbones with no visible contour lines, a natural flush on the cheeks, groomed brushed-up brows, soft brown definition at the lash line and separated lashes, nude lips with their own natural texture and a soft balm finish, not glossy",
+  skin: "real, unretouched skin: pores visible on the nose, cheeks and chin, fine peach fuzz along the jaw and cheeks catching the light, slight natural colour variation with a little warmth around the nose and on the cheeks, a soft natural sheen only on the high points of the face; nothing smoothed, blurred or glowing",
   // The first paid test drew the softbox itself into the frame: the light is described, the equipment is excluded.
-  light: "soft beauty light from a large source in front of her and slightly above, sculpting gentle shadows under the cheekbones and along the jaw, with soft fill; plain light grey seamless background filling the whole frame; no lights, softboxes, stands or other studio equipment visible anywhere in the picture",
-  camera: "full-frame camera, 85 mm lens at f/5.6, ISO 100: natural micro-contrast, crisp individual lashes and hairs, very subtle grain",
+  light: "soft directional light from one large source in front of her and to one side, with natural fall-off: one side of the face slightly darker than the other, soft shadows under the cheekbones, the jaw and the nose; plain light grey seamless paper behind her, slightly darker towards the edges of the frame; no lights, softboxes, stands or other studio equipment visible anywhere in the picture",
+  camera: "a real photograph straight out of the camera, not retouched: full-frame camera, 85 mm lens at f/4, ISO 200, natural colour and contrast, focus on the eyes with a gentle fall-off towards the ears and shoulders, fine natural grain; eyes with one soft catchlight each and natural, slightly off-white whites; the face with its natural slight asymmetry. It must not look like CGI, a 3D render, a beauty filter or a retouched beauty advert: no HDR look, no sharpening halos, no skin smoothing",
 } as const;
 const REAL = BUILDER_REAL;
 
@@ -152,7 +155,7 @@ const LOOK =
   "She has the face and presence of an in-demand top fashion model who walks international runways and fronts campaigns: striking rather than pretty, " +
   "high sculpted cheekbones, a defined jawline and chin, strong groomed brows, full lips, a long elegant neck and defined collarbones; tall, slim, long-limbed model build. " +
   // Round 2: "striking" without this aged two of three candidates (gaunt, hollow-cheeked, past 30).
-  "A young face that matches her age: smooth youthful skin and a soft fullness in the cheeks under the high cheekbones; never gaunt, hollow-cheeked or older-looking.";
+  "A young face that matches her age: youthful skin and a soft fullness in the cheeks under the high cheekbones; never gaunt, hollow-cheeked or older-looking.";
 
 /** The attitude: cool and self-assured, never sweet. */
 const ATTITUDE =
@@ -166,7 +169,7 @@ export function builderPortraitPrompt(spec: BuilderSpec): string {
     `${text("heritage", spec.heritage)}; ${text("eyes", spec.eyes)}; ${text("skin", spec.skin)} skin${spec.freckles ? ` with ${FRECKLES}` : ""}. Hair: ${builderHair(spec)}.`,
     LOOK,
     ATTITUDE,
-    `Hair finish: styled and expensive-looking; ${REAL.hair}.`,
+    `Hair finish: styled by a hairstylist for the shoot; ${REAL.hair}.`,
     `Makeup: ${REAL.makeup}.`,
     `Skin: ${REAL.skin}.`,
     "No jewellery. Straight-on front view: face and shoulders square to the camera, no head turn; head and shoulders with space above the head and the shoulders and tank top fully visible, camera at eye level. " +
@@ -202,9 +205,9 @@ export function builderReferencePrompt(kind: ReferenceKind, spec: BuilderSpec): 
     case "profile":
       return `Identity reference, side profile, of ${same}\n\nHead and shoulders in exact side profile (90 degrees), the same cool, self-assured expression as in the portrait, lips closed. Plain fitted black tank top.\n\n${finish} Light: ${REAL.light}. Camera: ${REAL.camera}.`;
     case "bodyFront":
-      return `Full-body reference photograph of ${same}\n\n${body} Standing straight-on facing the camera with a tall, confident model posture, weight even, arms relaxed at the sides, the same cool expression as in the portrait. Head to toe in frame with margin above and below; camera at waist height.\n\n${finish} ${even}`;
+      return `Full-body reference photograph of ${same}\n\n${body} Standing straight-on facing the camera with a tall, confident model posture, weight even, arms relaxed at the sides, the same cool expression as in the portrait. Head to toe in frame with margin above and below; camera at waist height.\n\n${finish} ${even} Camera: ${REAL.camera}.`;
     case "bodyBack":
-      return `Full-body reference photograph of ${same}\n\n${body} Standing with the back to the camera, weight even, arms relaxed, head straight forward, face not visible. Head to toe in frame; camera at waist height.\n\n${finish} ${even}`;
+      return `Full-body reference photograph of ${same}\n\n${body} Standing with the back to the camera, weight even, arms relaxed, head straight forward, face not visible. Head to toe in frame; camera at waist height.\n\n${finish} ${even} Camera: ${REAL.camera}.`;
     case "characterSheet":
       // Simple beats overloaded: exactly five large panels, one neutral pose, even light, no text.
       return `Character reference sheet of ${same}\n\nOne wide image with exactly five large panels side by side, evenly spaced, nothing else: ` +

@@ -14,7 +14,8 @@ While images are being made the page says how long it takes (about a minute an i
 
 - **Original fictional adults only.** Every choice maps to fixed prompt text (`packages/core/src/modelBuilder.ts`); nothing typed reaches a prompt, there is no image upload, and the prompts say she is not a real or identifiable person. Ages 20 to 25.
 - **Money:** each paid step shows its price on the button. Builder images count against the monthly budget with production images, and a step that does not fit the budget is refused before anything is sent. A paid image is never retried automatically; an image interrupted mid-call is closed as possibly billed.
-- **The brand's look:** models who look like top models, with attitude and a cool look (owner's direction after the first paid test, which made plain, natural faces). The portrait prompt asks for top-model bone structure, a cool, self-assured and slightly aloof look (not smiling, not sweet), the brand's polished clean glam (contour, highlight, defined lashes, satin nude lips) and sculpting beauty light, on real skin texture with real hair edges. The references keep the same expression. No studio equipment in frame. Body references are stored headless, like the library's.
+- **The brand's look, photographed for real:** models who look like top models, with attitude and a cool look (owner, after the first paid test made plain faces), and realistic (owner, later the same day: "not realistic enough"). The portrait prompt asks for top-model bone structure and a cool, self-assured, slightly aloof look (not smiling, not sweet); the brand's clean glam as a real make-up artist does it (skin texture shows through, balm lips, no gloss); and an unretouched photograph: pores and peach fuzz, light with fall-off, natural colour, focus fall-off, grain, not CGI or a beauty filter. Beauty-retouch words (flawless, luminous, glow, satin, expensive-looking) are kept out and a test checks it. The references keep the same expression and finish. No studio equipment in frame. Body references are stored headless, like the library's.
+- **From an owner's AI photograph:** `apps/web/scripts/model-from-image.ts` makes a new identity portrait of the same fictional woman with this finish, then the builder's reference set, then a new model (dry run by default). Never for photographs of real people.
 
 ## Code
 
@@ -36,7 +37,7 @@ One test model (Northern European, fair with freckles, green eyes, shoulder-leng
 
 ## Not covered yet
 
-- The prompt after round 2 (young, visible glam, square to the camera) is not yet tested with real images.
+- The prompt after round 2 (young, square to the camera) and the realism finish are not yet tested with real images.
 - Fixed (2026-11-15): the pipeline gap found in the Ecom test. An image now reads as finished only after its file is stored; a result lost to a stopped worker shows as "Not saved · may have cost" with a new attempt (`docs/handover-codex-sites.md`, invariant 13). The lost close-up of the test was recovered that way.
 - A model added by mistake cannot be removed from the app yet (it can be archived in the database).
 - Disk: a finished model takes roughly 10 to 20 MB (portraits, references, headless copies). See the storage note in `docs/deploy.md`.

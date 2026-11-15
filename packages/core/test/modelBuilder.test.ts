@@ -50,18 +50,24 @@ describe("model builder prompts", () => {
     expect(p).toContain("long straight jet-black hair, styled in a sleek low bun");
     expect(p).toContain("head and shoulders");
     expect(p).toContain("black tank top");
-    // The brand's look: a top model with attitude and polished clean glam, on real skin with real hair edges.
+    // The brand's look: a top model with attitude and the brand's clean glam, on real skin with real hair edges.
     expect(p).toContain("top fashion model");
     expect(p).toContain("cool, self-assured");
     expect(p).toContain("Not smiling");
-    expect(p).toContain("bronze contour");
+    expect(p).toContain("the brand's clean glam as a real make-up artist does it");
     expect(p).toContain("pores visible");
     expect(p).toContain("flyaways");
     expect(p).not.toMatch(/approachable|tiny marks|unevenness|high-street/);
     // Round 2 of the paid test: young (not gaunt), visibly made up, square to the camera.
     expect(p).toContain("never gaunt");
-    expect(p).toContain("clearly visible polished clean glam");
     expect(p).toContain("square to the camera");
+    // Owner, after round 2: "not realistic enough". An unretouched photograph, no beauty-retouch language.
+    expect(p).toContain("real, unretouched skin");
+    expect(p).toContain("peach fuzz");
+    expect(p).toContain("natural fall-off");
+    expect(p).toContain("a real photograph straight out of the camera, not retouched");
+    expect(p).toContain("must not look like CGI");
+    expect(p).not.toMatch(/flawless|luminous|glow(?!ing\b)|satin|gloss(?!y\b)|expensive|perfect|8k|hyper|ultra|smooth youthful/i);
     // No studio equipment in the picture (the first paid test showed a softbox in frame).
     expect(p).toContain("no lights, softboxes, stands or other studio equipment visible");
   });
@@ -73,6 +79,9 @@ describe("model builder prompts", () => {
       expect(p, k).toContain("not a real or identifiable person");
       expect(p, k).toContain("exactly as in the portrait");
       if (k !== "bodyBack") expect(p, k).toContain("cool");
+      expect(p, k).toContain("real, unretouched skin");
+      expect(p, k).toContain("must not look like CGI");
+      expect(p, k).not.toMatch(/flawless|luminous|satin|expensive/i);
       expect(p, k).toMatch(/no (lights, softboxes, stands or other )?studio equipment visible/);
     }
   });

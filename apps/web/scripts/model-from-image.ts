@@ -74,10 +74,11 @@ function portraitPrompt(): string {
       "the first is a full-length photograph of her, the second a crop of her face from it. She is not a real or identifiable person and must not resemble any real person, model or celebrity.",
     `${cap(opt("heritage", m.spec.heritage))}; ${m.eyes ?? opt("eyes", m.spec.eyes)}; ${opt("skin", m.spec.skin)} skin${m.spec.freckles ? " with light natural freckles" : ""}.`,
     "Keep her identity exactly: face shape, bone structure, eye shape and colour, brows, nose, lips, skin tone, freckles, hair colour and hairline. She must be immediately recognisable as the same woman.",
-    `${m.spec.ageYears} years old: a young face that matches her age, smooth youthful skin and a soft fullness in the cheeks under the cheekbones; never gaunt, hollow-cheeked or older-looking.`,
+    "Take only who she is from the attached photographs, not how they look: they are over-smoothed and flatly lit. The new picture is a real, unretouched photograph of her (see skin, light and camera below).",
+    `${m.spec.ageYears} years old: a young face that matches her age, youthful skin and a soft fullness in the cheeks under the cheekbones; never gaunt, hollow-cheeked or older-looking.`,
     "Photograph her the way a top agency would: she has the presence of an in-demand fashion model who fronts international campaigns. " +
       "Attitude: cool, self-assured and a little aloof, with the quiet intensity of a campaign model: a strong, direct gaze straight into the lens, chin level or very slightly lowered, a relaxed but firm mouth with the lips closed. Not smiling, not sweet, not shy, not a pose.",
-    `Hair: ${builderHair(m.spec)}, exactly as in the photograph; styled and expensive-looking; ${R.hair}.`,
+    `Hair: ${builderHair(m.spec)}, exactly as in the photograph; styled by a hairstylist for the shoot; ${R.hair}.`,
     `Makeup: ${R.makeup}.`,
     `Skin: ${R.skin}.`,
     "No jewellery. Straight-on front view: face and shoulders square to the camera, no head turn; head and shoulders with space above the head and the shoulders and tank top fully visible, camera at eye level. Plain fitted black tank top.",
