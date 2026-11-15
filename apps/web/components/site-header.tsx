@@ -36,7 +36,7 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-line">
       <div className="max-w-[1440px] mx-auto safe-x h-16 md:h-20 grid grid-cols-[1fr_auto_1fr] items-center">
-        {!onLogin && <nav className="hidden md:flex gap-4 lg:gap-7 ow-nav">
+        {!onLogin && <nav className="hidden lg:flex gap-7 ow-nav whitespace-nowrap">
           {NAV.slice(0, 3).map((n) => (
             <Link key={n.href} href={n.href} className={`py-1.5 border-b ${active(n.href) ? "border-ink" : "border-transparent text-black/60 hover:text-ink"}`}>
               {n.label}
@@ -47,7 +47,7 @@ export function SiteHeader() {
           <Image src="/brand/ow-logo-black.png" alt="OW" width={60} height={31} priority />
           <span className="ow-eyebrow hidden sm:inline">Studio</span>
         </Link>
-        {!onLogin && <nav className="hidden md:flex gap-4 lg:gap-7 ow-nav justify-self-end col-start-3">
+        {!onLogin && <nav className="hidden lg:flex gap-7 ow-nav whitespace-nowrap justify-self-end col-start-3">
           {NAV.slice(3).map((n) => (
             <Link key={n.href} href={n.href} className={`py-1.5 border-b ${active(n.href) ? "border-ink" : "border-transparent text-black/60 hover:text-ink"}`}>
               {n.label}
@@ -62,7 +62,7 @@ export function SiteHeader() {
             aria-expanded={open}
             aria-controls="mobile-menu"
             onClick={() => setOpen((o) => !o)}
-            className="md:hidden justify-self-end col-start-3 min-h-11 min-w-11 px-2 -mr-2 flex items-center gap-2 ow-nav"
+            className="lg:hidden justify-self-end col-start-3 min-h-11 min-w-11 px-2 -mr-2 flex items-center gap-2 ow-nav"
           >
             <span>{open ? "Close" : "Menu"}</span>
             <span aria-hidden className="relative block w-5 h-3">
@@ -73,7 +73,7 @@ export function SiteHeader() {
         )}
       </div>
       {open && (
-        <nav id="mobile-menu" className="md:hidden border-t border-line bg-white max-h-[calc(100dvh-4rem)] overflow-y-auto">
+        <nav id="mobile-menu" className="lg:hidden border-t border-line bg-white max-h-[calc(100dvh-4rem)] md:max-h-[calc(100dvh-5rem)] overflow-y-auto">
           {NAV.map((n) => (
             <Link key={n.href} href={n.href} aria-current={active(n.href) ? "page" : undefined} onClick={() => setOpen(false)}
               className={`flex items-center justify-between safe-x h-14 border-b border-line ow-nav text-sm ${active(n.href) ? "text-ink" : "text-black/60"}`}>

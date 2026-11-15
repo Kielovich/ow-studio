@@ -8,7 +8,7 @@ import { TipBox } from "@/components/help";
 import { PageTitle } from "@/components/page-title";
 import { Tile } from "@/components/tile";
 import { getJson, isNotFound } from "@/lib/client";
-import { assetUrl, usd } from "@/lib/types";
+import { assetUrl, usd, formatDate } from "@/lib/types";
 
 type Row = { id: string; name: string; created_at: string; est_cost: number; total: number; done: number; attention: number; active: number; approved: number; to_review: number; cover: string | null };
 
@@ -48,12 +48,12 @@ export default function ProductionsPage() {
               <Link key={p.id} href={`/productions/${p.id}`} className="group">
                 <Tile src={assetUrl(p.cover, 480)} alt={p.name} className="mb-3 group-hover:opacity-90 transition-opacity" />
                 <div className="flex items-start gap-2 mb-1">
-                  <span className="ow-nav line-clamp-2 min-w-0">{p.name}</span>
+                  <span className="text-base font-medium leading-tight line-clamp-2 min-w-0">{p.name}</span>
                   {p.active > 0 && <Chip size="sm" color="accent">Running</Chip>}
                   {p.attention > 0 && <Chip size="sm" color="warning">{p.attention} to check</Chip>}
                 </div>
                 <div className="text-sm text-black/60">
-                  {new Date(p.created_at + "Z").toLocaleDateString()} · {p.approved}/{p.total} approved{p.to_review ? ` · ${p.to_review} to review` : ""}{p.active ? ` · ${p.active} running` : ""}
+                  {formatDate(p.created_at)} · {p.approved} of {p.total} approved{p.to_review ? ` · ${p.to_review} to review` : ""}{p.active ? ` · ${p.active} running` : ""}
                 </div>
               </Link>
             ) : (

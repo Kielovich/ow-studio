@@ -12,10 +12,7 @@ import {
   completePairs, DEFAULT_SKU_PATTERN, importIssues, KIND_LABELS, lookAssets, lookOfSku, packshotsBySku, parseFile, ROLES, usable, type FileKind,
   type ImportFile, type ImportIssue, type Role,
 } from "@/lib/import";
-import {
-  assetUrl, BRAND_SET, CATEGORIES, FLAGS, PRESET_LABELS, usd,
-  type Category, type GarmentFlag, type PresetId,
-} from "@/lib/types";
+import { assetUrl, BRAND_SET, CATEGORIES, FLAGS, PRESET_LABELS, usd, type Category, type GarmentFlag, type PresetId, formatDateTime } from "@/lib/types";
 
 type ProductInfo = { name: string; category: Category; color: string; description: string; flags: GarmentFlag[] };
 type ModelRow = { modelId: string; version: number; status: string; data: { displayName: string; ageYears: number; heightCm: number; euSize: number; refs: { primaryPortrait: string } } };
@@ -553,7 +550,7 @@ export function NewProduction() {
               <li key={d.id}>
                 <Link href={`/productions/new?draft=${d.id}`} className="flex justify-between py-3 text-sm hover:bg-meta px-2">
                   <span>{d.name || "Untitled import"} · {d.files} files{d.productionId ? " · run" : ""}</span>
-                  <span className="text-black/60">{new Date(d.updatedAt + "Z").toLocaleString()}</span>
+                  <span className="text-black/60">{formatDateTime(d.updatedAt)}</span>
                 </Link>
               </li>
             ))}

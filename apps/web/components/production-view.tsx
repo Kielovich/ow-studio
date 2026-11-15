@@ -9,7 +9,7 @@ import { InfoTip, TipBox } from "@/components/help";
 import { PageTitle } from "@/components/page-title";
 import { Tile } from "@/components/tile";
 import type { Attempt, Metrics, StatusView } from "@/lib/outcome";
-import { ACTIVE_STATES, assetUrl, BRAND_SET, PRESET_LABELS, usd, type PresetId } from "@/lib/types";
+import { ACTIVE_STATES, assetUrl, BRAND_SET, formatDate, PRESET_LABELS, usd, type PresetId } from "@/lib/types";
 
 type Img = {
   id: string; sku: string; preset: PresetId; slotIndex: number; state: string; finalAsset: string | null; rawAsset: string | null; dependsOn: string | null;
@@ -97,27 +97,9 @@ export function ProductionView() {
 
   return (
     <>
-      <PageTitle eyebrow={`${p.spec.model.displayName} · ${new Date(p.createdAt + "Z").toLocaleDateString()}`} title={p.name}>
+      <PageTitle eyebrow={`${p.spec.model.displayName} · ${formatDate(p.createdAt)}`} title={p.name}>
         <LinkButton href={`/api/productions/${id}/zip`} disabled={m.approved === 0}>Download approved ({m.approved})</LinkButton>
-        <LinkButton href={`/api/productions/${id}/zip?all=1`} variant="secondary" disabled={finished === 0}>All finished</LinkButton>
-        <AlertDialog>
-          <Button variant="ghost">Delete</Button>
-          <AlertDialog.Backdrop>
-            <AlertDialog.Container>
-              <AlertDialog.Dialog>
-                <AlertDialog.Header><AlertDialog.Heading>Delete this production?</AlertDialog.Heading></AlertDialog.Header>
-                <AlertDialog.Body>
-                  <p>It disappears from the history. Images still being generated must finish first. Models and packshots are not affected.</p>
-                  {deleteError && <p className="text-danger mt-2">{deleteError}</p>}
-                </AlertDialog.Body>
-                <AlertDialog.Footer>
-                  <Button slot="close" variant="secondary">Cancel</Button>
-                  <Button variant="danger" onPress={remove}>Delete</Button>
-                </AlertDialog.Footer>
-              </AlertDialog.Dialog>
-            </AlertDialog.Container>
-          </AlertDialog.Backdrop>
-        </AlertDialog>
+        <LinkButton href={`/api/productions/${id}/zip?all=1`} variant="secondary" disabled={finished === 0}>Download all finished</LinkButton>
       </PageTitle>
 
       <div className="border-y border-line py-5 mb-12 flex flex-col gap-5">
@@ -159,6 +141,7 @@ export function ProductionView() {
                     <button className="block w-full text-left" onClick={() => openImage(img)} disabled={!img.attempts.length && !img.job.lastError}>
                       <Tile src={assetUrl(img.finalAsset, 800)} alt={`${sku} ${img.preset}`} className={st.key === "approved" ? "outline outline-1 outline-ink -outline-offset-1" : ""}>
                         {ACTIVE_STATES.has(img.state) && <span className="absolute inset-0 grid place-items-center bg-white/40"><Spinner /></span>}
+                        {!img.finalAsset && !ACTIVE_STATES.has(img.state) && <span className="absolute inset-0 grid place-items-center text-sm text-black/60">{st.key === "waiting" ? "Waiting" : "No image"}</span>}
                         {img.attempts.length > 1 && <span className="absolute top-1.5 left-1.5 bg-white/90 text-[0.75rem] px-1.5 py-0.5 uppercase tracking-wide">{img.attempts.length} attempts</span>}
                       </Tile>
                     </button>
@@ -167,20 +150,20 @@ export function ProductionView() {
                       <Chip size="sm" color={st.color}>{st.label}</Chip>
                     </div>
                     {st.hint && <p className="text-xs text-black/60 mt-2 line-clamp-3">{st.hint}</p>}
-                    <div className="mt-2 flex flex-wrap gap-1.5">
+                    <div className="mt-2 grid grid-cols-2 gap-1.5">
                       {reviewable && st.key !== "approved" && (
-                        <Button size="sm" isPending={busy === `${img.id}:${cur!.attempt}:approved`} onPress={() => review(img, cur!.attempt, "approved")}>Approve</Button>
+                        <Button size="sm" className="w-full min-w-0 px-2" isPending={busy === `${img.id}:${cur!.attempt}:approved`} onPress={() => review(img, cur!.attempt, "approved")}>Approve</Button>
                       )}
                       {reviewable && st.key !== "rejected" && (
-                        <Button size="sm" variant="secondary" isPending={busy === `${img.id}:${cur!.attempt}:rejected`} onPress={() => review(img, cur!.attempt, "rejected")}>Reject</Button>
+                        <Button size="sm" variant="secondary" className="w-full min-w-0 px-2" isPending={busy === `${img.id}:${cur!.attempt}:rejected`} onPress={() => review(img, cur!.attempt, "rejected")}>Reject</Button>
                       )}
                       {st.canRetry && (
-                        <Button size="sm" variant={st.key === "rejected" ? "primary" : "secondary"} isPending={busy === `${img.id}:retry`} onPress={() => retry(img)}>
+                        <Button size="sm" variant={st.key === "rejected" ? "primary" : "secondary"} className="col-span-2 w-full" isPending={busy === `${img.id}:retry`} onPress={() => retry(img)}>
                           {st.key === "unknown" ? "New attempt (may cost again)" : "New attempt (paid)"}
                         </Button>
                       )}
                       {img.approvedAttempt !== null && st.key !== "approved" && (
-                        <span className="text-xs text-black/60 self-center">Attempt {img.approvedAttempt} approved</span>
+                        <span className="col-span-2 text-xs text-black/60">Attempt {img.approvedAttempt} approved</span>
                       )}
                     </div>
                   </div>
@@ -189,6 +172,28 @@ export function ProductionView() {
             </div>
           </section>
         ))}
+      </div>
+
+      {/* Deleting is kept apart from the downloads, at the end of the page. */}
+      <div className="mt-16 pt-6 border-t border-line">
+        <AlertDialog>
+          <Button variant="ghost" className="-ml-4">Delete production</Button>
+          <AlertDialog.Backdrop>
+            <AlertDialog.Container>
+              <AlertDialog.Dialog>
+                <AlertDialog.Header><AlertDialog.Heading>Delete this production?</AlertDialog.Heading></AlertDialog.Header>
+                <AlertDialog.Body>
+                  <p>It disappears from the history. Images still being generated must finish first. Models and packshots are not affected.</p>
+                  {deleteError && <p className="text-danger mt-2">{deleteError}</p>}
+                </AlertDialog.Body>
+                <AlertDialog.Footer>
+                  <Button slot="close" variant="secondary">Cancel</Button>
+                  <Button variant="danger" onPress={remove}>Delete</Button>
+                </AlertDialog.Footer>
+              </AlertDialog.Dialog>
+            </AlertDialog.Container>
+          </AlertDialog.Backdrop>
+        </AlertDialog>
       </div>
 
       <Modal.Backdrop isOpen={!!open} onOpenChange={(o) => !o && setOpenId(null)}>

@@ -44,3 +44,10 @@ export const assetUrl = (hash: string | null | undefined, w?: 240 | 480 | 800 | 
   hash ? `/api/assets/${hash.replace(/^sha256:/, "")}${w ? `?w=${w}` : ""}` : "";
 
 export const usd = (n: number) => `$${n.toFixed(2)}`;
+
+const DAY = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" });
+const DAY_TIME = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+/** "15 Nov 2026" from a stored UTC timestamp ("2026-11-15 10:01:16"). */
+export const formatDate = (utc: string) => DAY.format(new Date(utc.replace(" ", "T") + "Z"));
+/** "15 Nov, 10:01" from a stored UTC timestamp, in the viewer's time zone. */
+export const formatDateTime = (utc: string) => DAY_TIME.format(new Date(utc.replace(" ", "T") + "Z"));

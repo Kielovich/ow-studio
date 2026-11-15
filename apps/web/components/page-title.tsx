@@ -5,7 +5,7 @@ export function PageTitle({ eyebrow, title, children }: { eyebrow?: string; titl
         {eyebrow ? <div className="ow-eyebrow mb-3">{eyebrow}</div> : null}
         <h1 className="ow-display text-4xl md:text-5xl">{title}</h1>
       </div>
-      {children ? <div className="flex flex-wrap gap-3">{children}</div> : null}
+      {children ? <div className="flex flex-wrap gap-3 lg:shrink-0">{children}</div> : null}
     </div>
   );
 }

@@ -227,6 +227,14 @@ async function main() {
     const one = await page.request.get(`${BASE}/api/images/${p.images[0].id}/download`);
     const meta = await sharp(await one.body()).metadata();
     check(one.status() === 200 && meta.width === 2000 && meta.height === 2000 && meta.format === "jpeg", "single download is a 2000 x 2000 JPEG");
+    // Delete sits apart from the downloads, asks first, and Cancel keeps the production.
+    await page.goto(prodUrl);
+    await page.getByRole("button", { name: "Delete production" }).click();
+    const confirm = page.getByRole("alertdialog");
+    await confirm.getByText("Delete this production?").waitFor();
+    await confirm.getByRole("button", { name: "Cancel" }).click();
+    await confirm.waitFor({ state: "hidden" });
+    check((await page.request.get(`${BASE}/api/productions/${id}`)).status() === 200, "Delete production asks first; Cancel keeps it");
   });
 
   await stage("Other pages, keyboard and missing production", async () => {
@@ -335,6 +343,13 @@ async function main() {
       await hig(mp, path, true);
       await shot(mp, `mob${path.replace(/\//g, "-").slice(0, 40) || "-home"}`);
     }
+    // Review on a phone: Approve and Reject of one image sit side by side, not on two lines.
+    await mp.goto(prodUrl);
+    const approve = mp.getByRole("button", { name: "Approve", exact: true }).last();
+    await approve.waitFor();
+    const reject = approve.locator("..").getByRole("button", { name: "Reject", exact: true });
+    const [ba, br] = [await approve.boundingBox(), await reject.boundingBox()];
+    check(!!ba && !!br && Math.abs(ba.y - br.y) < 2 && br.x > ba.x, "on a phone, Approve and Reject sit side by side");
     await mp.goto(`${BASE}/productions/new`);
     await mp.getByRole("button", { name: "Add a look by hand" }).click();
     await mp.getByTestId("manual-look").waitFor();
