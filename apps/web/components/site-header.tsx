@@ -10,6 +10,7 @@ const NAV = [
   { href: "/productions/new", label: "New production" },
   { href: "/productions", label: "Productions" },
   { href: "/models", label: "Models" },
+  { href: "/coming-soon", label: "Coming soon" },
   { href: "/settings", label: "Settings" },
 ];
 
@@ -35,7 +36,7 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-line">
       <div className="max-w-[1440px] mx-auto safe-x h-16 md:h-20 grid grid-cols-[1fr_auto_1fr] items-center">
-        <nav className="hidden md:flex gap-7 ow-nav">
+        <nav className="hidden md:flex gap-4 lg:gap-7 ow-nav">
           {NAV.slice(0, 3).map((n) => (
             <Link key={n.href} href={n.href} className={`py-1.5 border-b ${active(n.href) ? "border-ink" : "border-transparent text-black/60 hover:text-ink"}`}>
               {n.label}
@@ -46,7 +47,7 @@ export function SiteHeader() {
           <Image src="/brand/ow-logo-black.png" alt="OW" width={60} height={31} priority />
           <span className="ow-eyebrow hidden sm:inline">Studio</span>
         </Link>
-        <nav className="hidden md:flex gap-7 ow-nav justify-self-end col-start-3">
+        <nav className="hidden md:flex gap-4 lg:gap-7 ow-nav justify-self-end col-start-3">
           {NAV.slice(3).map((n) => (
             <Link key={n.href} href={n.href} className={`py-1.5 border-b ${active(n.href) ? "border-ink" : "border-transparent text-black/60 hover:text-ink"}`}>
               {n.label}
