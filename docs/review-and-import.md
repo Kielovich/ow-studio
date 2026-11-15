@@ -18,7 +18,9 @@ A look is one set (a folder, or a look added by hand with a slot per image: top 
 - New reference roles control only `styling` (other garment, shoes, accessories) or `fit`; the product's packshots stay first and remain the authority for the product. Accessories come last and are the first to be dropped at the limit of 11 references; the prompt only calls an image "attached" when it is really sent.
 - A production without a look compiles exactly as before (the prompt snapshots are unchanged).
 - Shoe, bag and fit files in a folder are recognised by name (`shoes`, `sko`, `bag`, `taske`, `fit`, `pasform`, ...) and can be re-typed in the import.
-- Not yet verified with paid images; until then this stays off `main` (which deploys to production).
+- Never a layer that covers the product: a top or a dress is shot without the look's jacket; bottoms wear the look's top but not its jacket (see the test below).
+- Paid test (2026-11-15, Noa, fur jacket FUR-JACKET-01 + coated trousers COATED-TROUSERS-01, `prod_20261115_ba8be6`, 3 images, $0.48): the jacket's full-body shot wore the real trousers from their packshot, with the same jacket quality as the text-styled benchmark; the trousers' front shot wore the jacket correctly over the top, with the trousers unchanged at full resolution (button, fly, pockets, leg shape); **the trousers' back shot left the jacket out**. A retest with an explicit "every garment of the look is worn in the back view too" (`prod_20261115_4dca0b`, 1 image, $0.16) still left it out and pulled the head and full body into a lower-body crop, so that sentence was removed and bottoms no longer wear the look's jacket.
+- Verified: a jacket (outerwear) shot with the look's trousers. Not yet verified with paid images: top + bottom pairs, shoes, accessories and the fit reference.
 
 ## Hand fix (tried, not in the app)
 
