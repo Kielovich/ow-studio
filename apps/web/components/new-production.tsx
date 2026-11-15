@@ -10,10 +10,10 @@ import { PageTitle } from "@/components/page-title";
 import { Tile } from "@/components/tile";
 import {
   completePairs, DEFAULT_SKU_PATTERN, importIssues, KIND_LABELS, lookAssets, lookOfSku, packshotsBySku, parseFile, ROLES, usable, type FileKind,
-  type ImportFile, type ImportIssue, type Role, type Source,
+  type ImportFile, type ImportIssue, type Role,
 } from "@/lib/import";
 import {
-  assetUrl, BRAND_SET, CATEGORIES, DEFAULT_MAKEUP, FLAGS, PRESET_LABELS, usd,
+  assetUrl, BRAND_SET, CATEGORIES, FLAGS, PRESET_LABELS, usd,
   type Category, type GarmentFlag, type PresetId,
 } from "@/lib/types";
 
@@ -61,7 +61,6 @@ const guessCategory = (s: string): Category => {
 
 const randomId = (prefix: string) => prefix + crypto.randomUUID().replace(/-/g, "").slice(0, 16);
 
-const SOURCE_LABEL: Record<Source, string> = { filename: "from name", folder: "from folder", name: "from product name", pair: "other of a pair", manual: "set by hand" };
 
 /** Walks dropped folders. Entries must be taken synchronously in the drop handler, before any await. */
 async function droppedFiles(entries: FileSystemEntry[]): Promise<{ file: File; path: string }[]> {
@@ -147,10 +146,21 @@ const SLOT_HINT: Record<Role, string> = {
 };
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-function SourceTag({ source }: { source: Source | null }) {
-  if (!source) return null;
-  return <span className={`text-[0.75rem] uppercase tracking-wide ${source === "manual" ? "text-ink" : "text-black/60"}`}>{SOURCE_LABEL[source]}</span>;
-}
+/** One choice per file instead of a style number field and side buttons: which garment and which side, or the rest of the look. */
+type Group = "top" | "bottom" | "dress" | "outer";
+const GROUP_OF: Record<Category, Group> = { top: "top", bodysuit: "top", knit: "top", trousers: "bottom", skirt: "bottom", shorts: "bottom", dress: "dress", jacket: "outer", coat: "outer" };
+const GROUP_CATEGORY: Record<Group, Category> = { top: "top", bottom: "trousers", dress: "dress", outer: "jacket" };
+const CHOICES: { label: string; options: [string, string][] }[] = [
+  { label: "Top", options: [["top:front", "Top front"], ["top:back", "Top back"], ["top:detail", "Top detail"]] },
+  { label: "Bottom", options: [["bottom:front", "Bottom front"], ["bottom:back", "Bottom back"], ["bottom:detail", "Bottom detail"]] },
+  { label: "Dress", options: [["dress:front", "Dress front"], ["dress:back", "Dress back"], ["dress:detail", "Dress detail"]] },
+  { label: "Jacket or coat", options: [["outer:front", "Jacket front"], ["outer:back", "Jacket back"]] },
+  { label: "Rest of the look", options: [["footwear", "Shoes"], ["accessory", "Accessory"], ["fit", "Fit reference"]] },
+];
+const choiceOf = (f: ImportFile): string =>
+  f.kind !== "garment" ? f.kind : f.role && f.category ? `${GROUP_OF[f.category]}:${f.role}` : "";
+const slugOf = (s: string) => s.trim().replace(/\s+/g, "-").replace(/[^A-Za-z0-9._-]/g, "").toUpperCase().slice(0, 40) || "LOOK";
+
 
 export function NewProduction() {
   const router = useRouter();
@@ -373,23 +383,38 @@ export function NewProduction() {
   const warnings = preview?.conflicts.filter((c) => c.severity === "warning" && c.code !== "PROFILE_UNVERIFIED") ?? [];
   const overBudget = preview ? preview.estCostUsd > preview.budgetRemainingUsd : false;
 
-  const decisionRow = (f: ImportFile, note: string) => (
+  /** Applies a "What is this?" choice: garment group and side, or shoes / accessory / fit reference. */
+  const assign = (f: ImportFile, v: string) => {
+    if (v === "footwear" || v === "accessory" || v === "fit") { update(f.key, { kind: v, role: null, roleSource: null }); return; }
+    const [g, role] = v.split(":") as [Group, Role];
+    const category = f.category && GROUP_OF[f.category] === g ? f.category : GROUP_CATEGORY[g];
+    const sku = f.sku ?? `${slugOf(f.set ?? "Look")}-${g.toUpperCase()}`;
+    update(f.key, { kind: "garment", role, roleSource: "manual", sku, skuSource: f.sku ? f.skuSource : "manual", category });
+    if (info[sku] && GROUP_OF[info[sku]!.category] !== g) setProduct(sku, { category });
+  };
+  const choiceSelect = (f: ImportFile) => (
+    <select aria-label={`What is ${f.filename}?`} value={choiceOf(f)} onChange={(e) => assign(f, e.target.value)}
+      className="border border-ink bg-white h-11 px-3 text-sm min-w-0 w-full sm:w-auto">
+      <option value="" disabled>What is this?</option>
+      {CHOICES.map((g) => (
+        <optgroup key={g.label} label={g.label}>
+          {g.options.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+        </optgroup>
+      ))}
+    </select>
+  );
+
+  const decisionRow = (f: ImportFile) => (
     <div key={f.key} className="grid grid-cols-[112px_1fr] sm:grid-cols-[160px_1fr] gap-4 sm:gap-6 items-start">
       <a href={assetUrl(f.hash)} target="_blank" rel="noreferrer" aria-label={`Open ${f.filename} full size`} className="block relative aspect-[3/4] bg-canvas overflow-hidden">
         <img src={assetUrl(f.hash, 480)} alt={f.filename} loading="lazy" className="absolute inset-0 w-full h-full object-contain p-2" />
       </a>
       <div className="min-w-0 flex flex-col gap-3">
-        <div className="text-sm min-w-0">
-          <div className="font-medium text-base truncate">{f.filename}</div>
-          <div className="text-black/60">{note}</div>
+        <div className="font-medium text-base truncate">{f.filename}</div>
+        <div className="flex flex-wrap gap-2 items-center">
+          {choiceSelect(f)}
+          <Button size="sm" variant="ghost" onPress={() => update(f.key, { ignored: true })}>Ignore</Button>
         </div>
-      <div className="flex flex-wrap gap-2 items-center">
-        <Input aria-label="SKU" placeholder="SKU" className="w-36" value={f.sku ?? ""} onChange={(e) => update(f.key, { sku: e.target.value.trim().toUpperCase() || null, skuSource: "manual" })} />
-        {ROLES.map((r) => (
-          <Button key={r} size="sm" variant={f.role === r ? "primary" : "secondary"} onPress={() => update(f.key, { role: r, roleSource: "manual" })}>{r}</Button>
-        ))}
-        <Button size="sm" variant="ghost" onPress={() => update(f.key, { ignored: true })}>Ignore</Button>
-      </div>
       </div>
     </div>
   );
@@ -397,7 +422,7 @@ export function NewProduction() {
   const issueView = (i: ImportIssue, n: number) => {
     if (i.code === "NEEDS_DECISION") {
       const f = byKey(i.key);
-      return f ? decisionRow(f, `${i.missing.map((m) => (m === "sku" ? "SKU" : "angle")).join(" and ")} not recognised`) : null;
+      return f ? decisionRow(f) : null;
     }
     if (i.code === "ROLE_TAKEN") {
       return (
@@ -431,7 +456,7 @@ export function NewProduction() {
       </PageTitle>
       <TipBox id="new-production" title="Before you start" steps={[
         <>Use one folder per look, or press <b>Add a look by hand</b>: a top, a bottom or both, and if you like shoes, accessories and a fit reference.</>,
-        <>Name files with style number and angle, e.g. <span className="font-mono text-[13px]">AB123-045_front.jpg</span> and <span className="font-mono text-[13px]">AB123-045_back.jpg</span>. Every product needs a front packshot.</>,
+        <>If a file name does not say what it shows, choose it in the list: <b>Top front</b>, <b>Bottom back</b> and so on. Every garment needs a front.</>,
         <>A box marked <b>Blocks run</b> needs a decision from you, e.g. two files for the same angle.</>,
         <>Your import is saved as you go. Nothing is paid until you press Run.</>,
       ]} />
@@ -462,7 +487,7 @@ export function NewProduction() {
         </div>
       )}
 
-      <Section n={1} title="Packshots" hint="Drop a folder per look. Style number and angle are read from the file names; you can correct them below.">
+      <Section n={1} title="Packshots" hint="Drop a folder per look, choose files, or add a look by hand.">
         <div
           onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
           onDragLeave={() => setDragOver(false)}
@@ -496,7 +521,7 @@ export function NewProduction() {
               <Chip color="danger" size="sm">Blocks run</Chip>
               <span className="ow-eyebrow">Needs a decision ({issues.length})</span>
             </div>
-            <p className="text-sm text-black/70 mb-5 max-w-2xl">These file names do not say which product or which side they show. Type the style number and pick the side. With two images of one product, picking the front sets the other as the back.</p>
+            <p className="text-sm text-black/70 mb-5 max-w-2xl">Choose what each image shows. With two images of one garment, choosing the front sets the other as the back.</p>
             <div className="flex flex-col gap-5">{issues.map(issueView)}</div>
           </div>
         )}
@@ -515,11 +540,7 @@ export function NewProduction() {
                     const p = info[sku];
                     return (
                       <div key={sku} className="flex flex-col gap-6" data-testid="import-product">
-                        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                          <span className="ow-display text-2xl">{p?.name || sku}</span>
-                          <span className="ow-nav text-black/60">{sku}</span>
-                          <SourceTag source={own[0]?.skuSource ?? null} />
-                        </div>
+                        <div className="ow-display text-2xl">{p?.name || sku}</div>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-8">
                           {ROLES.map((r: Role) => {
                             const here = own.filter((x) => x.role === r);
@@ -528,7 +549,7 @@ export function NewProduction() {
                             if (!f) return <div key={r} className={r === "detail" || r === "side" ? "hidden sm:block" : ""}><EmptySlot title={cap(r)} hint={SLOT_HINT[r]} /></div>;
                             return (
                               <PackshotCard key={r} hash={f.hash} title={cap(r)} warn={here.length > 1}
-                                meta={here.length > 1 ? <span className="text-danger">{here.length} files: choose one above</span> : <><SourceTag source={f.roleSource} /><span className="block truncate" title={f.path}>{f.filename}</span></>}>
+                                meta={here.length > 1 ? <span className="text-danger">{here.length} files: choose one above</span> : undefined}>
                                 <TextAction href={assetUrl(f.hash)}>Full size ↗</TextAction>
                                 <TextAction onPress={() => update(f.key, { ignored: true })}>Remove</TextAction>
                               </PackshotCard>
@@ -539,7 +560,7 @@ export function NewProduction() {
                           <div className="grid grid-cols-2 gap-4 content-start max-w-3xl">
                             <Field label="Name" value={p.name} onChange={(v) => setProduct(sku, { name: v })} />
                             <Select value={p.category} onChange={(v) => v && setProduct(sku, { category: v as Category })} className="w-full">
-                              <Label className="ow-eyebrow">Category</Label>
+                              <Label className="ow-eyebrow">Type</Label>
                               <Select.Trigger><Select.Value /><Select.Indicator /></Select.Trigger>
                               <Select.Popover>
                                 <ListBox>
@@ -549,6 +570,9 @@ export function NewProduction() {
                                 </ListBox>
                               </Select.Popover>
                             </Select>
+                            <details className="col-span-2 group">
+                              <summary className="ow-nav cursor-pointer inline-flex items-center min-h-11 [@media(pointer:fine)]:min-h-7 text-black/70">More about this garment (optional)</summary>
+                              <div className="grid grid-cols-2 gap-4 mt-3">
                             <Field label="Colour" value={p.color} onChange={(v) => setProduct(sku, { color: v })} />
                             <div />
                             <TextField value={p.description} onChange={(v) => setProduct(sku, { description: v })} className="col-span-2">
@@ -573,6 +597,8 @@ export function NewProduction() {
                                 ))}
                               </div>
                             </div>
+                              </div>
+                            </details>
                           </div>
                         )}
                       </div>
@@ -643,7 +669,7 @@ export function NewProduction() {
         </div>
       </Section>
 
-      <Section n={3} title="Shots" hint="The brand set: front, three-quarter, back, styled and close-up, all framed like the brand's gallery.">
+      <Section n={3} title="Shots" hint="The brand set, framed like the webshop.">
         <div className="flex flex-wrap gap-2">
           {BRAND_SET.map((p) => (
             <ToggleButton
@@ -664,20 +690,22 @@ export function NewProduction() {
             <div className="ow-nav mb-1 flex items-center gap-2">One studio session
               <InfoTip title="One studio session">Recommended. The front image is made first; the other shots then copy its light, hair and makeup, so the set looks like one shoot. If the front is rejected, the others wait.</InfoTip>
             </div>
-            <p className="text-sm text-black/60 leading-relaxed">
-              Makes the whole set look like one shoot: same light, hair and makeup in every image.{!presets.includes("full_body") ? " Needs the Front shot." : ""}
-            </p>
+            {!presets.includes("full_body") && <p className="text-sm text-black/60">Needs the Front shot.</p>}
           </div>
         </div>
       </Section>
 
-      <Section n={4} title="Styling" hint="Hair, makeup and the pieces worn with the product. Accessories and sunglasses appear only in the styled shot.">
-        <div className="grid md:grid-cols-2 gap-5">
+      <Section n={4} title="Styling" hint="Ready as it is. Change it only for this production.">
+        <div className="max-w-md mb-4">
           <Field label="Production name" value={name} onChange={setName} placeholder="Defaults to the set names" />
+        </div>
+        <details>
+          <summary className="ow-nav cursor-pointer inline-flex items-center min-h-11 [@media(pointer:fine)]:min-h-7 text-black/70">Hair, makeup and what she wears with it</summary>
+        <div className="grid md:grid-cols-2 gap-5 mt-4">
           <Field label="Hair (empty = model's own)" value={styling.hairState} onChange={(v) => setStyling((s) => ({ ...s, hairState: v }))} placeholder="Her signature hairstyle from the portrait" />
           <TextField value={styling.makeup} onChange={(v) => setStyling((s) => ({ ...s, makeup: v }))} className="md:col-span-2">
             <Label className="ow-eyebrow">Makeup (empty = model&apos;s own)</Label>
-            <TextArea rows={2} placeholder={`Her clean-glam look from the portrait. Example override: ${DEFAULT_MAKEUP}`} />
+            <TextArea rows={2} placeholder="Her own makeup from the portrait" />
           </TextField>
           <Field label="Top (with bottoms)" value={styling.top} onChange={(v) => setStyling((s) => ({ ...s, top: v }))} />
           <Field label="Under outerwear" value={styling.innerTop} onChange={(v) => setStyling((s) => ({ ...s, innerTop: v }))} />
@@ -686,6 +714,7 @@ export function NewProduction() {
           <Field label="Accessories, comma separated" value={styling.accessories} onChange={(v) => setStyling((s) => ({ ...s, accessories: v }))} />
           <Field label="Sunglasses (empty = none)" value={styling.sunglasses} onChange={(v) => setStyling((s) => ({ ...s, sunglasses: v }))} placeholder="No sunglasses in the styled shot" />
         </div>
+        </details>
       </Section>
 
       <Section n={5} title="Review" hint="Checked before anything is paid for. Fix anything marked Blocks before you run.">

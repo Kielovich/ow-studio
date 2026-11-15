@@ -11,6 +11,9 @@ export async function auditPage(page, { phone }) {
   return page.evaluate(({ phone }) => {
     const out = { targets: [], text: [], inputs: [], contrast: [] };
     const visible = (el) => {
+      // Content of a closed <details> is not shown (Chromium still gives it a size).
+      const closed = el.closest("details:not([open])");
+      if (closed && !el.closest("summary")) return false;
       const r = el.getBoundingClientRect();
       if (r.width === 0 || r.height === 0) return false;
       const s = getComputedStyle(el);

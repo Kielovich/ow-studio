@@ -159,8 +159,12 @@ body {
   textarea {
     min-height: 44px;
   }
-  .button--icon-only {
+  .button--icon-only,
+  .toggle-button {
     min-width: 44px;
+  }
+  .select__trigger {
+    min-height: 44px;
   }
   input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
   select,
