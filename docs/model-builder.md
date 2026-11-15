@@ -14,7 +14,7 @@ While images are being made the page says how long it takes (about a minute an i
 
 - **Original fictional adults only.** Every choice maps to fixed prompt text (`packages/core/src/modelBuilder.ts`); nothing typed reaches a prompt, there is no image upload, and the prompts say she is not a real or identifiable person. Ages 20 to 25.
 - **Money:** each paid step shows its price on the button. Builder images count against the monthly budget with production images, and a step that does not fit the budget is refused before anything is sent. A paid image is never retried automatically; an image interrupted mid-call is closed as possibly billed.
-- **Same quality as the library:** the prompts are the ones that made the current models (`scripts/model-studio.ts`, realism refresh in `scripts/model-realism.ts`, `docs/realism-audit.md`): young high-street e-commerce model, clean-glam makeup finished as on a real set, real hair edges, real skin, soft directional light. Body references are stored headless, like the library's.
+- **The brand's look:** models who look like top models, with attitude and a cool look (owner's direction after the first paid test, which made plain, natural faces). The portrait prompt asks for top-model bone structure, a cool, self-assured and slightly aloof look (not smiling, not sweet), the brand's polished clean glam (contour, highlight, defined lashes, satin nude lips) and sculpting beauty light, on real skin texture with real hair edges. The references keep the same expression. No studio equipment in frame. Body references are stored headless, like the library's.
 
 ## Code
 

@@ -50,9 +50,14 @@ describe("model builder prompts", () => {
     expect(p).toContain("long straight jet-black hair, styled in a sleek low bun");
     expect(p).toContain("head and shoulders");
     expect(p).toContain("black tank top");
-    // The realism finish: matte lips and real hair edges, no glossy or airbrushed look.
-    expect(p).toContain("matte nude");
+    // The brand's look: a top model with attitude and polished clean glam, on real skin with real hair edges.
+    expect(p).toContain("top fashion model");
+    expect(p).toContain("cool, self-assured");
+    expect(p).toContain("Not smiling");
+    expect(p).toContain("bronze contour");
+    expect(p).toContain("pores visible");
     expect(p).toContain("flyaways");
+    expect(p).not.toMatch(/approachable|tiny marks|unevenness|high-street/);
     // No studio equipment in the picture (the first paid test showed a softbox in frame).
     expect(p).toContain("no lights, softboxes, stands or other studio equipment visible");
   });
@@ -63,6 +68,7 @@ describe("model builder prompts", () => {
       expect(p, k).toContain("attached identity portrait");
       expect(p, k).toContain("not a real or identifiable person");
       expect(p, k).toContain("exactly as in the portrait");
+      if (k !== "bodyBack") expect(p, k).toContain("cool");
       expect(p, k).toMatch(/no (lights, softboxes, stands or other )?studio equipment visible/);
     }
   });
