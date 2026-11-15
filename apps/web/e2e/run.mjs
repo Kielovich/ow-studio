@@ -16,6 +16,9 @@ import { join } from "node:path";
 import sharp from "sharp";
 import { auditCount, auditPage } from "./hig-audit.mjs";
 
+/** The models every fresh server starts with: the seed's (active) model versions. */
+const SEEDED_MODELS = JSON.parse(readFileSync(join(process.cwd(), "seed", "models.json"), "utf8")).models.length;
+
 const require = createRequire(import.meta.url);
 const { chromium, devices } = require("playwright");
 const PORT = Number(process.env.E2E_PORT ?? 3400);
@@ -276,8 +279,7 @@ async function main() {
     // Model library: an overview of portraits and names; each model opens on all her reference images.
     await page.goto(`${BASE}/models`);
     await page.getByTestId("model-card").first().waitFor();
-    const seeded = JSON.parse(readFileSync(join(process.cwd(), "seed", "models.json"), "utf8")).models.length;
-    check(await page.getByTestId("model-card").count() === seeded, `models page shows one card per model (${seeded})`);
+    check(await page.getByTestId("model-card").count() === SEEDED_MODELS, `models page shows one card per model (${SEEDED_MODELS})`);
     await page.getByTestId("model-card").filter({ hasText: "Freja" }).click();
     await page.getByText("← All models").waitFor();
     check(await page.getByRole("button", { name: /Identity portrait|Body, front|Character sheet/ }).count() >= 3, "a model page shows her reference images");
@@ -347,7 +349,7 @@ async function main() {
       && await page.getByRole("button", { name: /Identity portrait/ }).count() === 1, "she is in the models with a complete reference set");
     await page.goto(`${BASE}/models`);
     await page.getByTestId("model-card").first().waitFor();
-    check(await page.getByTestId("model-card").count() === 7 && await page.getByTestId("model-card").filter({ hasText: "Hana" }).count() === 1, "the models page now has 7 models, Hana among them");
+    check(await page.getByTestId("model-card").count() === SEEDED_MODELS + 1 && await page.getByTestId("model-card").filter({ hasText: "Hana" }).count() === 1, `the models page now has ${SEEDED_MODELS + 1} models, Hana among them`);
   });
 
   await stage("A look uploaded by hand", async () => {
