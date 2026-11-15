@@ -12,7 +12,7 @@ import {
   completePairs, DEFAULT_SKU_PATTERN, importIssues, KIND_LABELS, lookAssets, lookOfSku, packshotsBySku, parseFile, ROLES, usable, type FileKind,
   type ImportFile, type ImportIssue, type Role,
 } from "@/lib/import";
-import { assetUrl, BRAND_SET, CATEGORIES, FLAGS, PRESET_LABELS, usd, type Category, type GarmentFlag, type PresetId, formatDateTime } from "@/lib/types";
+import { formatTime, assetUrl, BRAND_SET, CATEGORIES, FLAGS, PRESET_LABELS, usd, type Category, type GarmentFlag, type PresetId, formatDateTime } from "@/lib/types";
 
 type ProductInfo = { name: string; category: Category; color: string; description: string; flags: GarmentFlag[] };
 type ModelRow = { modelId: string; version: number; status: string; data: { displayName: string; ageYears: number; heightCm: number; euSize: number; refs: { primaryPortrait: string } } };
@@ -523,7 +523,7 @@ export function NewProduction() {
   return (
     <>
       <PageTitle eyebrow="Create" title="New production">
-        {savedAt && <span className="text-xs text-black/60 self-center">Import saved {new Date(savedAt + "Z").toLocaleTimeString()}</span>}
+        {savedAt && <span className="text-xs text-black/60 self-center">Import saved {formatTime(savedAt)}</span>}
       </PageTitle>
       <TipBox id="new-production" title="Before you start" steps={[
         <>Use one folder per look, or press <b>Add a look by hand</b>: a top, a bottom or both, and if you like shoes, accessories and a fit reference.</>,
@@ -565,7 +565,7 @@ export function NewProduction() {
           const done = stepDone(n);
           return (
             <button key={label} type="button" onClick={() => goTo(n)} aria-current={active ? "step" : undefined}
-              className={`text-left min-h-11 pt-2 border-t-2 ${active ? "border-t-[#111111]" : done ? "border-t-[#8a8a8a]" : "border-t-[#e8e8e8]"}`}>
+              className={`text-left min-h-11 pt-2 flex flex-col justify-start border-t-2 ${active ? "border-t-[#111111]" : done ? "border-t-[#8a8a8a]" : "border-t-[#e8e8e8]"}`}>
               <span className="ow-eyebrow block">{done && !active ? "✓ " : ""}{n}</span>
               <span className={`text-sm leading-tight block ${active ? "text-ink font-medium" : "text-black/60"}`}>{label}</span>
             </button>

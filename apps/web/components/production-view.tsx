@@ -69,7 +69,7 @@ export function ProductionView() {
   );
   if (!p) return offline
     ? <div className="pt-24 max-w-lg"><h1 className="ow-display text-3xl mb-3">Cannot reach the studio</h1><p className="text-black/60">Retrying every few seconds.</p></div>
-    : <div className="pt-12"><Skeleton className="h-12 w-80 mb-10" /><Skeleton className="aspect-[5/1] w-full" /></div>;
+    : <div className="pt-12 min-h-[100svh]"><Skeleton className="h-12 w-80 mb-10" /><Skeleton className="aspect-[5/1] w-full" /></div>;
 
   const open = p.images.find((i) => i.id === openId) ?? null;
   const total = p.images.length;

@@ -96,7 +96,7 @@ export function ModelDetail() {
   useEffect(() => { if (name) document.title = `${name} · OW Studio`; }, [name]);
 
   if (offline) return <div className="pt-24 max-w-lg"><h1 className="ow-display text-3xl mb-3">Cannot reach the studio</h1><p className="text-black/60">Reload to try again.</p></div>;
-  if (!models) return <div className="pt-12"><Skeleton className="h-12 w-64 mb-10" /><Skeleton className="aspect-[3/1] w-full" /></div>;
+  if (!models) return <div className="pt-12 min-h-[100svh]"><Skeleton className="h-12 w-64 mb-10" /><Skeleton className="aspect-[3/1] w-full" /></div>;
   if (!model) return (
     <div className="pt-24 max-w-lg">
       <div className="ow-eyebrow mb-3">Model</div>
@@ -120,7 +120,7 @@ export function ModelDetail() {
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           {refsOf(v).map((r) => (
             <button key={r.key} type="button" className="text-left" onClick={() => setViewer({ hash: r.hash, label: r.label })}>
-              <Tile src={assetUrl(r.hash, 480)} alt={r.label} fit={r.key === "characterSheet" ? "contain" : "cover"} />
+              <Tile src={assetUrl(r.hash, 480)} alt="" fit={r.key === "characterSheet" ? "contain" : "cover"} />
               <div className="ow-eyebrow mt-2">{r.label}</div>
             </button>
           ))}

@@ -25,7 +25,11 @@ function Portraits({ faces }: { faces: Face[] | null }) {
         if (!faces) return <Skeleton key={i} className={`${big} w-full h-full rounded-none`} />;
         return (
           <div key={f?.id ?? i} className={`${big} relative overflow-hidden bg-canvas`}>
-            {f ? <img src={assetUrl(f.portrait, i === 0 ? 1200 : 480)} alt="" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]" /> : null}
+            {f ? <img src={assetUrl(f.portrait, i === 0 ? 1200 : 480)} alt=""
+              srcSet={i === 0 ? `${assetUrl(f.portrait, 480)} 480w, ${assetUrl(f.portrait, 800)} 800w, ${assetUrl(f.portrait, 1200)} 1200w` : `${assetUrl(f.portrait, 240)} 240w, ${assetUrl(f.portrait, 480)} 480w`}
+              sizes={i === 0 ? "(min-width: 1024px) 30vw, 50vw" : "(min-width: 1024px) 15vw, 25vw"}
+              fetchPriority={i === 0 ? "high" : "auto"}
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]" /> : null}
           </div>
         );
       })}

@@ -138,6 +138,12 @@ body {
   font-size: 0.7rem;
   color: var(--ow-muted);
 }
+/* On a phone the small labels go up to 12 px, so they stay legible at arm's length. */
+@media (max-width: 767px) {
+  .ow-eyebrow {
+    font-size: 0.75rem;
+  }
+}
 .ow-nav {
   text-transform: uppercase;
   letter-spacing: 0.04em;

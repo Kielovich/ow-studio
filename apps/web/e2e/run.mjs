@@ -392,6 +392,9 @@ async function main() {
     const html = await login.text();
     check(login.headers.get("x-frame-options") === "DENY" && login.headers.get("x-content-type-options") === "nosniff" && /noindex/.test(html),
       "pages send security headers and a noindex tag");
+    // Tips: in the first HTML (the page never jumps when one appears), dismissed ones hidden before the first paint.
+    const homeHtml = await (await page.request.get(`${BASE}/`)).text();
+    check(homeHtml.includes('data-tip="home"') && homeHtml.includes("ow-tips-off"), "tip boxes are in the first HTML, with the script that hides dismissed tips before paint");
     // Titles: one per page, the production's own name on a production.
     await page.goto(`${BASE}/models`);
     await page.getByTestId("model-card").first().waitFor();

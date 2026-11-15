@@ -2,8 +2,9 @@
 
 import { Button, Popover } from "@heroui/react";
 import { useEffect, useState } from "react";
+import { TIP_KEY_PREFIX, TIPS_OFF_STYLE_ID } from "@/lib/tips";
 
-const KEY = (id: string) => `ow-tip-dismissed:${id}`;
+const KEY = (id: string) => `${TIP_KEY_PREFIX}${id}`;
 const EVENT = "ow-tips-reset";
 
 /**
@@ -11,7 +12,9 @@ const EVENT = "ow-tips-reset";
  * tip back. Browser storage is only a convenience here: without it the tip simply shows again.
  */
 export function TipBox({ id, title, steps }: { id: string; title: string; steps: React.ReactNode[] }) {
-  const [hidden, setHidden] = useState(true); // render nothing until storage is read, so a dismissed tip never flashes
+  // Rendered from the start, so the page never jumps when it appears; a tip dismissed earlier is already hidden by the
+  // script in the root layout before the first paint, and leaves the page once storage is read.
+  const [hidden, setHidden] = useState(false);
   useEffect(() => {
     const read = () => { try { setHidden(localStorage.getItem(KEY(id)) === "1"); } catch { setHidden(false); } };
     read();
@@ -24,7 +27,7 @@ export function TipBox({ id, title, steps }: { id: string; title: string; steps:
     setHidden(true);
   };
   return (
-    <aside role="note" aria-label={title} data-testid={`tip-${id}`} className="bg-meta border border-line px-5 py-4 mb-10 flex flex-col sm:flex-row gap-4 sm:items-start sm:justify-between">
+    <aside role="note" aria-label={title} data-testid={`tip-${id}`} data-tip={id} className="bg-meta border border-line px-5 py-4 mb-10 flex flex-col sm:flex-row gap-4 sm:items-start sm:justify-between">
       <div>
         <div className="ow-eyebrow mb-2">Tip · {title}</div>
         <ol className="text-sm text-black/80 flex flex-col gap-1.5 list-decimal pl-4">
@@ -41,7 +44,8 @@ export function ResetTipsButton() {
   const [done, setDone] = useState(false);
   return (
     <Button size="sm" variant="secondary" onPress={() => {
-      try { for (const k of Object.keys(localStorage)) if (k.startsWith("ow-tip-dismissed:")) localStorage.removeItem(k); } catch {}
+      try { for (const k of Object.keys(localStorage)) if (k.startsWith(TIP_KEY_PREFIX)) localStorage.removeItem(k); } catch {}
+      document.getElementById(TIPS_OFF_STYLE_ID)?.remove();
       window.dispatchEvent(new Event(EVENT));
       setDone(true);
     }}>{done ? "Tips are back" : "Show all tips again"}</Button>

@@ -13,7 +13,7 @@ type Props = {
 export function LinkButton({ href, children, variant = "primary", size = "md", download, disabled }: Props) {
   const className = `button button--${variant} button--${size} inline-flex items-center justify-center ${disabled ? "pointer-events-none opacity-50" : ""}`;
   if (download !== undefined || href.startsWith("/api/")) {
-    return <a href={href} download={download} className={className} aria-disabled={disabled}>{children}</a>;
+    return <a href={href} download={download} className={className} aria-disabled={disabled} tabIndex={disabled ? -1 : undefined}>{children}</a>;
   }
-  return <Link href={href} className={className} aria-disabled={disabled}>{children}</Link>;
+  return <Link href={href} className={className} aria-disabled={disabled} tabIndex={disabled ? -1 : undefined}>{children}</Link>;
 }

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import { SiteHeader } from "@/components/site-header";
+import { TIPS_OFF_SCRIPT } from "@/lib/tips";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -17,6 +18,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className="h-full">
       <body className="min-h-full flex flex-col">
+        <script dangerouslySetInnerHTML={{ __html: TIPS_OFF_SCRIPT }} />
         <Suspense fallback={<div className="h-20 border-b border-line" />}>
           <SiteHeader />
         </Suspense>
