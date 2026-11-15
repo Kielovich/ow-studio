@@ -129,14 +129,15 @@ async function main() {
     // generated images); the three planned tools are marked as coming soon. No review counts.
     const tools = page.getByTestId("tool");
     await tools.first().locator("img").first().waitFor();
-    check(await tools.count() === 5
+    check(await tools.count() === 2
       && await tools.first().getAttribute("href") === "/productions/new"
       && await tools.nth(1).getAttribute("href") === "/models/new"
-      && await tools.first().locator("img").count() === 5
-      && (await tools.filter({ hasText: "Coming soon" }).count()) === 3
+      && await tools.first().locator("img").count() === 1
+      && await tools.nth(1).locator("img").count() === 3
+      && await page.getByTestId("coming-soon-link").count() === 3
       && await page.locator("main a[href^='/productions/']:not([href='/productions/new'])").count() === 0
       && !(await page.getByText(/to review/i).count()),
-      "signed in; the overview offers the tools: on-model images and the model builder, three coming soon, no review counts");
+      "signed in; the overview offers two tools (on-model images, model builder) and names the three to come; no review counts");
     await shot(page, "desk-overview-empty");
   });
 
@@ -298,6 +299,9 @@ async function main() {
     await page.getByRole("heading", { name: "Her look" }).waitFor();
     check(await page.waitForFunction(() => document.title === "Model builder · OW Studio", null, { timeout: 10000 }).then(() => true, () => false), "the Models page leads to the model builder");
     await page.getByTestId("tip-model-builder").getByRole("button", { name: "Got it" }).click().catch(() => {});
+    await page.getByRole("button", { name: "Surprise me" }).click();
+    check(await page.getByRole("group", { name: "Heritage", exact: true }).locator("[aria-pressed=true]").count() === 1
+      && await page.getByRole("group", { name: "Hair colour", exact: true }).locator("[aria-pressed=true]").count() === 1, "Surprise me picks one of each");
     // Choices only. Short hair is worn as cut: the bun is not offered.
     const group = (name) => page.getByRole("group", { name, exact: true });
     await group("Heritage").getByRole("button", { name: "East Asian", exact: true }).click();
@@ -314,26 +318,25 @@ async function main() {
     const bar = page.locator("div.fixed");
     await bar.getByRole("button", { name: /^Make 3 portraits · \$0\.48$/ }).click();
     await page.waitForURL(/\/models\/new\?draft=mdl_/);
-    await page.getByRole("heading", { name: "Portraits" }).waitFor();
+    await page.getByRole("heading", { name: "Portrait", exact: true }).waitFor();
     const portraits = page.getByRole("button", { name: /^Portrait \d$/ });
     await page.waitForFunction(() => document.querySelectorAll("main img[alt^='Portrait ']").length === 3, null, { timeout: 120000 });
     check(await portraits.count() === 3, "three portrait candidates are made");
     await hig(page, "model builder: portraits", false);
     await portraits.nth(1).click();
     check(await portraits.nth(1).getAttribute("aria-pressed") === "true", "a portrait can be chosen");
-    await bar.getByRole("button", { name: "Use this portrait" }).click();
-    await page.getByRole("heading", { name: "Reference set" }).waitFor();
-    await bar.getByRole("button", { name: /^Make the reference set · \$0\.80$/ }).click();
-    await bar.getByRole("button", { name: "Next: Add to models" }).waitFor({ timeout: 180000 });
-    check(await page.locator("main img[alt='Character sheet']").count() === 1 && await page.locator("main img[alt='Body, back']").count() === 1, "the reference set is made from her portrait");
-    await hig(page, "model builder: references", false);
+    await bar.getByRole("button", { name: /^Use this portrait · \$0\.80$/ }).click();
+    await page.getByRole("heading", { name: "Finish" }).waitFor();
+    await page.waitForFunction(() => ["Three-quarter", "Profile", "Body, front", "Body, back", "Character sheet"]
+      .every((a) => document.querySelector(`main img[alt='${a}']`)), null, { timeout: 180000 });
+    check(true, "choosing the portrait makes her reference set in the same press");
+    await hig(page, "model builder: finish", false);
     await shot(page, "desk-model-builder-references");
-    await bar.getByRole("button", { name: "Next: Add to models" }).click();
     const add = bar.getByRole("button", { name: "Add to models" });
     check(await add.isDisabled(), "she cannot be added without a name");
-    await page.getByLabel("Name").fill("Hana");
+    await page.getByLabel("Her name").fill("Hana");
     await add.click();
-    await page.getByText("She is in the models.").waitFor();
+    await page.getByRole("heading", { name: "She is in the models" }).waitFor();
     await bar.getByRole("link", { name: "Open her page" }).click();
     await page.getByRole("heading", { name: "Hana" }).waitFor();
     // The simulated images repeat (identical files share one hash), so the full set is checked on the model itself.

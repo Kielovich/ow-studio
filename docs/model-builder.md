@@ -4,10 +4,11 @@ A new model in the app, from choices: `/models/new` (Models page: "Build a model
 
 ## Flow
 
-1. **Look:** heritage, skin tone, freckles, eyes, hair colour, texture, length and style, age (20 to 25), height and EU size. Choices only.
-2. **Portraits:** 3 candidates from the same prompt ($0.48). Choose one, change the look, or make 3 new. Every round is kept.
-3. **References** from the chosen portrait: three-quarter, profile, body front, body back and a 5-panel character sheet ($0.80). Any one can be made again ($0.16); earlier attempts are kept.
-4. **Add to models:** a name (never sent to the image service), then a new model, version 1, active. She can be chosen in New production right away.
+1. **Look:** grouped as Face (heritage, skin tone, eyes, freckles), Hair (colour, texture, length, style) and Body (age 20 to 25, height, EU size). Choices only, with colour swatches for skin, hair and eyes; "Surprise me" picks a random look.
+2. **Portrait:** 3 candidates from the same prompt ($0.48). Tap one; "Use this portrait" also starts her reference set ($0.80). Not right: make 3 new or change the look. Every round is kept.
+3. **Finish:** her reference set from the chosen portrait (three-quarter, profile, body front, body back, 5-panel character sheet); any one can be made again ($0.16), earlier attempts are kept. Then her name (never sent to the image service) and "Add to models": a new model, version 1, active, usable in New production right away.
+
+While images are being made the page says how long it takes (about a minute an image) and that the model is saved: you can leave and come back under Models, Build a model.
 
 ## Rules built in
 

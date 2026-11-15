@@ -10,30 +10,31 @@ import { assetUrl } from "@/lib/types";
 
 type Face = { id: string; name: string; portrait: string };
 
-/**
- * The models' portraits as one editorial block: one large, four small. Only the curated portraits, never generated
- * images. The large one changes from day to day, so every model gets her turn.
- */
-function Portraits({ faces }: { faces: Face[] | null }) {
-  const start = faces?.length ? new Date().getDate() % faces.length : 0;
-  const tiles = faces ? [...faces.slice(start), ...faces.slice(0, start)].slice(0, 5) : [];
+/** A portrait filling its frame. Only the curated model portraits, never generated images. */
+function Portrait({ face, big }: { face?: Face; big?: boolean }) {
+  if (!face) return <span className="absolute inset-0 bg-canvas" />;
   return (
-    <div className="grid grid-cols-4 grid-rows-2 gap-1 aspect-[2/1]">
-      {Array.from({ length: 5 }, (_, i) => {
-        const f = tiles[i];
-        const big = i === 0 ? "col-span-2 row-span-2" : "";
-        if (!faces) return <Skeleton key={i} className={`${big} w-full h-full rounded-none`} />;
-        return (
-          <div key={f?.id ?? i} className={`${big} relative overflow-hidden bg-canvas`}>
-            {f ? <img src={assetUrl(f.portrait, i === 0 ? 1200 : 480)} alt=""
-              srcSet={i === 0 ? `${assetUrl(f.portrait, 480)} 480w, ${assetUrl(f.portrait, 800)} 800w, ${assetUrl(f.portrait, 1200)} 1200w` : `${assetUrl(f.portrait, 240)} 240w, ${assetUrl(f.portrait, 480)} 480w`}
-              sizes={i === 0 ? "(min-width: 1024px) 30vw, 50vw" : "(min-width: 1024px) 15vw, 25vw"}
-              fetchPriority={i === 0 ? "high" : "auto"}
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]" /> : null}
-          </div>
-        );
-      })}
-    </div>
+    <img src={assetUrl(face.portrait, big ? 1200 : 480)} alt=""
+      srcSet={big ? `${assetUrl(face.portrait, 800)} 800w, ${assetUrl(face.portrait, 1200)} 1200w` : undefined}
+      sizes={big ? "(min-width: 768px) 50vw, 100vw" : undefined}
+      fetchPriority={big ? "high" : "auto"}
+      className="absolute inset-0 w-full h-full object-cover object-[50%_30%] transition-transform duration-700 ease-out group-hover:scale-[1.03]" />
+  );
+}
+
+/** One tool: a large picture, its name and one line. The whole card is the link. */
+function Tool({ href, title, line, children }: { href: string; title: string; line: string; children: React.ReactNode }) {
+  return (
+    <Link href={href} data-testid="tool" className="group block">
+      <div className="relative aspect-[4/3] md:aspect-[3/2] bg-canvas overflow-hidden">{children}</div>
+      <div className="mt-5 flex items-start justify-between gap-6">
+        <div>
+          <h2 className="ow-display text-3xl md:text-4xl leading-tight">{title}</h2>
+          <p className="text-black/60 mt-1">{line}</p>
+        </div>
+        <span aria-hidden className="text-2xl leading-none mt-2 transition-transform duration-300 group-hover:translate-x-1">→</span>
+      </div>
+    </Link>
   );
 }
 
@@ -43,55 +44,39 @@ export default function StudioPage() {
   useEffect(() => {
     getJson<{ faces: Face[] }>("/api/overview").then((d) => { if (!isNotFound(d)) setFaces(d.faces); }).catch(() => setFailed(true));
   }, []);
+  // Different models from day to day, so every model gets her turn.
+  const start = faces?.length ? new Date().getDate() % faces.length : 0;
+  const face = (i: number) => (faces?.length ? faces[(start + i) % faces.length] : undefined);
 
   return (
     <>
-      {/* The studio's tools: the one that works now, large; the ones on the way, next to it. */}
-      <section className="pt-8 md:pt-12 pb-12 lg:min-h-[calc(100svh-5rem)] flex flex-col justify-center">
-        <div className="flex items-end justify-between gap-6 mb-7 md:mb-9">
-          <div>
-            <div className="ow-eyebrow mb-4">OW Studio</div>
-            <h1 className="ow-display text-[2.4rem] sm:text-5xl xl:text-6xl leading-[1.04]">What would you like to make?</h1>
-          </div>
+      <section className="pt-10 md:pt-16 pb-14">
+        <div className="flex items-end justify-between gap-6 mb-10 md:mb-12">
+          <h1 className="ow-display text-[2.4rem] sm:text-5xl xl:text-6xl leading-[1.04]">What would you like to make?</h1>
           <Link href="/productions" className="hidden sm:inline-flex ow-nav items-center min-h-11 [@media(pointer:fine)]:min-h-6 shrink-0"><span className="border-b border-ink">Your productions</span></Link>
         </div>
         {failed && <p className="text-danger text-sm mb-6" role="alert">Could not reach the studio. Reload to try again.</p>}
 
-        <div className="grid lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] gap-2">
-          <Link href="/productions/new" data-testid="tool" className="group bg-canvas flex flex-col">
-            <Portraits faces={faces} />
-            <span className="p-5 md:p-7 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 flex-1">
-              <span>
-                <span className="ow-nav text-black/60 block mb-2">01 · Available</span>
-                <span className="ow-display text-3xl md:text-4xl block mb-1">On-model images</span>
-                <span className="text-black/70 block">Your packshots on our models, ready for the webshop.</span>
-              </span>
-              <span className="button button--primary button--lg inline-flex items-center justify-center shrink-0 self-start sm:self-auto">Start</span>
-            </span>
-          </Link>
-
-          <div className="grid lg:grid-rows-4 gap-2">
-            <Link href="/models/new" data-testid="tool" className="group bg-canvas p-5 md:px-7 md:py-5 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
-              <span>
-                <span className="ow-nav text-black/60 block mb-2">02 · Available</span>
-                <span className="ow-display text-2xl xl:text-3xl block mb-1">Model builder</span>
-                <span className="text-sm text-black/70 block">Your own model, from a few choices.</span>
-              </span>
-              <span className="button button--secondary button--md inline-flex items-center justify-center shrink-0 self-start sm:self-auto">Build</span>
-            </Link>
-            {COMING_SOON.map((f, i) => (
-              <Link key={f.id} href={`/coming-soon#${f.id}`} data-testid="tool" className="group bg-ink text-white p-5 md:px-7 md:py-5 flex flex-col justify-between gap-3">
-                <span className="ow-nav text-white/70">0{i + 3} · Coming soon</span>
-                <span>
-                  <span className="ow-display text-2xl xl:text-3xl block mb-1 group-hover:opacity-80">{f.title}</span>
-                  <span className="text-sm text-white/75 block">{f.line}</span>
-                </span>
-              </Link>
-            ))}
-          </div>
+        <div className="grid md:grid-cols-2 gap-x-6 gap-y-12">
+          <Tool href="/productions/new" title="On-model images" line="Your packshots on our models, ready for the webshop.">
+            {faces ? <Portrait face={face(0)} big /> : <Skeleton className="absolute inset-0 rounded-none" />}
+          </Tool>
+          <Tool href="/models/new" title="Model builder" line="A new model of your own, from a few choices.">
+            {faces
+              ? <span className="absolute inset-0 grid grid-cols-3 gap-1">{[1, 2, 3].map((i) => <span key={i} className="relative overflow-hidden"><Portrait face={face(i)} /></span>)}</span>
+              : <Skeleton className="absolute inset-0 rounded-none" />}
+          </Tool>
         </div>
 
-        <Link href="/productions" className="sm:hidden mt-6 ow-nav inline-flex items-center min-h-11"><span className="border-b border-ink">Your productions</span></Link>
+        <Link href="/productions" className="sm:hidden mt-10 ow-nav inline-flex items-center min-h-11"><span className="border-b border-ink">Your productions</span></Link>
+
+        {/* What is on the way: one quiet line. */}
+        <div className="mt-14 pt-5 border-t border-line flex flex-wrap items-center gap-x-6 gap-y-1">
+          <span className="ow-eyebrow mr-2">Coming soon</span>
+          {COMING_SOON.map((f) => (
+            <Link key={f.id} href={`/coming-soon#${f.id}`} data-testid="coming-soon-link" className="text-sm text-black/60 hover:text-ink inline-flex items-center min-h-11 [@media(pointer:fine)]:min-h-7">{f.title}</Link>
+          ))}
+        </div>
       </section>
 
       <TipBox id="home" title="How OW Studio works" steps={[
