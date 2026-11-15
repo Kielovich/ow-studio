@@ -1,7 +1,10 @@
 /**
- * Realism refresh of one model's references (docs/realism-audit.md, lever 2): a new model version with the same face,
- * hairstyle and framing, but real hair edges, non-glossy lips, less contour and glow, soft directional light.
- * Body references are reused from the current version. Old versions are never changed.
+ * Realism refresh of one model's references: a new model version with the same face, hairstyle and framing, finished
+ * as a real photograph. Body references are reused from the current version. Old versions are never changed.
+ *
+ * Round 1 (2026-11-13, docs/realism-audit.md, lever 2): real hair edges, matte lips, less contour and glow.
+ * Round 2 (2026-11-15, owner: "not realistic enough"): the model builder's finish (BUILDER_REAL in modelBuilder.ts),
+ * which made Freja and Inés: real unretouched skin, light with fall-off, natural colour, focus fall-off, grain.
  *
  *   npx tsx scripts/model-realism.ts <modelId> portrait [--confirm]   1 image: the new identity portrait
  *   npx tsx scripts/model-realism.ts <modelId> refs [--confirm] [--redo characterSheet]   three-quarter, profile, 5-panel character sheet
@@ -9,35 +12,30 @@
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { extractImages, GEMINI_API_REVISION, GEMINI_ENDPOINT, GEMINI_PRO_PROFILE, hairForPrompt, loadLocalSecrets } from "@ow-studio/core";
+import { BUILDER_REAL, extractImages, GEMINI_API_REVISION, GEMINI_ENDPOINT, GEMINI_PRO_PROFILE, hairForPrompt, loadLocalSecrets } from "@ow-studio/core";
 import { DATA_DIR } from "../lib/server/db";
 import { assets, insertModelVersion, listModels, setModelStatus } from "../lib/server/repo";
 
 loadLocalSecrets();
 const [modelId, stage] = process.argv.slice(2) as [string, string];
 const confirm = process.argv.includes("--confirm");
-const STATE = join(DATA_DIR, "model-gen", `realism-${modelId}.json`);
+// Round 2 has its own state: round 1's references must not be reused.
+const STATE = join(DATA_DIR, "model-gen", `finish-${modelId}.json`);
 mkdirSync(join(DATA_DIR, "model-gen"), { recursive: true });
 const state: Record<string, string> = existsSync(STATE) ? JSON.parse(readFileSync(STATE, "utf8")) : {};
 const save = () => writeFileSync(STATE, JSON.stringify(state, null, 1));
 
-const REAL = {
-  hair: "real hair, not a solid helmet: the same cut, but with clearly visible flyaways: ten to twenty fine stray hairs crossing the outline of the hair against the background, a few short baby hairs at the temples and along the parting, a little frizz on the surface, and individual strands separating at the ends",
-  makeup: "her polished clean-glam makeup kept, but finished as on a real set: contour softly blended with no bronze stripe, defined brows and lashes, highlight only as a faint natural sheen on the cheekbones; lips in a completely matte nude with visible natural lip lines and texture: no gloss, no shine and no reflection on the lips at all",
-  skin: "real skin: visible pores, slight natural unevenness and colour variation, a few tiny marks, no airbrushing, no oily or dewy shine",
-  light: "one large soft key light slightly to one side of the camera with gentle fall-off across the face, plus soft fill; bright studio, light grey seamless background",
-  camera: "full-frame camera, 85 mm lens at f/5.6, ISO 100: natural micro-contrast, crisp individual lashes and hairs, very subtle grain",
-};
+const REAL = BUILDER_REAL;
 
 const portraitPrompt = (hair: string) => [
   "Re-photograph this exact original fictional adult woman in the same studio set-up. She is not a real or identifiable person.",
   `Keep identical: face, bone structure, eye shape and colour, nose, lip shape, skin tone, freckles, hair colour and length, the hairstyle (${hair}), the plain black tank top, ` +
   "and the framing exactly as in the attached photograph: the same distance and crop, with space above the head and the shoulders and tank top fully visible. Do not zoom in.",
-  "Change only what makes the photograph look retouched or generated:",
+  "Change only what makes the photograph look retouched or generated: the new picture is a real, unretouched photograph of her.",
   `- Hair: ${REAL.hair}.`,
   `- Makeup: ${REAL.makeup}.`,
   `- Skin: ${REAL.skin}.`,
-  "- Face and expression: her own features, relaxed and calm, lips closed, a barely perceptible natural head tilt; real catchlights from one large softbox.",
+  "- Face and expression: her own features and her own expression, lips closed; she must be immediately recognisable as the same woman.",
   `- Light: ${REAL.light}.`,
   `Camera: ${REAL.camera}.`,
 ].join("\n");
