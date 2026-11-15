@@ -187,19 +187,21 @@ export function builderPortraitPrompt(spec: BuilderSpec): string {
  * instead of photographing anew: round 2 of the library refresh (2026-11-15) came back as near copies with sharpened,
  * still glowing skin. Freja and Inés, whose faces were small in their source photographs, came back as real photographs.
  */
-export function realPortraitPrompt(o: { sources: string; description: string; sourceFlaw: string; ageYears: number; hair: string }): string {
+export function realPortraitPrompt(o: { sources: string; description: string; sourceFlaw: string; ageYears: number; hair: string; one?: boolean }): string {
+  const att = o.one ? "the attached photograph" : "the attached photographs";
   return [
-    `Model agency digital (identity portrait) of exactly the same original fictional adult woman as in the attached photographs: ${o.sources}. ` +
+    `Model agency digital (identity portrait) of exactly the same original fictional adult woman as in ${att}: ${o.sources}. ` +
       "She is not a real or identifiable person and must not resemble any real person, model or celebrity.",
     o.description,
     "Keep her identity exactly: face shape, bone structure, eye shape and colour, brows, nose, lips, skin tone, freckles, hair colour and hairline. She must be immediately recognisable as the same woman.",
-    `Take only who she is from the attached photographs, not how they look: ${o.sourceFlaw}. The new picture is a real, unretouched photograph of her (see skin, light and camera below).`,
+    `Take only who she is from ${att}, not how ${o.one ? "it looks" : "they look"}: ${o.sourceFlaw}. The new picture is a real, unretouched photograph of her (see skin, light and camera below).`,
     `${o.ageYears} years old: a young face that matches her age, youthful skin and a soft fullness in the cheeks under the cheekbones; never gaunt, hollow-cheeked or older-looking.`,
     "Photograph her the way a top agency would: she has the presence of an in-demand fashion model who fronts international campaigns. " + ATTITUDE,
-    `Hair: ${o.hair}, exactly as in the photographs; styled by a hairstylist for the shoot; ${REAL.hair}.`,
+    `Hair: ${o.hair}, exactly as in ${att}; styled by a hairstylist for the shoot; ${REAL.hair}.`,
     `Makeup: ${REAL.makeup}.`,
     `Skin: ${REAL.skin}.`,
-    "No jewellery. Straight-on front view: face and shoulders square to the camera, no head turn; head and shoulders with space above the head and the shoulders and tank top fully visible, camera at eye level. Plain fitted black tank top.",
+    "One single photograph of her alone, filling the frame: not a collage, diptych, split frame or several views side by side. " +
+      "No jewellery. Straight-on front view: face and shoulders square to the camera, no head turn; head and shoulders with space above the head and the shoulders and tank top fully visible, camera at eye level. Plain fitted black tank top.",
     `Light: ${REAL.light}. Camera: ${REAL.camera}.`,
   ].join("\n\n");
 }

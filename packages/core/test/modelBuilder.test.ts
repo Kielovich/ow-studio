@@ -172,8 +172,17 @@ describe("a new portrait of a woman in attached photographs (Freja, Inés, the l
     expect(p).toContain("not a real or identifiable person");
     expect(p).toContain("Keep her identity exactly");
     expect(p).toContain("Take only who she is from the attached photographs, not how they look: they are retouched, over-smoothed and glowing.");
-    expect(p).toContain("Hair: long straight dark-brown hair, exactly as in the photographs");
+    expect(p).toContain("Hair: long straight dark-brown hair, exactly as in the attached photographs;");
     expect(p).toContain("21 years old");
+    // Sable pilot: two attached views came back as one picture with both views.
+    expect(p).toContain("One single photograph of her alone");
+    expect(p).toContain("not a collage, diptych, split frame or several views side by side");
+  });
+  it("speaks of one attached photograph when there is one", () => {
+    const one = realPortraitPrompt({ sources: "a portrait of her", one: true, description: "x.", sourceFlaw: "it is retouched", ageYears: 21, hair: "black hair" });
+    expect(one).toContain("as in the attached photograph: a portrait of her.");
+    expect(one).toContain("Take only who she is from the attached photograph, not how it looks: it is retouched.");
+    expect(one).toContain("Hair: black hair, exactly as in the attached photograph;");
   });
   it("has the brand's look and the realism finish, without beauty-retouch words", () => {
     expect(p).toContain("cool, self-assured");

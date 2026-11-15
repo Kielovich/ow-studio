@@ -5,8 +5,9 @@
  * Round 1 (2026-11-13, docs/realism-audit.md, lever 2): real hair edges, matte lips, less contour and glow.
  * Round 2 (2026-11-15, owner: "not realistic enough"): the model builder's finish (BUILDER_REAL in modelBuilder.ts),
  * which made Freja and Inés: real unretouched skin, light with fall-off, natural colour, focus fall-off, grain. The new
- * portrait is made from her portrait and three-quarter view scaled down to 640 px: from the sharp 2K portrait in the
- * same framing the generator only edited (near copies, still glowing; first attempt, $0.96).
+ * portrait is made from her front portrait alone, scaled down to 640 px: from the sharp 2K portrait the generator only
+ * edited (near copies, still glowing; first attempt, $0.96); with a three-quarter view added it drew both views in one
+ * picture (Sable pilot, $0.16).
  *
  *   npx tsx scripts/model-realism.ts <modelId> portrait [--confirm]   1 image: the new identity portrait
  *   npx tsx scripts/model-realism.ts <modelId> refs [--confirm] [--redo characterSheet]   three-quarter, profile, 5-panel character sheet
@@ -39,9 +40,9 @@ async function soft(hash: string): Promise<string> {
 const cap = (t: string) => t[0]!.toUpperCase() + t.slice(1);
 
 const portraitPrompt = (m: { ageYears: number; look: { hair: string; skinTone: string; eyes: string; features: string } }, hair: string) => realPortraitPrompt({
-  sources: "a front portrait and a three-quarter view of her",
+  sources: "a portrait of her", one: true,
   description: `${cap(m.look.features)}; ${m.look.eyes}. Skin tone: ${m.look.skinTone}.`,
-  sourceFlaw: "they are retouched, over-smoothed and glowing, like a beauty advert",
+  sourceFlaw: "it is retouched like a beauty advert, with over-smoothed, glowing skin and heavy bronzer, contour and highlight; do not copy her makeup from it",
   ageYears: m.ageYears,
   hair,
 });
@@ -90,17 +91,17 @@ async function main() {
     // --note "..." adds one correction after a rejected attempt (the rejected hash is kept).
     const note = process.argv.includes("--note") ? `\nCorrection: ${process.argv[process.argv.indexOf("--note") + 1]}` : "";
     // Her current front portrait and three-quarter view, scaled down (free; stored once).
+    // Only her front portrait: with a three-quarter view next to it, the generator drew both views in one picture.
     state.softPortrait ??= await soft(current.data.refs.primaryPortrait);
-    state.softAngle ??= await soft(current.data.refs.identityAngles[0] ?? current.data.refs.primaryPortrait);
     save();
     const prompt = portraitPrompt(current.data, hair) + note;
-    for (const h of [state.softPortrait, state.softAngle]) {
+    for (const h of [state.softPortrait]) {
       const meta = await sharp((await assets.resolve(h)).bytes).metadata();
       console.log(`  attach ${h.slice(0, 19)}… ${meta.width}x${meta.height} ${meta.format}`);
     }
     if (!confirm) return console.log("Dry run. Add --confirm.\n\n" + prompt);
     if (state.portrait) state[`rejected_portrait_${Date.now()}`] = state.portrait;
-    state.portrait = await generate(prompt, [state.softPortrait, state.softAngle], "1:1");
+    state.portrait = await generate(prompt, [state.softPortrait], "1:1");
     state.portraitPrompt = prompt;
     save();
     console.log("portrait ->", state.portrait);
