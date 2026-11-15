@@ -24,8 +24,18 @@ While images are being made the page says how long it takes (about a minute an i
 - `apps/web/app/api/model-builder/`: the API. `apps/web/components/model-builder.tsx`: the page.
 - e2e: the whole flow with simulated images (`e2e/run.mjs`, stage "Model builder").
 
+## Paid test (2026-11-15, 11 images, $1.76)
+
+One test model (Northern European, fair with freckles, green eyes, shoulder-length wavy auburn hair, 22, 176 cm, EU 36), made through the app on a local copy with the real provider:
+
+1. **Round 1, 3 portraits ($0.48), first prompt:** plain, natural, girl-next-door faces; one drew the studio softbox into the frame. Rejected by the owner: the brand needs top models with attitude and a cool look. Fixes: equipment excluded; the look rewritten (top-model face, cool attitude, the brand's clean glam, beauty light).
+2. **Round 2, 3 portraits ($0.48), top-model prompt:** one at the brand's level (visible glam, cool, campaign quality); two gaunt, older-looking and nearly bare, and the good one turned her head. Fixes: a young face that is never gaunt, clearly visible glam with blush, square to the camera (not yet tested with real images).
+3. **Reference set from round 2 portrait 3, 5 images ($0.80):** consistent identity in every view (face, freckles, eyes, glam, hair). Weakest: the full-body panels of the character sheet look less model-like than the separate body reference.
+4. **Added to the models** through the app as "Isla" (M11): headless body references, shown on the Models page and selectable in New production. Not yet used in a production.
+
 ## Not covered yet
 
-- No real (paid) model has been made through the app yet; the prompts are proven in the scripts, the flow with simulated images.
+- The prompt after round 2 (young, visible glam, square to the camera) is not yet tested with real images.
+- A builder model has not yet been used in a production.
 - A model added by mistake cannot be removed from the app yet (it can be archived in the database).
 - Disk: a finished model takes roughly 10 to 20 MB (portraits, references, headless copies). See the storage note in `docs/deploy.md`.
