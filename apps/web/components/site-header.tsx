@@ -36,25 +36,25 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-line">
       <div className="max-w-[1440px] mx-auto safe-x h-16 md:h-20 grid grid-cols-[1fr_auto_1fr] items-center">
-        <nav className="hidden md:flex gap-4 lg:gap-7 ow-nav">
+        {!onLogin && <nav className="hidden md:flex gap-4 lg:gap-7 ow-nav">
           {NAV.slice(0, 3).map((n) => (
             <Link key={n.href} href={n.href} className={`py-1.5 border-b ${active(n.href) ? "border-ink" : "border-transparent text-black/60 hover:text-ink"}`}>
               {n.label}
             </Link>
           ))}
-        </nav>
+        </nav>}
         <Link href="/" aria-label="OW Studio home" className="flex items-center gap-3 justify-self-center col-start-2 min-h-11 px-2">
           <Image src="/brand/ow-logo-black.png" alt="OW" width={60} height={31} priority />
           <span className="ow-eyebrow hidden sm:inline">Studio</span>
         </Link>
-        <nav className="hidden md:flex gap-4 lg:gap-7 ow-nav justify-self-end col-start-3">
+        {!onLogin && <nav className="hidden md:flex gap-4 lg:gap-7 ow-nav justify-self-end col-start-3">
           {NAV.slice(3).map((n) => (
             <Link key={n.href} href={n.href} className={`py-1.5 border-b ${active(n.href) ? "border-ink" : "border-transparent text-black/60 hover:text-ink"}`}>
               {n.label}
             </Link>
           ))}
-          {!onLogin && <button onClick={logout} className="py-1.5 border-b border-transparent text-black/60 hover:text-ink uppercase">Log out</button>}
-        </nav>
+          <button onClick={logout} className="py-1.5 border-b border-transparent text-black/60 hover:text-ink uppercase">Log out</button>
+        </nav>}
         {!onLogin && (
           <button
             type="button"

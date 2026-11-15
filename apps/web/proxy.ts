@@ -23,6 +23,6 @@ export async function proxy(req: NextRequest) {
 }
 
 export const config = {
-  // Everything except build assets and public brand files (logo, fonts, favicon).
-  matcher: ["/((?!_next/static|_next/image|brand/|fonts/|favicon.ico).*)"],
+  // Everything except build assets, public brand files (logo, fonts) and the icons and robots.txt.
+  matcher: ["/((?!_next/static|_next/image|brand/|fonts/|favicon.ico|icon.png|apple-icon.png|robots.txt).*)"],
 };

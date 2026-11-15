@@ -56,6 +56,8 @@ export function ProductionView() {
     for (const list of m.values()) list.sort((a, b) => order(a.preset) - order(b.preset));
     return [...m.entries()];
   }, [p]);
+  // The tab shows the production's name once it is known.
+  useEffect(() => { if (p?.name) document.title = `${p.name} · OW Studio`; }, [p?.name]);
 
   if (missing) return (
     <div className="pt-24 max-w-lg">

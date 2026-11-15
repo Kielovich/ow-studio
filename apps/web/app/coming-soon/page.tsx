@@ -1,6 +1,9 @@
+import type { Metadata } from "next";
 import { Chip } from "@heroui/react";
 import { PageTitle } from "@/components/page-title";
 import { COMING_SOON } from "@/lib/coming-soon";
+
+export const metadata: Metadata = { title: "Coming soon" };
 
 export default function ComingSoonPage() {
   return (

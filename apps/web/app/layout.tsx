@@ -4,8 +4,9 @@ import { SiteHeader } from "@/components/site-header";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "OW Studio",
+  title: { template: "%s · OW Studio", default: "OW Studio" },
   description: "On-model fashion imagery from packshots",
+  robots: { index: false, follow: false },
   appleWebApp: { title: "OW Studio", statusBarStyle: "default" },
 };
 

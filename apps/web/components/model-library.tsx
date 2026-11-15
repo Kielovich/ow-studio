@@ -92,6 +92,8 @@ export function ModelDetail() {
   const { models, offline } = useModels();
   const [viewer, setViewer] = useState<{ hash: string; label: string } | null>(null);
   const model = useMemo(() => currentVersions(models ?? []).find((m) => m.id === id) ?? null, [models, id]);
+  const name = model?.current.data.displayName;
+  useEffect(() => { if (name) document.title = `${name} · OW Studio`; }, [name]);
 
   if (offline) return <div className="pt-24 max-w-lg"><h1 className="ow-display text-3xl mb-3">Cannot reach the studio</h1><p className="text-black/60">Reload to try again.</p></div>;
   if (!models) return <div className="pt-12"><Skeleton className="h-12 w-64 mb-10" /><Skeleton className="aspect-[3/1] w-full" /></div>;

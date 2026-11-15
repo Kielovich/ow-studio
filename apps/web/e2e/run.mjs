@@ -76,8 +76,8 @@ function watch(page, label) {
   page.on("pageerror", (e) => failures.push(`${label}: page error ${e.message}`));
   page.on("console", (m) => {
     if (m.type() !== "error") return;
-    // Expected: 401 before sign-in, and the one 404 of the deliberate missing-production check.
-    if (/status of 401/.test(m.text()) || (/status of 404/.test(m.text()) && /prod_missing_/.test(m.location()?.url ?? ""))) return;
+    // Expected: 401 before sign-in, and the 404s of the deliberate missing-production and unknown-page checks.
+    if (/status of 401/.test(m.text()) || (/status of 404/.test(m.text()) && /prod_missing_|\/this-page-does-not-exist$/.test(m.location()?.url ?? ""))) return;
     failures.push(`${label}: console ${m.text()} (${m.location()?.url ?? ""})`);
   });
 }
@@ -113,6 +113,9 @@ async function main() {
     await page.goto(`${BASE}/`);
     check(page.url().includes("/login"), "unauthenticated visit redirects to /login");
     check((await page.request.get(`${BASE}/api/overview`)).status() === 401, "API answers 401 without a session");
+    await page.getByRole("heading", { name: "Sign in" }).waitFor();
+    check(await page.locator("header nav").count() === 0 && await page.locator("header").getByRole("link", { name: "Productions" }).count() === 0,
+      "signed out, the header shows only the logo (no menu that leads back to sign-in)");
     await shot(page, "desk-login");
     await typeUntilEnabled(page, "wrong-password");
     await page.getByRole("button", { name: "Sign in" }).click();
@@ -359,6 +362,36 @@ async function main() {
     check(h.ok && (await h.json()).ok === true, "health check answers without a session");
     const backups = readdirSync(join(data, "backups"));
     check(backups.some((f) => /^studio-\d{4}-\d{2}-\d{2}\.db$/.test(f)), "the worker wrote today's database backup");
+  });
+
+  await stage("Launch details: icons, titles, 404, robots and headers", async () => {
+    // Without a session (plain fetch, no cookies): the sign-in page needs its icons too.
+    const fav = await fetch(`${BASE}/favicon.ico`);
+    const favHash = (await import("node:crypto")).createHash("md5").update(Buffer.from(await fav.arrayBuffer())).digest("hex");
+    check(fav.ok && favHash !== "2be26fb5639bc7a24d9c816567b0de5f", "the favicon loads without a session and is the OW mark, not the framework default");
+    const touch = await fetch(`${BASE}/apple-icon.png`);
+    check(touch.ok && (touch.headers.get("content-type") ?? "").includes("image/png"), "the home-screen icon loads without a session");
+    const robots = await fetch(`${BASE}/robots.txt`);
+    check(robots.ok && (await robots.text()).includes("Disallow: /"), "robots.txt keeps the whole site out of search engines");
+    const login = await fetch(`${BASE}/login`);
+    const html = await login.text();
+    check(login.headers.get("x-frame-options") === "DENY" && login.headers.get("x-content-type-options") === "nosniff" && /noindex/.test(html),
+      "pages send security headers and a noindex tag");
+    // Titles: one per page, the production's own name on a production.
+    await page.goto(`${BASE}/models`);
+    await page.getByTestId("model-card").first().waitFor();
+    check(await page.title() === "Models · OW Studio", "each page has its own title (Models · OW Studio)");
+    await page.goto(`${BASE}/productions`);
+    const first = page.locator("main a[href^='/productions/prod_']").first();
+    await first.waitFor();
+    await first.click();
+    await page.waitForFunction(() => document.title !== "Production · OW Studio" && document.title.endsWith(" · OW Studio"), null, { timeout: 10000 });
+    check(await page.title() === `${(await page.getByRole("heading", { level: 1 }).textContent())?.trim()} · OW Studio`, "a production's tab shows its name");
+    // A branded 404 with a way back.
+    const r404 = await page.goto(`${BASE}/this-page-does-not-exist`);
+    check(r404?.status() === 404 && await page.getByRole("heading", { name: "This page does not exist" }).isVisible()
+      && await page.getByRole("link", { name: "Back to the studio" }).isVisible(), "an unknown address shows the studio's own 404 with a way back");
+    await hig(page, "/404", false);
   });
 
   await stage("Logout", async () => {

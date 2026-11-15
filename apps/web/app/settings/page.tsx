@@ -1,8 +1,11 @@
+import type { Metadata } from "next";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { PageTitle } from "@/components/page-title";
 import { ResetTipsButton } from "@/components/help";
 import { DEFAULT_PROFILE, MONTHLY_BUDGET_USD, spentThisMonthUsd } from "@/lib/server/repo";
+
+export const metadata: Metadata = { title: "Settings" };
 
 /** Values come from the runtime environment (budget), so they are read per request, not frozen at build time. */
 async function SettingsRows() {
