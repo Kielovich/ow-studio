@@ -280,13 +280,13 @@ async function main() {
     await page.goto(`${BASE}/models`);
     await page.getByTestId("model-card").first().waitFor();
     check(await page.getByTestId("model-card").count() === SEEDED_MODELS, `models page shows one card per model (${SEEDED_MODELS})`);
-    await page.getByTestId("model-card").filter({ hasText: "Freja" }).click();
+    await page.getByTestId("model-card").first().click();
     await page.getByText("← All models").waitFor();
     check(await page.getByRole("button", { name: /Identity portrait|Body, front|Character sheet/ }).count() >= 3, "a model page shows her reference images");
     await page.getByRole("button", { name: /Body, front/ }).first().click();
     check(await page.getByRole("dialog").getByRole("img").first().waitFor({ timeout: 10000 }).then(() => true, () => false), "a reference image opens large");
     await page.keyboard.press("Escape");
-    check(await noOverflow(page), "/models/M11 has no horizontal scroll at 1440 px");
+    check(await noOverflow(page), "a model page has no horizontal scroll at 1440 px");
     await page.keyboard.press("Tab");
     const ring = await page.evaluate(() => getComputedStyle(document.activeElement).outlineStyle);
     check(ring !== "none", "keyboard focus is visible");
@@ -398,7 +398,7 @@ async function main() {
     const m = await browser.newContext({ ...devices["iPhone 13"], storageState: await ctx.storageState() });
     const mp = await m.newPage();
     watch(mp, "mobile");
-    for (const path of ["/", "/productions", prodUrl.replace(BASE, ""), "/productions/new", "/models", "/models/M11", "/models/new", "/coming-soon", "/settings"]) {
+    for (const path of ["/", "/productions", prodUrl.replace(BASE, ""), "/productions/new", "/models", "/models/M13", "/models/new", "/coming-soon", "/settings"]) {
       await mp.goto(`${BASE}${path}`);
       await mp.waitForTimeout(2500);
       check(await noOverflow(mp), `${path} has no horizontal scroll at 390 px`);

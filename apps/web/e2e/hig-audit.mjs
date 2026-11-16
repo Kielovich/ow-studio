@@ -95,7 +95,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const { createRequire } = await import("node:module");
   const { chromium, devices } = createRequire(import.meta.url)("playwright");
   const base = process.argv[2] ?? "http://localhost:3100";
-  const paths = process.argv.slice(3).length ? process.argv.slice(3) : ["/", "/productions", "/productions/new", "/models", "/models/M11", "/settings", "/login"];
+  const paths = process.argv.slice(3).length ? process.argv.slice(3) : ["/", "/productions", "/productions/new", "/models", "/models/M13", "/settings", "/login"];
   const browser = await chromium.launch();
   let total = 0;
   for (const [label, opts, phone] of [["phone", { ...devices["iPhone 13"] }, true], ["desktop", { viewport: { width: 1440, height: 900 } }, false]]) {

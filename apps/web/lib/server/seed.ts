@@ -18,8 +18,9 @@ type SeedFile = { exportedAt: string; models: { status: string; data: any }[] };
  * M07 Liv, M08 Nadia, M09 Noa, M10 Kaia, M01 Sable, M06 Lucía: replaced on 2026-11-15 by new models of the same
  * types, made as real photographs (M13 Signe, M14 Yuna, M15 Elena, M16 Amara, M17 Mara, M18 Valeria); their
  * references could not be refreshed without the generator copying them.
+ * M11 Freja, M12 Inés: removed by the owner on 2026-11-16.
  */
-export const RETIRED_MODELS = ["M05", "M07", "M08", "M09", "M10", "M01", "M06"] as const;
+export const RETIRED_MODELS = ["M05", "M07", "M08", "M09", "M10", "M01", "M06", "M11", "M12"] as const;
 
 export function retireModels(ids: readonly string[] = RETIRED_MODELS): number {
   if (!ids.length) return 0;
