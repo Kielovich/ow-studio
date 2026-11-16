@@ -100,7 +100,12 @@ const hig = async (page, label, phone) => {
   const first = Object.entries(a).flatMap(([k, v]) => v.map((x) => `${k}: ${x}`)).slice(0, 3).join("; ");
   check(auditCount(a) === 0, `${label} meets the HIG checks${phone ? " on a phone" : ""}${first ? ` (${first})` : ""}`);
 };
-const shot = async (page, name) => { if (SHOTS) await page.screenshot({ path: join(SHOTS, `${name}.png`), fullPage: true }); };
+const shot = async (page, name) => {
+  if (!SHOTS) return;
+  // Wait for the pictures, so a screenshot never shows a black frame where an image was still loading.
+  await page.waitForFunction(() => [...document.images].every((i) => i.complete), null, { timeout: 15000 }).catch(() => {});
+  await page.screenshot({ path: join(SHOTS, `${name}.png`), fullPage: true });
+};
 
 async function main() {
   await makeFixtures();
@@ -136,7 +141,7 @@ async function main() {
       && await tools.first().getAttribute("href") === "/productions/new"
       && await tools.nth(1).getAttribute("href") === "/models/new"
       && await tools.first().locator("img").count() === 1
-      && await tools.nth(1).locator("img").count() === 3
+      && await tools.nth(1).locator("img").count() === 4
       && await page.getByTestId("coming-soon-link").count() === 3
       && await page.locator("main a[href^='/productions/']:not([href='/productions/new'])").count() === 0
       && !(await page.getByText(/to review/i).count()),
